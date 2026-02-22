@@ -23,8 +23,9 @@ tailwind.config = {
       colors: {
         "primary":"#62a735","primary-dark":"#4a8525","sidebar":"#1B2A4A",
         "background-light":"#f7f8f6","background-dark":"#121418",
-        "card-dark":"#1e252e","surface-dark":"#161c24",
+        "card-dark":"#1e252e","surface-dark":"#161c24","surface-light":"#ffffff",
         "oxfam-green":"#61A534","danger":"#ef4444","warning":"#f59e0b","info":"#3b82f6",
+        "secondary":"#3b82f6","tertiary":"#f59e0b","success":"#22c55e",
       },
       fontFamily:{"display":["Inter","sans-serif"]},
       borderRadius:{"DEFAULT":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem","full":"9999px"},
@@ -34,12 +35,45 @@ tailwind.config = {
 </script>
 <style>
 html,body{height:100%;margin:0;overflow:hidden}
-::-webkit-scrollbar{width:5px;height:5px}
+
+/* Global scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#334e85;border-radius:4px}
+.dark ::-webkit-scrollbar-track{background:rgba(0,0,0,0.1)}
+::-webkit-scrollbar-thumb{background:#c1c9d4;border-radius:4px}
 ::-webkit-scrollbar-thumb:hover{background:#62a735}
+.dark ::-webkit-scrollbar-thumb{background:#334e85}
+.dark ::-webkit-scrollbar-thumb:hover{background:#62a735}
+*{scrollbar-width:thin;scrollbar-color:#c1c9d4 transparent}
+.dark *{scrollbar-color:#334e85 transparent}
+
+/* Custom scrollbar for panels */
+.custom-scrollbar::-webkit-scrollbar{width:6px}
+.custom-scrollbar::-webkit-scrollbar-track{background:rgba(255,255,255,0.05)}
+.custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:10px}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+
+/* Range slider */
+input[type=range]{-webkit-appearance:none;background:transparent}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{width:100%;height:4px;cursor:pointer;background:#e2e8f0;border-radius:2px}
+.dark input[type=range]::-webkit-slider-runnable-track{background:#334155}
+input[type=range]:focus::-webkit-slider-runnable-track{background:#cbd5e1}
+.dark input[type=range]:focus::-webkit-slider-runnable-track{background:#475569}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:16px;width:16px;border-radius:50%;background:#62a735;cursor:pointer;margin-top:-6px;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,0.15);transition:transform 0.15s ease,box-shadow 0.15s ease}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 0 0 2px #fff,0 0 0 5px rgba(98,167,53,0.2)}
+input[type=range]::-moz-range-track{width:100%;height:4px;cursor:pointer;background:#e2e8f0;border-radius:2px}
+input[type=range]::-moz-range-thumb{height:16px;width:16px;border-radius:50%;background:#62a735;cursor:pointer;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+
+/* Navigation active state */
 .cfadt-nav.active{background:rgba(98,167,53,0.15)!important;color:#fff!important;border-left-color:#62a735!important}
 .cfadt-nav.active .material-symbols-outlined{color:#62a735!important}
+
+/* Sidebar collapse */
 #cfadt-sidebar.collapsed{width:56px!important;min-width:56px!important}
 #cfadt-sidebar.collapsed .nav-text,
 #cfadt-sidebar.collapsed .brand-text,
@@ -49,191 +83,50 @@ html,body{height:100%;margin:0;overflow:hidden}
 #cfadt-sidebar.collapsed .cfadt-nav{justify-content:center;padding-left:0;padding-right:0}
 #cfadt-sidebar.collapsed .brand-box{justify-content:center;padding:0.75rem}
 #cfadt-sidebar.collapsed .user-box{justify-content:center;padding:0.4rem}
+
+/* Page transitions */
 @keyframes cfadtIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .page-section[style*="display: flex"],.page-section[style*="display:flex"]{animation:cfadtIn 0.22s ease-out}
 
-/* Overview */
-/* Custom scrollbar for sidebar if needed */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1B2A4A; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334e85; 
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #62a735; 
-        }
+/* Map district hover */
+.district-path{transition:fill 0.2s ease,filter 0.2s ease}
+.district-path:hover{fill:#62a735;cursor:pointer;filter:drop-shadow(0 0 8px rgba(98,167,53,0.4))}
 
-        /* Map specific styles */
-        .district-path:hover {
-            fill: #62a735;
-            cursor: pointer;
-            transition: fill 0.2s ease;
-            filter: drop-shadow(0 0 8px rgba(98, 167, 53, 0.4));
-        }
+/* Glassmorphism */
+.glass-panel{background:rgba(16,25,34,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 32px 0 rgba(0,0,0,0.37)}
 
-/* Layer 1: CRI */
-/* Custom range slider styling */
-        input[type=range] {
-            -webkit-appearance: none; 
-            background: transparent; 
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-        }
-        input[type=range]:focus {
-            outline: none; 
-        }
+/* Map pattern background */
+.bg-map-pattern{background-color:#101922;background-image:radial-gradient(circle at 50% 50%,#162635 2px,transparent 2.5px),linear-gradient(to right,rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:24px 24px,100px 100px,100px 100px}
 
-/* Layer 3: Allocation */
-/* Custom scrollbar for table */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #6aec13;
-            cursor: pointer;
-            margin-top: -6px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #e5e7eb;
-            border-radius: 2px;
-        }
+/* Map highlight pulse */
+.map-highlight{position:absolute;top:55%;left:45%;width:120px;height:140px;background:rgba(98,167,53,0.15);border:2px solid #62a735;border-radius:40% 60% 70% 30%/40% 50% 60% 50%;filter:drop-shadow(0 0 15px rgba(98,167,53,0.4));animation:pulse-border 3s infinite}
+@keyframes pulse-border{
+  0%{border-color:rgba(98,167,53,0.6);box-shadow:0 0 0 0 rgba(98,167,53,0.4)}
+  70%{border-color:rgba(98,167,53,1);box-shadow:0 0 0 10px rgba(98,167,53,0)}
+  100%{border-color:rgba(98,167,53,0.6);box-shadow:0 0 0 0 rgba(98,167,53,0)}
+}
 
-/* Layer 4: Scenarios */
-/* Custom range slider styling for dark mode */
-        input[type=range] {
-            -webkit-appearance: none; 
-            background: transparent; 
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #135bec;
-            cursor: pointer;
-            margin-top: -6px; 
-            box-shadow: 0 0 0 2px #fff;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 2px;
-        }
-        input[type=range]:focus::-webkit-slider-runnable-track {
-            background: #475569;
-        }
-        /* Scrollbar hiding */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+/* Mobile sidebar */
+@media(max-width:767px){
+  #cfadt-sidebar{position:fixed;left:0;top:0;z-index:50;transform:translateX(-100%);transition:transform 0.3s ease}
+  #cfadt-sidebar.mobile-open{transform:translateX(0)}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40}
+  .sidebar-overlay.active{display:block}
+}
 
-/* Map Explorer */
-/* Custom scrollbar for dark mode panels */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Glassmorphism utility */
-        .glass-panel {
-            background: rgba(16, 25, 34, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        /* Map placeholder pattern */
-        .bg-map-pattern {
-            background-color: #101922;
-            background-image: 
-                radial-gradient(circle at 50% 50%, #162635 2px, transparent 2.5px),
-                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 24px 24px, 100px 100px, 100px 100px;
-        }
-        
-        /* Satkhira Highlight Effect on Map */
-        .map-highlight {
-            position: absolute;
-            top: 55%;
-            left: 45%;
-            width: 120px;
-            height: 140px;
-            background: rgba(19, 127, 236, 0.2);
-            border: 2px solid #137fec;
-            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-            filter: drop-shadow(0 0 15px rgba(19, 127, 236, 0.5));
-            animation: pulse-border 3s infinite;
-        }
-
-        @keyframes pulse-border {
-            0% { border-color: rgba(19, 127, 236, 0.6); box-shadow: 0 0 0 0 rgba(19, 127, 236, 0.4); }
-            70% { border-color: rgba(19, 127, 236, 1); box-shadow: 0 0 0 10px rgba(19, 127, 236, 0); }
-            100% { border-color: rgba(19, 127, 236, 0.6); box-shadow: 0 0 0 0 rgba(19, 127, 236, 0); }
-        }
-
-/* Settings */
-/* Custom scrollbar for dark mode admin feel */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #111822; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #374151; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563; 
-        }
+/* Card hover enhancement */
+.card-hover{transition:border-color 0.2s ease,box-shadow 0.2s ease}
+.card-hover:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.dark .card-hover:hover{box-shadow:0 4px 12px rgba(0,0,0,0.3)}
 </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased h-screen flex overflow-hidden">
 
+<!-- Mobile Sidebar Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
 <!-- SIDEBAR -->
-<aside id="cfadt-sidebar" class="w-56 bg-sidebar h-full flex flex-col flex-shrink-0 transition-all duration-300 z-30 border-r border-white/5">
+<aside id="cfadt-sidebar" class="w-56 bg-sidebar h-full flex flex-col flex-shrink-0 transition-all duration-300 z-50 md:z-30 border-r border-white/5">
   <div class="brand-box p-4 flex items-center gap-3 border-b border-white/10">
     <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -317,73 +210,71 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div id="page-overview" class="page-section flex-1 flex flex-col overflow-hidden" style="display:flex">
   <div class="flex-1 overflow-y-auto scroll-smooth">
     <div class="p-4 md:p-6 max-w-[1600px] mx-auto w-full">
-      <!-- Scrollable Dashboard Content -->
-<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
-<div class="max-w-[1600px] mx-auto flex flex-col gap-6">
+<div class="flex flex-col gap-6">
 <!-- KPI Row -->
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 <!-- KPI 1 -->
-<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="bg-white dark:bg-card-dark rounded-xl p-4 border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary/30 transition-all">
 <div class="flex justify-between items-start mb-2">
 <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Districts Monitored</span>
 <span class="material-symbols-outlined text-slate-600 text-[20px]">location_on</span>
 </div>
-<div class="text-2xl font-bold text-white mb-1">64</div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white mb-1">64</div>
 <div class="flex items-center text-xs text-slate-500">
 <span class="text-primary mr-1 font-medium">100%</span> coverage
                         </div>
 </div>
 <!-- KPI 2 -->
-<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="bg-white dark:bg-card-dark rounded-xl p-4 border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary/30 transition-all">
 <div class="flex justify-between items-start mb-2">
 <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Avg CRI Score</span>
 <span class="material-symbols-outlined text-slate-600 text-[20px]">analytics</span>
 </div>
-<div class="text-2xl font-bold text-white mb-1">6.8</div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white mb-1">6.8</div>
 <div class="flex items-center text-xs text-slate-500">
 <span class="text-primary mr-1 font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> 2.1%</span> vs last year
                         </div>
 </div>
 <!-- KPI 3 -->
-<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="bg-white dark:bg-card-dark rounded-xl p-4 border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary/30 transition-all">
 <div class="flex justify-between items-start mb-2">
 <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">High Priority</span>
 <span class="material-symbols-outlined text-danger text-[20px]">warning</span>
 </div>
-<div class="text-2xl font-bold text-white mb-1">14</div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white mb-1">14</div>
 <div class="flex items-center text-xs text-slate-500">
 <span class="text-danger mr-1 font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> +4</span> districts
                         </div>
 </div>
 <!-- KPI 4 -->
-<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="bg-white dark:bg-card-dark rounded-xl p-4 border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary/30 transition-all">
 <div class="flex justify-between items-start mb-2">
 <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Budget</span>
 <span class="material-symbols-outlined text-slate-600 text-[20px]">account_balance_wallet</span>
 </div>
-<div class="text-2xl font-bold text-white mb-1">৳ 450M</div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white mb-1">৳ 450M</div>
 <div class="flex items-center text-xs text-slate-500">
 <span class="text-primary mr-1 font-medium">+12%</span> allocation
                         </div>
 </div>
 <!-- KPI 5 -->
-<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="bg-white dark:bg-card-dark rounded-xl p-4 border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary/30 transition-all">
 <div class="flex justify-between items-start mb-2">
 <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Gini Coeff</span>
 <span class="material-symbols-outlined text-slate-600 text-[20px]">equalizer</span>
 </div>
-<div class="text-2xl font-bold text-white mb-1">0.42</div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white mb-1">0.42</div>
 <div class="flex items-center text-xs text-slate-500">
 <span class="text-warning mr-1 font-medium">Moderate</span> inequality
                         </div>
 </div>
 <!-- KPI 6 -->
-<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="bg-white dark:bg-card-dark rounded-xl p-4 border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary/30 transition-all">
 <div class="flex justify-between items-start mb-2">
 <span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Population Impact</span>
 <span class="material-symbols-outlined text-slate-600 text-[20px]">groups</span>
 </div>
-<div class="text-2xl font-bold text-white mb-1">12.5M</div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white mb-1">12.5M</div>
 <div class="flex items-center text-xs text-slate-500">
 <span class="text-primary mr-1 font-medium">Direct</span> beneficiaries
                         </div>
@@ -392,9 +283,9 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Main Section: Map + Top Charts -->
 <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-auto xl:h-[500px]">
 <!-- Map Container -->
-<div class="xl:col-span-7 bg-card-dark rounded-xl border border-white/5 flex flex-col overflow-hidden relative">
-<div class="p-5 border-b border-white/5 flex justify-between items-center bg-card-dark/50 backdrop-blur z-10">
-<h2 class="text-white font-semibold flex items-center gap-2">
+<div class="xl:col-span-7 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col overflow-hidden relative">
+<div class="p-5 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-card-dark/50 backdrop-blur z-10">
+<h2 class="text-slate-900 dark:text-white font-semibold flex items-center gap-2">
 <span class="material-symbols-outlined text-primary">public</span>
                                 Bangladesh Vulnerability Map
                             </h2>
@@ -405,7 +296,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-primary"></span>Low</span>
 </div>
 </div>
-<div class="flex-1 relative bg-[#151a21] w-full h-full p-4 flex items-center justify-center">
+<div class="flex-1 relative bg-slate-50 dark:bg-[#151a21] w-full h-full p-4 flex items-center justify-center">
 <!-- Abstract SVG Map of Bangladesh -->
 <svg class="w-full h-full max-h-[420px]" preserveaspectratio="xMidYMid meet" viewbox="0 0 400 500">
 <defs>
@@ -428,14 +319,14 @@ html,body{height:100%;margin:0;overflow:hidden}
 <path class="district-path opacity-80" d="M220,320 L280,300 L340,320 L360,400 L300,460 L240,400 Z" data-alt="South-eastern medium risk coastal district" fill="#eab308" stroke="#1e252e" stroke-width="1"></path>
 </svg>
 <!-- Floating Tooltip Example (simulated) -->
-<div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-slate-800 text-xs p-3 rounded shadow-lg border border-slate-700 pointer-events-none z-20 hidden group-hover:block">
-<div class="font-bold text-white mb-1">Kurigram District</div>
+<div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-white dark:bg-slate-800 text-xs p-3 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 pointer-events-none z-20 hidden group-hover:block">
+<div class="font-bold text-slate-900 dark:text-white mb-1">Kurigram District</div>
 <div class="grid grid-cols-2 gap-x-3 gap-y-1">
 <span class="text-slate-400">Risk Level:</span> <span class="text-red-400 font-semibold">High</span>
 <span class="text-slate-400">CRI Score:</span> <span class="text-white">8.4</span>
 </div>
 </div>
-<div class="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur px-3 py-2 rounded border border-white/10 text-xs">
+<div class="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-900/80 backdrop-blur px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 text-xs shadow-sm">
 <div class="text-slate-400 mb-1">Select a district to filter charts</div>
 <div class="flex gap-2">
 <button class="w-6 h-6 flex items-center justify-center bg-white/10 rounded hover:bg-white/20 text-white"><span class="material-symbols-outlined text-[16px]">add</span></button>
@@ -447,85 +338,85 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Right Side Charts -->
 <div class="xl:col-span-5 flex flex-col gap-6 h-full">
 <!-- Top 10 Vulnerable Districts -->
-<div class="bg-card-dark rounded-xl border border-white/5 flex flex-col flex-1 min-h-[240px]">
-<div class="p-4 border-b border-white/5 flex justify-between items-center">
-<h3 class="text-white font-semibold text-sm">Top Vulnerable Districts</h3>
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col flex-1 min-h-[240px]">
+<div class="p-4 border-b border-slate-200 dark:border-white/5 flex justify-between items-center">
+<h3 class="text-slate-900 dark:text-white font-semibold text-sm">Top Vulnerable Districts</h3>
 <button class="text-slate-400 hover:text-white"><span class="material-symbols-outlined text-[18px]">more_horiz</span></button>
 </div>
 <div class="p-4 flex-1 flex flex-col justify-center gap-3">
 <!-- Bar Item -->
 <div class="flex items-center text-xs">
-<span class="w-20 text-slate-300 font-medium shrink-0">Kurigram</span>
-<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<span class="w-20 text-slate-600 dark:text-slate-300 font-medium shrink-0">Kurigram</span>
+<div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mx-2">
 <div class="h-full bg-red-500 rounded-full" style="width: 92%"></div>
 </div>
-<span class="w-8 text-right text-white font-bold">9.2</span>
+<span class="w-8 text-right text-slate-900 dark:text-white font-bold">9.2</span>
 </div>
 <div class="flex items-center text-xs">
-<span class="w-20 text-slate-300 font-medium shrink-0">Satkhira</span>
-<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<span class="w-20 text-slate-600 dark:text-slate-300 font-medium shrink-0">Satkhira</span>
+<div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mx-2">
 <div class="h-full bg-red-500 rounded-full" style="width: 88%"></div>
 </div>
-<span class="w-8 text-right text-white font-bold">8.8</span>
+<span class="w-8 text-right text-slate-900 dark:text-white font-bold">8.8</span>
 </div>
 <div class="flex items-center text-xs">
-<span class="w-20 text-slate-300 font-medium shrink-0">Sunamganj</span>
-<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<span class="w-20 text-slate-600 dark:text-slate-300 font-medium shrink-0">Sunamganj</span>
+<div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mx-2">
 <div class="h-full bg-orange-500 rounded-full" style="width: 81%"></div>
 </div>
-<span class="w-8 text-right text-white font-bold">8.1</span>
+<span class="w-8 text-right text-slate-900 dark:text-white font-bold">8.1</span>
 </div>
 <div class="flex items-center text-xs">
-<span class="w-20 text-slate-300 font-medium shrink-0">Gaibandha</span>
-<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<span class="w-20 text-slate-600 dark:text-slate-300 font-medium shrink-0">Gaibandha</span>
+<div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mx-2">
 <div class="h-full bg-orange-500 rounded-full" style="width: 76%"></div>
 </div>
-<span class="w-8 text-right text-white font-bold">7.6</span>
+<span class="w-8 text-right text-slate-900 dark:text-white font-bold">7.6</span>
 </div>
 <div class="flex items-center text-xs">
-<span class="w-20 text-slate-300 font-medium shrink-0">Bhola</span>
-<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<span class="w-20 text-slate-600 dark:text-slate-300 font-medium shrink-0">Bhola</span>
+<div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mx-2">
 <div class="h-full bg-orange-500 rounded-full" style="width: 74%"></div>
 </div>
-<span class="w-8 text-right text-white font-bold">7.4</span>
+<span class="w-8 text-right text-slate-900 dark:text-white font-bold">7.4</span>
 </div>
 </div>
 </div>
 <!-- Priority Distribution Donut Chart -->
-<div class="bg-card-dark rounded-xl border border-white/5 flex flex-col flex-1 min-h-[220px]">
-<div class="p-4 border-b border-white/5">
-<h3 class="text-white font-semibold text-sm">Priority Distribution</h3>
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col flex-1 min-h-[220px]">
+<div class="p-4 border-b border-slate-200 dark:border-white/5">
+<h3 class="text-slate-900 dark:text-white font-semibold text-sm">Priority Distribution</h3>
 </div>
 <div class="p-4 flex items-center justify-between">
 <div class="relative w-32 h-32 flex items-center justify-center shrink-0">
 <!-- CSS Conic Gradient Donut -->
 <div class="w-full h-full rounded-full" style="background: conic-gradient(#ef4444 0% 25%, #f97316 25% 65%, #62a735 65% 100%); mask-image: radial-gradient(transparent 55%, black 56%); -webkit-mask-image: radial-gradient(transparent 55%, black 56%);"></div>
 <div class="absolute text-center">
-<span class="block text-xl font-bold text-white">64</span>
-<span class="text-[10px] text-slate-400 uppercase">Districts</span>
+<span class="block text-xl font-bold text-slate-900 dark:text-white">64</span>
+<span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Districts</span>
 </div>
 </div>
 <div class="flex flex-col gap-3 flex-1 ml-6">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-2">
 <span class="w-3 h-3 rounded-full bg-red-500"></span>
-<span class="text-xs text-slate-300">High Priority</span>
+<span class="text-xs text-slate-600 dark:text-slate-300">High Priority</span>
 </div>
-<span class="text-xs font-bold text-white">25%</span>
+<span class="text-xs font-bold text-slate-900 dark:text-white">25%</span>
 </div>
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-2">
 <span class="w-3 h-3 rounded-full bg-orange-500"></span>
-<span class="text-xs text-slate-300">Medium Priority</span>
+<span class="text-xs text-slate-600 dark:text-slate-300">Medium Priority</span>
 </div>
-<span class="text-xs font-bold text-white">40%</span>
+<span class="text-xs font-bold text-slate-900 dark:text-white">40%</span>
 </div>
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-2">
 <span class="w-3 h-3 rounded-full bg-primary"></span>
-<span class="text-xs text-slate-300">Low Priority</span>
+<span class="text-xs text-slate-600 dark:text-slate-300">Low Priority</span>
 </div>
-<span class="text-xs font-bold text-white">35%</span>
+<span class="text-xs font-bold text-slate-900 dark:text-white">35%</span>
 </div>
 </div>
 </div>
@@ -535,26 +426,26 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Bottom Row: Radar Chart & Comparative Analysis -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 <!-- Text/Legend Context -->
-<div class="bg-card-dark rounded-xl border border-white/5 p-6 flex flex-col justify-between">
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-white/5 shadow-sm p-6 flex flex-col justify-between">
 <div>
-<h3 class="text-lg font-semibold text-white mb-2">CRI Dimension Analysis</h3>
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">CRI Dimension Analysis</h3>
 <p class="text-sm text-slate-400 mb-6">Comparative view of Hazard, Exposure, Sensitivity, and Adaptive Capacity for selected districts.</p>
 <div class="space-y-4">
-<div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+<div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
 <span class="w-3 h-3 rounded-full bg-primary shadow shadow-primary/50"></span>
 <div class="flex-1">
-<div class="text-sm font-medium text-white">Kurigram</div>
+<div class="text-sm font-medium text-slate-900 dark:text-white">Kurigram</div>
 <div class="text-xs text-slate-500">High flood risk zone</div>
 </div>
-<span class="text-white font-bold text-sm">8.4</span>
+<span class="text-slate-900 dark:text-white font-bold text-sm">8.4</span>
 </div>
-<div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+<div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
 <span class="w-3 h-3 rounded-full bg-blue-500 shadow shadow-blue-500/50"></span>
 <div class="flex-1">
-<div class="text-sm font-medium text-white">Satkhira</div>
+<div class="text-sm font-medium text-slate-900 dark:text-white">Satkhira</div>
 <div class="text-xs text-slate-500">Salinity prone zone</div>
 </div>
-<span class="text-white font-bold text-sm">7.9</span>
+<span class="text-slate-900 dark:text-white font-bold text-sm">7.9</span>
 </div>
 </div>
 </div>
@@ -563,7 +454,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </button>
 </div>
 <!-- Radar Chart Visualization Area -->
-<div class="lg:col-span-2 bg-card-dark rounded-xl border border-white/5 p-6 relative overflow-hidden flex items-center justify-center">
+<div class="lg:col-span-2 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-white/5 shadow-sm p-6 relative overflow-hidden flex items-center justify-center">
 <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent pointer-events-none"></div>
 <!-- CSS/SVG Radar Chart Representation -->
 <div class="relative w-full max-w-md aspect-video md:aspect-auto md:h-64">
@@ -598,17 +489,16 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Footer -->
-<div class="max-w-[1600px] mx-auto mt-12 py-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
-<p>© 2023 Oxfam Bangladesh. All rights reserved.</p>
+<div class="max-w-[1600px] mx-auto mt-12 py-6 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+<p>© 2025 Oxfam Bangladesh. All rights reserved.</p>
 <div class="flex gap-4 mt-2 md:mt-0">
 <a class="hover:text-white transition-colors" href="#">Privacy Policy</a>
 <a class="hover:text-white transition-colors" href="#">Terms of Service</a>
 </div>
 </div>
-</div>
     </div>
   </div>
-  
+
 </div>
 
 <!-- Layer 1: CRI -->
@@ -974,11 +864,11 @@ html,body{height:100%;margin:0;overflow:hidden}
 <p class="text-slate-500 mt-1 max-w-2xl">Adjust criteria weights to simulate prioritization scenarios. Real-time analysis for climate finance distribution.</p>
 </div>
 <div class="flex gap-3">
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151c2b] text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm shadow-sm">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm shadow-sm">
 <span class="material-symbols-outlined text-[18px]">download</span>
                         Export Report
                     </button>
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-600 transition-colors text-sm shadow-md shadow-blue-500/20">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors text-sm shadow-md shadow-primary/20">
 <span class="material-symbols-outlined text-[18px]">save</span>
                         Save Model
                     </button>
@@ -986,7 +876,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Weight Configuration Card -->
-<section class="bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+<section class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
 <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined text-primary text-2xl">tune</span>
@@ -1067,7 +957,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Main Content Area: Split View -->
 <div class="flex flex-col lg:flex-row gap-6 h-full">
 <!-- LEFT: Ranking Table (60%) -->
-<div class="flex-1 lg:w-3/5 flex flex-col bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden h-[600px]">
+<div class="flex-1 lg:w-3/5 flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden h-[600px]">
 <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
 <div class="flex items-center gap-3">
 <span class="bg-primary/10 text-primary p-2 rounded-lg material-symbols-outlined">table_chart</span>
@@ -1099,7 +989,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </thead>
 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
 <!-- Row 1 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-primary">#1</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Kurigram</td>
 <td class="px-5 py-3 text-slate-500">Rangpur</td>
@@ -1112,7 +1002,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 2 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-primary">#2</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Gaibandha</td>
 <td class="px-5 py-3 text-slate-500">Rangpur</td>
@@ -1123,7 +1013,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 3 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-primary">#3</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Sunamganj</td>
 <td class="px-5 py-3 text-slate-500">Sylhet</td>
@@ -1136,7 +1026,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 4 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#4</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Sirajganj</td>
 <td class="px-5 py-3 text-slate-500">Rajshahi</td>
@@ -1149,7 +1039,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 5 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#5</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Jamalpur</td>
 <td class="px-5 py-3 text-slate-500">Mymensingh</td>
@@ -1160,7 +1050,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 6 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#6</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Bhola</td>
 <td class="px-5 py-3 text-slate-500">Barisal</td>
@@ -1173,7 +1063,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 7 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#7</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Satkhira</td>
 <td class="px-5 py-3 text-slate-500">Khulna</td>
@@ -1184,7 +1074,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </td>
 </tr>
 <!-- Row 8 -->
-<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<tr class="hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
 <td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#8</td>
 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Bagerhat</td>
 <td class="px-5 py-3 text-slate-500">Khulna</td>
@@ -1202,16 +1092,16 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
 <span class="text-xs text-slate-500">Showing 1-8 of 64 districts</span>
 <div class="flex gap-2">
-<button class="size-8 flex items-center justify-center rounded border border-slate-300 bg-white text-slate-400 cursor-not-allowed">
+<button class="size-8 flex items-center justify-center rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-400 cursor-not-allowed">
 <span class="material-symbols-outlined text-sm">chevron_left</span>
 </button>
-<button class="size-8 flex items-center justify-center rounded border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors">
+<button class="size-8 flex items-center justify-center rounded border border-primary bg-primary/10 text-primary font-medium transition-colors">
 <span class="text-sm font-medium">1</span>
 </button>
-<button class="size-8 flex items-center justify-center rounded border border-transparent bg-transparent hover:bg-slate-100 text-slate-500 transition-colors">
+<button class="size-8 flex items-center justify-center rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors">
 <span class="text-sm font-medium">2</span>
 </button>
-<button class="size-8 flex items-center justify-center rounded border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors">
+<button class="size-8 flex items-center justify-center rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors">
 <span class="material-symbols-outlined text-sm">chevron_right</span>
 </button>
 </div>
@@ -1220,7 +1110,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- RIGHT: Analysis & Visualization (40%) -->
 <div class="flex-1 lg:w-2/5 flex flex-col gap-6">
 <!-- Chart Card -->
-<div class="bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full">
 <div class="flex items-center justify-between mb-6">
 <div class="flex items-center gap-3">
 <span class="bg-primary/10 text-primary p-2 rounded-lg material-symbols-outlined">bar_chart</span>
@@ -1301,7 +1191,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Threshold Editor Mini-Panel -->
-<div class="bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
 <div class="flex items-center justify-between mb-4">
 <div class="flex items-center gap-2">
 <span class="material-symbols-outlined text-slate-400">tune</span>
@@ -1355,7 +1245,7 @@ html,body{height:100%;margin:0;overflow:hidden}
                 </p>
 </div>
 <!-- Control Parameters Strip -->
-<div class="flex flex-wrap items-center gap-4 bg-white dark:bg-[#1e2b16] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 w-full xl:w-auto flex-1">
+<div class="flex flex-wrap items-center gap-4 bg-white dark:bg-surface-dark p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 w-full xl:w-auto flex-1">
 <!-- Budget Input -->
 <div class="flex flex-col gap-1.5 min-w-[200px] flex-1">
 <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Budget Envelope (BDT)</label>
@@ -1407,7 +1297,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Main Content Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-[500px]">
 <!-- Col 1: Map Visualization (4 cols) -->
-<div class="lg:col-span-4 bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex flex-col relative overflow-hidden group">
+<div class="lg:col-span-4 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex flex-col relative overflow-hidden group">
 <div class="flex justify-between items-center mb-4 z-10">
 <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
 <span class="material-symbols-outlined text-primary">public</span>
@@ -1420,36 +1310,36 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Map Container -->
 <div class="flex-1 w-full bg-slate-50 dark:bg-slate-900 rounded-lg relative flex items-center justify-center overflow-hidden">
 <!-- Placeholder for Map - Using an SVG pattern to represent map data abstractly -->
-<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#6aec13 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#62a735 1px, transparent 1px); background-size: 20px 20px;"></div>
 <!-- Abstract Map Representation -->
 <svg class="w-full h-full p-8 drop-shadow-xl filter" viewbox="0 0 200 240">
 <path class="dark:fill-slate-800 dark:stroke-slate-600" d="M60,20 L140,20 L160,80 L130,140 L150,190 L90,220 L40,180 L20,100 Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"></path>
 <!-- Highlighted Regions (Choropleth effect) -->
-<path d="M60,20 L100,20 L110,60 L70,50 Z" fill="#6aec13" fill-opacity="0.2"></path>
-<path d="M100,20 L140,20 L160,80 L110,60 Z" fill="#6aec13" fill-opacity="0.4"></path>
-<path d="M160,80 L130,140 L100,100 L110,60 Z" fill="#6aec13" fill-opacity="0.8"></path> <!-- High allocation -->
-<path d="M40,180 L90,220 L120,170 L80,130 Z" fill="#6aec13" fill-opacity="0.6"></path>
-<path d="M20,100 L70,50 L110,60 L100,100 L80,130 L40,180 Z" fill="#6aec13" fill-opacity="0.3"></path>
+<path d="M60,20 L100,20 L110,60 L70,50 Z" fill="#62a735" fill-opacity="0.2"></path>
+<path d="M100,20 L140,20 L160,80 L110,60 Z" fill="#62a735" fill-opacity="0.4"></path>
+<path d="M160,80 L130,140 L100,100 L110,60 Z" fill="#62a735" fill-opacity="0.8"></path> <!-- High allocation -->
+<path d="M40,180 L90,220 L120,170 L80,130 Z" fill="#62a735" fill-opacity="0.6"></path>
+<path d="M20,100 L70,50 L110,60 L100,100 L80,130 L40,180 Z" fill="#62a735" fill-opacity="0.3"></path>
 </svg>
 <!-- Legend Overlay -->
 <div class="absolute bottom-4 right-4 bg-white/90 dark:bg-black/60 backdrop-blur-sm p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm text-xs">
 <div class="flex flex-col gap-1">
 <span class="font-semibold mb-1">Allocation Intensity</span>
 <div class="flex items-center gap-2">
-<div class="w-3 h-3 bg-[#6aec13] opacity-20 rounded-sm"></div> <span class="text-slate-500">Low</span>
+<div class="w-3 h-3 bg-[#62a735] opacity-20 rounded-sm"></div> <span class="text-slate-500">Low</span>
 </div>
 <div class="flex items-center gap-2">
-<div class="w-3 h-3 bg-[#6aec13] opacity-60 rounded-sm"></div> <span class="text-slate-500">Medium</span>
+<div class="w-3 h-3 bg-[#62a735] opacity-60 rounded-sm"></div> <span class="text-slate-500">Medium</span>
 </div>
 <div class="flex items-center gap-2">
-<div class="w-3 h-3 bg-[#6aec13] opacity-100 rounded-sm"></div> <span class="text-slate-500">High</span>
+<div class="w-3 h-3 bg-[#62a735] opacity-100 rounded-sm"></div> <span class="text-slate-500">High</span>
 </div>
 </div>
 </div>
 </div>
 </div>
 <!-- Col 2: Data Table (5 cols) -->
-<div class="lg:col-span-5 bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+<div class="lg:col-span-5 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
 <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
 <h3 class="font-bold text-slate-900 dark:text-white">District Allocations</h3>
 <div class="flex gap-2">
@@ -1566,7 +1456,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <!-- Col 3: Widgets (3 cols) -->
 <div class="lg:col-span-3 flex flex-col gap-6">
 <!-- Widget 1: Gini Coefficient -->
-<div class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
 <div class="flex justify-between items-start mb-4">
 <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Inequality (Gini)</h4>
 <span class="material-symbols-outlined text-slate-400 text-lg">info</span>
@@ -1588,7 +1478,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Widget 2: Priority Class Bar -->
-<div class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex-1">
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex-1">
 <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide mb-4">Allocation by Priority</h4>
 <div class="flex flex-col gap-4">
 <div class="flex flex-col gap-1">
@@ -1621,7 +1511,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Widget 3: Per Capita Stat -->
-<div class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
 <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide mb-2">Per-Capita Range</h4>
 <div class="flex items-center gap-4">
 <div class="flex-1">
@@ -1638,7 +1528,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Comparison Chart Section -->
-<section class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+<section class="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
 <div class="flex justify-between items-center mb-6">
 <h3 class="font-bold text-slate-900 dark:text-white text-lg">Impact Analysis: Proportional vs. Equity-Adjusted</h3>
 <div class="flex items-center gap-4 text-sm">
@@ -1658,7 +1548,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[30%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[45%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[48%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[45%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[48%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Dhaka</span>
 <!-- Tooltip -->
@@ -1670,7 +1560,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[40%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[65%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[68%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[65%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[68%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Sylhet</span>
 </div>
@@ -1678,7 +1568,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[50%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[85%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[88%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[85%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[88%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Rangpur</span>
 </div>
@@ -1686,7 +1576,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[60%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[70%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[72%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[70%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[72%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Khulna</span>
 </div>
@@ -1694,7 +1584,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[55%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[60%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[62%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[60%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[62%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Barisal</span>
 </div>
@@ -1702,7 +1592,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[80%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[50%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[52%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[50%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[52%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Chittagong</span>
 </div>
@@ -1710,7 +1600,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[40%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[42%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[45%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[42%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[45%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Rajshahi</span>
 </div>
@@ -1718,7 +1608,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col items-center gap-2 w-full group relative">
 <div class="flex gap-1 h-full items-end w-full justify-center">
 <div class="w-1/3 bg-slate-300 rounded-t-sm h-[50%] transition-all group-hover:bg-slate-400"></div>
-<div class="w-1/3 bg-primary rounded-t-sm h-[55%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[58%]"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[55%] shadow-[0_0_10px_rgba(98,167,53,0.3)] transition-all group-hover:h-[58%]"></div>
 </div>
 <span class="text-xs font-medium text-slate-500 uppercase">Mymensingh</span>
 </div>
@@ -1726,33 +1616,37 @@ html,body{height:100%;margin:0;overflow:hidden}
 </section>
     </div>
   </div>
-  <!-- Sticky Footer -->
-<div class="fixed bottom-0 left-0 w-full bg-white/90 dark:bg-[#1e2b16]/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 z-40">
+  <!-- Sticky Footer (scoped to Layer 3) -->
+<div class="sticky bottom-0 left-0 w-full bg-white/95 dark:bg-surface-dark/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 z-20">
 <div class="max-w-[1600px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-<div class="flex items-center gap-8">
+<div class="flex items-center gap-6 sm:gap-8">
 <div class="flex flex-col">
 <span class="text-xs text-slate-500 uppercase font-semibold">Total Budget</span>
 <span class="font-mono text-lg font-bold text-slate-900 dark:text-white">৳ 250.00 Cr</span>
-
+</div>
 <div class="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
 <div class="flex flex-col">
 <span class="text-xs text-slate-500 uppercase font-semibold">Allocated</span>
 <span class="font-mono text-lg font-bold text-primary">৳ 250.00 Cr</span>
-
+</div>
 <div class="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
 <div class="flex flex-col">
 <span class="text-xs text-slate-500 uppercase font-semibold">Remaining</span>
 <span class="font-mono text-lg font-bold text-slate-400">৳ 0.00</span>
-
-
+</div>
+</div>
 <div class="flex gap-3 w-full sm:w-auto">
 <button class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                     Save Draft
                 </button>
-<button class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
+<button class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
 <span>Proceed to Layer 4</span>
 <span class="material-symbols-outlined text-sm">arrow_forward</span>
 </button>
+</div>
+</div>
+</div>
+
 </div>
 
 <!-- Layer 4: Scenarios -->
@@ -1770,7 +1664,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <span class="material-symbols-outlined text-[20px]">restart_alt</span>
                     Reset to Baseline
                 </button>
-<button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
+<button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20">
 <span class="material-symbols-outlined text-[20px]">play_arrow</span>
                     Run Simulation
                 </button>
@@ -1939,7 +1833,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Middle: Delta Strip -->
-<div class="col-span-12 md:col-span-2 bg-[#0d121c] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col items-center py-6 relative z-10">
+<div class="col-span-12 md:col-span-2 bg-slate-100 dark:bg-[#0d121c] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col items-center py-6 relative z-10">
 <div class="absolute inset-0 bg-repeat opacity-5 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 8px 8px;"></div>
 <h4 class="text-xs uppercase font-bold text-slate-500 mb-8">Delta</h4>
 <!-- Delta Visualizations -->
@@ -2128,12 +2022,26 @@ html,body{height:100%;margin:0;overflow:hidden}
 
 <!-- Map Explorer -->
 <div id="page-map" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
-  <div class="flex-1 overflow-y-auto scroll-smooth">
-    <div class="p-4 md:p-6 max-w-[1600px] mx-auto w-full">
+  <div class="flex-1 relative overflow-hidden">
+    <div class="absolute inset-0">
       <!-- Interactive Map Base (Simulated) -->
 <div class="absolute inset-0 z-0">
 <!-- Simulated Map Content -->
-<div class="w-full h-full relative opacity-60 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Bangladesh_location_map.svg/1714px-Bangladesh_location_map.svg.png')] bg-cover bg-center grayscale contrast-125 brightness-75" data-alt="Map of Bangladesh showing administrative boundaries" data-location="Bangladesh" style=""></div>
+<div class="w-full h-full relative bg-[#0d1117]" data-alt="Map of Bangladesh showing administrative boundaries" data-location="Bangladesh">
+<!-- SVG Map Background -->
+<svg class="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 400 500" preserveAspectRatio="xMidYMid meet">
+<path d="M150,50 L200,30 L250,50 L280,100 L230,120 L180,100 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M180,100 L230,120 L250,180 L200,200 L150,160 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M230,120 L280,100 L320,150 L300,220 L250,180 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M100,120 L150,160 L200,200 L160,280 L80,250 L80,180 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M200,200 L250,180 L300,220 L280,300 L220,320 L160,280 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M300,220 L320,150 L380,180 L390,280 L340,320 L280,300 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M160,280 L220,320 L240,400 L180,450 L120,420 L100,350 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+<path d="M220,320 L280,300 L340,320 L360,400 L300,460 L240,400 Z" fill="#1a3a2a" stroke="#2d5a3d" stroke-width="0.5"/>
+</svg>
+<!-- Grid overlay -->
+<div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px);background-size:60px 60px"></div>
+</div>
 <!-- Highlighted Region: Satkhira -->
 <div class="map-highlight z-10 cursor-pointer group">
 <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded border border-primary/50 whitespace-nowrap opacity-100 transition-opacity pointer-events-none backdrop-blur-sm">
@@ -2260,7 +2168,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Right Side Flyout Panel: District Details -->
-<div class="absolute top-4 bottom-4 right-4 w-[400px] z-30 glass-panel rounded-xl flex flex-col shadow-2xl border-l border-white/10 animate-slide-in-right overflow-hidden">
+<div class="absolute top-4 bottom-4 right-4 w-[calc(100%-2rem)] sm:w-[400px] z-30 glass-panel rounded-xl flex flex-col shadow-2xl border-l border-white/10 animate-slide-in-right overflow-hidden">
 <!-- Header with Close Button -->
 <div class="relative h-32 w-full shrink-0">
 <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#101922]"></div>
@@ -2413,23 +2321,6 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
     </div>
   </div>
-  <script>
-        // Simple script to inject animation classes dynamically if needed, keeping CSS minimal
-        tailwind.config.theme.extend.animation = {
-            'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-            'fade-in-left': 'fadeInLeft 0.5s ease-out',
-        }
-        tailwind.config.theme.extend.keyframes = {
-            slideInRight: {
-                '0%': { transform: 'translateX(100%)', opacity: '0' },
-                '100%': { transform: 'translateX(0)', opacity: '1' },
-            },
-            fadeInLeft: {
-                '0%': { transform: 'translateX(-20px)', opacity: '0' },
-                '100%': { transform: 'translateX(0)', opacity: '1' },
-            }
-        }
-    </script>
 </div>
 
 <!-- Data Manager -->
@@ -2451,7 +2342,7 @@ html,body{height:100%;margin:0;overflow:hidden}
                             Upload, validate, and manage climate finance datasets. Ensure data integrity before final disbursement analysis.
                         </p>
 </div>
-<button class="bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm shadow-blue-200 dark:shadow-none flex items-center gap-2 transition-all">
+<button class="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm shadow-primary/20 dark:shadow-none flex items-center gap-2 transition-all">
 <span class="material-symbols-outlined text-[20px]">download</span>
                         Export Template
                     </button>
@@ -2501,7 +2392,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 <!-- Upload Progress -->
 <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-4">
-<h3 class="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wide">Upload Queue</h3>
+<h3 class="text-slate-900 dark:text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wide">Upload Queue</h3>
 <!-- File Item 1: Completed -->
 <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
 <div class="mt-1 text-emerald-500">
@@ -2652,7 +2543,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <button class="px-4 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-sm font-semibold transition-colors">
                                     Fix Issues
                                 </button>
-<button class="px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold shadow-sm flex items-center gap-2 transition-all">
+<button class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-bold shadow-sm flex items-center gap-2 transition-all">
 <span class="material-symbols-outlined text-[18px]">database</span>
                                     Commit to Database
                                 </button>
@@ -2676,13 +2567,13 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 <div>
 <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Settings &amp; Configuration</h1>
-<p class="text-slate-500 dark:text-[#92a9c9] mt-1">Manage system parameters for vulnerability scoring and reporting.</p>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Manage system parameters for vulnerability scoring and reporting.</p>
 </div>
 <div class="flex gap-3">
-<button class="px-4 py-2 rounded-lg border border-slate-300 dark:border-[#233348] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#233348] font-medium text-sm transition-colors">
+<button class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium text-sm transition-colors">
                             Discard
                         </button>
-<button class="px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2">
+<button class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-slate-900 dark:text-white font-bold text-sm shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
 <span class="material-symbols-outlined text-[18px]">save</span>
                             Save Changes
                         </button>
@@ -2690,13 +2581,13 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 <!-- Section 1: Formula Configuration -->
 <section class="flex flex-col gap-4 scroll-mt-24" id="formula">
-<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700/50">
 <span class="material-symbols-outlined text-primary">functions</span>
 <h2 class="text-xl font-bold text-slate-900 dark:text-white">Formula Configuration</h2>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 <!-- Card: Calculation Methods -->
-<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm">
 <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Calculation Methods</h3>
 <div class="space-y-4">
 <label class="flex items-start gap-4 cursor-pointer group">
@@ -2722,12 +2613,12 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Card: Precision Values -->
-<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm">
 <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Precision (Epsilon)</h3>
 <div class="space-y-4">
 <div>
 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Calculation Precision (decimal places)</label>
-<select class="w-full rounded-lg border-slate-300 dark:border-[#324867] bg-white dark:bg-[#111822] text-slate-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm">
+<select class="w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-background-dark text-slate-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm">
 <option>2 Decimal Places (0.00)</option>
 <option selected="">4 Decimal Places (0.0000)</option>
 <option>Float (Max Precision)</option>
@@ -2736,7 +2627,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 <div>
 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Epsilon Value (Zero Threshold)</label>
 <div class="relative rounded-md shadow-sm">
-<input class="block w-full rounded-lg border-slate-300 dark:border-[#324867] bg-white dark:bg-[#111822] text-slate-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm pr-10" placeholder="0.00001" step="0.00001" type="number"/>
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-white dark:bg-background-dark text-slate-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm pr-10" placeholder="0.00001" step="0.00001" type="number"/>
 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
 <span class="text-slate-500 dark:text-slate-400 sm:text-sm">ε</span>
 </div>
@@ -2749,24 +2640,24 @@ html,body{height:100%;margin:0;overflow:hidden}
 </section>
 <!-- Section 2: Threshold Editor -->
 <section class="flex flex-col gap-4 scroll-mt-24" id="thresholds">
-<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700/50">
 <span class="material-symbols-outlined text-primary">tune</span>
 <h2 class="text-xl font-bold text-slate-900 dark:text-white">Threshold Editor</h2>
 </div>
-<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm flex flex-col gap-6">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm flex flex-col gap-6">
 <!-- Toggle Mode -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 <div>
 <h3 class="text-base font-semibold text-slate-900 dark:text-white">Clustering Logic</h3>
 <p class="text-sm text-slate-500 dark:text-slate-400">Choose how risk categories (Low, Medium, High) are defined.</p>
 </div>
-<div class="flex p-1 bg-slate-100 dark:bg-[#111822] rounded-lg self-start sm:self-auto">
+<div class="flex p-1 bg-slate-100 dark:bg-background-dark rounded-lg self-start sm:self-auto">
 <button class="px-4 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-primary text-slate-900 dark:text-white shadow-sm transition-all">Manual</button>
 <button class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Ward's Method</button>
 </div>
 </div>
 <!-- Visual Slider -->
-<div class="bg-slate-50 dark:bg-[#111822] rounded-lg p-6 border border-slate-200 dark:border-[#233348] relative">
+<div class="bg-slate-50 dark:bg-background-dark rounded-lg p-6 border border-slate-200 dark:border-slate-700/50 relative">
 <div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
 <span>Low Risk</span>
 <span>Moderate Risk</span>
@@ -2826,16 +2717,16 @@ html,body{height:100%;margin:0;overflow:hidden}
 </section>
 <!-- Section 3: Export & Reporting -->
 <section class="flex flex-col gap-4 scroll-mt-24" id="export">
-<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700/50">
 <span class="material-symbols-outlined text-primary">download</span>
 <h2 class="text-xl font-bold text-slate-900 dark:text-white">Export &amp; Reporting</h2>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 <!-- Templates -->
-<div class="lg:col-span-2 bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<div class="lg:col-span-2 bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm">
 <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Report Templates</h3>
 <div class="space-y-4">
-<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#233348] hover:bg-slate-50 dark:hover:bg-[#233348] transition-colors cursor-pointer group">
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
 <div class="flex items-center gap-3">
 <div class="bg-red-100 dark:bg-red-900/20 p-2 rounded text-red-600 dark:text-red-400">
 <span class="material-symbols-outlined text-xl">picture_as_pdf</span>
@@ -2847,7 +2738,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 <span class="material-symbols-outlined text-slate-400">radio_button_checked</span>
 </div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#233348] hover:bg-slate-50 dark:hover:bg-[#233348] transition-colors cursor-pointer group">
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
 <div class="flex items-center gap-3">
 <div class="bg-blue-100 dark:bg-blue-900/20 p-2 rounded text-blue-600 dark:text-blue-400">
 <span class="material-symbols-outlined text-xl">description</span>
@@ -2859,7 +2750,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 <span class="material-symbols-outlined text-slate-400">radio_button_unchecked</span>
 </div>
-<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#233348] hover:bg-slate-50 dark:hover:bg-[#233348] transition-colors cursor-pointer group">
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
 <div class="flex items-center gap-3">
 <div class="bg-green-100 dark:bg-green-900/20 p-2 rounded text-green-600 dark:text-green-400">
 <span class="material-symbols-outlined text-xl">table_view</span>
@@ -2874,7 +2765,7 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Format Options -->
-<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm">
 <h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Output Formats</h3>
 <div class="space-y-3">
 <label class="flex items-center gap-3">
@@ -2894,29 +2785,29 @@ html,body{height:100%;margin:0;overflow:hidden}
 <span class="text-sm text-slate-700 dark:text-slate-300">JSON API Response</span>
 </label>
 </div>
-<div class="mt-6 pt-4 border-t border-slate-200 dark:border-[#233348]">
+<div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700/50">
 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Footer Text</p>
-<input class="w-full text-xs rounded border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-[#111822] text-slate-600 dark:text-slate-400" type="text" value="Generated by CFADT v2.4 | Confidential"/>
+<input class="w-full text-xs rounded border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-background-dark text-slate-600 dark:text-slate-400" type="text" value="Generated by CFADT v2.4 | Confidential"/>
 </div>
 </div>
 </div>
 </section>
 <!-- Section 4: Admin & Security -->
 <section class="flex flex-col gap-4 scroll-mt-24" id="admin">
-<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700/50">
 <span class="material-symbols-outlined text-primary">admin_panel_settings</span>
 <h2 class="text-xl font-bold text-slate-900 dark:text-white">Admin &amp; Security</h2>
 </div>
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 <!-- User Role Management -->
-<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-[#233348] shadow-sm overflow-hidden">
-<div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#233348] bg-slate-50/50 dark:bg-[#111822]/50">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
+<div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-background-dark/50">
 <h3 class="text-base font-semibold text-slate-900 dark:text-white">User Roles</h3>
 <button class="text-primary text-xs font-bold uppercase hover:underline">Manage Users</button>
 </div>
 <div class="overflow-x-auto">
 <table class="w-full text-left text-sm">
-<thead class="bg-slate-50 dark:bg-[#111822] text-slate-500 dark:text-slate-400">
+<thead class="bg-slate-50 dark:bg-background-dark text-slate-500 dark:text-slate-400">
 <tr>
 <th class="px-4 py-3 font-medium">User</th>
 <th class="px-4 py-3 font-medium">Role</th>
@@ -2953,8 +2844,8 @@ html,body{height:100%;margin:0;overflow:hidden}
 </div>
 </div>
 <!-- Audit Logs -->
-<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-[#233348] shadow-sm flex flex-col h-[280px]">
-<div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#233348] bg-slate-50/50 dark:bg-[#111822]/50">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm flex flex-col h-[280px]">
+<div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-background-dark/50">
 <h3 class="text-base font-semibold text-slate-900 dark:text-white">Audit Log</h3>
 <button class="text-slate-500 hover:text-primary transition-colors">
 <span class="material-symbols-outlined text-lg">refresh</span>
@@ -3017,7 +2908,20 @@ function showPage(id){
   const s=t?.querySelector(".overflow-y-auto");
   if(s)s.scrollTop=0;
 }
-function toggleSidebar(){document.getElementById("cfadt-sidebar").classList.toggle("collapsed")}
+function toggleSidebar(){
+  const sb=document.getElementById("cfadt-sidebar");
+  const ol=document.getElementById("sidebar-overlay");
+  if(window.innerWidth<768){
+    sb.classList.toggle("mobile-open");
+    ol.classList.toggle("active");
+  } else {
+    sb.classList.toggle("collapsed");
+  }
+}
+function closeMobileSidebar(){
+  document.getElementById("cfadt-sidebar").classList.remove("mobile-open");
+  document.getElementById("sidebar-overlay").classList.remove("active");
+}
 function toggleDark(){
   document.documentElement.classList.toggle("dark");
   document.getElementById("theme-icon").textContent=document.documentElement.classList.contains("dark")?"light_mode":"dark_mode";
