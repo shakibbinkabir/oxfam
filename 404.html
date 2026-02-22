@@ -1,0 +1,3060 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CFADT — Climate Finance Availing &amp; Disbursement Toolkit | Oxfam Bangladesh</title>
+<meta name="description" content="Climate Finance Availing and Disbursement Toolkit for Oxfam Bangladesh — data-driven climate vulnerability analysis, prioritisation, and funding allocation."/>
+<meta property="og:title" content="CFADT — Oxfam Bangladesh Climate Finance Toolkit"/>
+<meta property="og:description" content="Analyze climate vulnerability across 64 districts, prioritize regions, and allocate climate finance using IPCC/INFORM-based methodology."/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://oxfam.capec.ai"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2361A534'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>C</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#62a735",
+        "primary-dark": "#4a8525",
+        "sidebar": "#1B2A4A",
+        "background-light": "#f7f8f6",
+        "background-dark": "#121418",
+        "card-dark": "#1e252e",
+        "oxfam-green": "#61A534",
+        "danger": "#ef4444",
+        "warning": "#f59e0b",
+        "info": "#3b82f6",
+      },
+      fontFamily: { "display": ["Inter", "sans-serif"] },
+      borderRadius: {"DEFAULT":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem","full":"9999px"},
+    },
+  },
+}
+</script>
+<style>
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1B2A4A; }
+::-webkit-scrollbar-thumb { background: #334e85; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #62a735; }
+html, body { height: 100%; margin: 0; overflow: hidden; }
+
+.nav-link.active {
+  background: rgba(98,167,53,0.2) !important;
+  color: white !important;
+  border-left: 4px solid #62a735;
+}
+.nav-link.active .material-symbols-outlined {
+  color: #62a735 !important;
+}
+.nav-link { border-left: 4px solid transparent; }
+
+.page-section main { max-width: 1600px; margin: 0 auto; }
+
+/* Sidebar collapse */
+.sidebar-collapsed { width: 64px !important; }
+.sidebar-collapsed .sidebar-label,
+.sidebar-collapsed .sidebar-brand-text,
+.sidebar-collapsed .sidebar-user-info,
+.sidebar-collapsed .sidebar-section-label,
+.sidebar-collapsed .sidebar-footer-text { display: none !important; }
+.sidebar-collapsed .nav-link { justify-content: center; padding-left: 0; padding-right: 0; }
+.sidebar-collapsed .nav-link .material-symbols-outlined { margin: 0; }
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.page-section[style*="block"] { animation: fadeIn 0.3s ease-out; }
+
+/* Page-specific styles */
+/* === Overview Dashboard === */
+
+        /* Custom scrollbar for sidebar if needed */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1B2A4A; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334e85; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #62a735; 
+        }
+
+        /* Map specific styles */
+        .district-path:hover {
+            fill: #62a735;
+            cursor: pointer;
+            transition: fill 0.2s ease;
+            filter: drop-shadow(0 0 8px rgba(98, 167, 53, 0.4));
+        }
+    
+/* === Layer 1: CRI === */
+
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+        }
+        input[type=range]:focus {
+            outline: none; 
+        }
+    
+/* === Layer 3: Allocation === */
+
+        /* Custom scrollbar for table */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #6aec13;
+            cursor: pointer;
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+    
+/* === Layer 4: Scenarios === */
+
+        /* Custom range slider styling for dark mode */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #135bec;
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 0 0 2px #fff;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+        input[type=range]:focus::-webkit-slider-runnable-track {
+            background: #475569;
+        }
+        /* Scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    
+/* === Map Explorer === */
+
+        /* Custom scrollbar for dark mode panels */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(16, 25, 34, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Map placeholder pattern */
+        .bg-map-pattern {
+            background-color: #101922;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #162635 2px, transparent 2.5px),
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 24px 24px, 100px 100px, 100px 100px;
+        }
+        
+        /* Satkhira Highlight Effect on Map */
+        .map-highlight {
+            position: absolute;
+            top: 55%;
+            left: 45%;
+            width: 120px;
+            height: 140px;
+            background: rgba(19, 127, 236, 0.2);
+            border: 2px solid #137fec;
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            filter: drop-shadow(0 0 15px rgba(19, 127, 236, 0.5));
+            animation: pulse-border 3s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: rgba(19, 127, 236, 0.6); box-shadow: 0 0 0 0 rgba(19, 127, 236, 0.4); }
+            70% { border-color: rgba(19, 127, 236, 1); box-shadow: 0 0 0 10px rgba(19, 127, 236, 0); }
+            100% { border-color: rgba(19, 127, 236, 0.6); box-shadow: 0 0 0 0 rgba(19, 127, 236, 0); }
+        }
+    
+/* === Settings === */
+
+        /* Custom scrollbar for dark mode admin feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111822; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; 
+        }
+    
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased h-screen flex overflow-hidden">
+
+<!-- ============ SIDEBAR ============ -->
+<aside id="sidebar" class="w-64 bg-sidebar h-full flex flex-col flex-shrink-0 transition-all duration-300 z-30 border-r border-white/5">
+  <!-- Brand -->
+  <div class="p-5 flex items-center gap-3 border-b border-white/10">
+    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <div class="flex flex-col sidebar-brand-text">
+      <h1 class="text-white text-lg font-bold leading-tight tracking-tight">CFADT</h1>
+      <p class="text-slate-400 text-[11px] font-medium">Oxfam Bangladesh</p>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
+    <p class="sidebar-section-label px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2">Analysis</p>
+    
+    <a onclick="showPage('overview')" id="nav-overview" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+      <span class="font-medium text-sm">Overview Dashboard</span>
+    </a>
+    <a onclick="showPage('layer1')" id="nav-layer1" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">query_stats</span>
+      <span class="font-medium text-sm">Layer 1: CRI</span>
+    </a>
+    <a onclick="showPage('layer2')" id="nav-layer2" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">balance</span>
+      <span class="font-medium text-sm">Layer 2: MCDA</span>
+    </a>
+    <a onclick="showPage('layer3')" id="nav-layer3" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">payments</span>
+      <span class="font-medium text-sm">Layer 3: Allocation</span>
+    </a>
+    <a onclick="showPage('layer4')" id="nav-layer4" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">science</span>
+      <span class="font-medium text-sm">Layer 4: Scenarios</span>
+    </a>
+    <a onclick="showPage('map')" id="nav-map" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">map</span>
+      <span class="font-medium text-sm">Map Explorer</span>
+    </a>
+    <a onclick="showPage('data')" id="nav-data" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">database</span>
+      <span class="font-medium text-sm">Data Manager</span>
+    </a>
+    <a onclick="showPage('settings')" id="nav-settings" 
+       class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-all cursor-pointer group">
+      <span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+      <span class="font-medium text-sm">Settings</span>
+    </a>
+  </nav>
+
+  <!-- Footer -->
+  <div class="p-3 border-t border-white/10">
+    <div class="sidebar-footer-text flex items-center justify-between px-2 mb-2">
+      <span class="text-[10px] text-primary font-semibold">Methodology V2.0</span>
+      <span class="text-[10px] text-slate-500">|</span>
+      <span class="text-[10px] text-slate-500">oxfam.capec.ai</span>
+    </div>
+    <div class="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/5">
+      <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-primary to-emerald-400 flex items-center justify-center text-white font-bold text-[10px] shrink-0">CC</div>
+      <div class="flex flex-col overflow-hidden sidebar-user-info">
+        <span class="text-xs font-medium text-white truncate">CapeC Consulting</span>
+        <span class="text-[10px] text-slate-400 truncate">Strategic Advisory</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ============ MAIN AREA ============ -->
+<div class="flex-1 flex flex-col h-full overflow-hidden">
+  
+  <!-- Top Bar -->
+  <header class="h-14 bg-white/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/5 flex items-center justify-between px-5 shrink-0 z-20">
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+        <span class="material-symbols-outlined text-slate-500 dark:text-slate-400">menu</span>
+      </button>
+      <div class="flex items-center gap-1.5 text-sm">
+        <span class="text-slate-400">CFADT</span>
+        <span class="text-slate-300 dark:text-slate-600">/</span>
+        <span id="breadcrumb-page" class="font-semibold text-slate-700 dark:text-slate-200">Overview Dashboard</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <div id="params-banner" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-warning/10 border border-warning/20 text-warning text-[11px] font-medium">
+        <span class="material-symbols-outlined text-sm">warning</span>
+        Parameters Modified
+      </div>
+      <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors">
+        <span class="material-symbols-outlined text-sm">download</span>
+        Export Report
+      </button>
+      <button onclick="toggleDarkMode()" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+        <span id="theme-icon" class="material-symbols-outlined text-slate-500 dark:text-slate-400">light_mode</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <div class="flex-1 overflow-hidden flex flex-col">
+    
+    <div id="page-overview" class="page-section flex-1 flex flex-col overflow-hidden" style="display:block">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<!-- Top Bar -->
+<header class="h-16 border-b border-white/5 bg-background-dark/95 backdrop-blur-sm flex items-center justify-between px-6 shrink-0 z-10">
+<div class="flex items-center gap-2 text-sm">
+<a class="text-slate-400 hover:text-white" href="#">Home</a>
+<span class="text-slate-600">/</span>
+<span class="text-white font-medium">Overview Dashboard</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden md:block">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</span>
+<input class="bg-card-dark border-none text-sm rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-500 focus:ring-1 focus:ring-primary w-64" placeholder="Search District..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                    Export Report
+                </button>
+</div>
+</header>
+<!-- Scrollable Dashboard Content -->
+<div class="flex-1 overflow-y-auto p-6 scroll-smooth">
+<div class="max-w-[1600px] mx-auto flex flex-col gap-6">
+<!-- KPI Row -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+<!-- KPI 1 -->
+<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Districts Monitored</span>
+<span class="material-symbols-outlined text-slate-600 text-[20px]">location_on</span>
+</div>
+<div class="text-2xl font-bold text-white mb-1">64</div>
+<div class="flex items-center text-xs text-slate-500">
+<span class="text-primary mr-1 font-medium">100%</span> coverage
+                        </div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Avg CRI Score</span>
+<span class="material-symbols-outlined text-slate-600 text-[20px]">analytics</span>
+</div>
+<div class="text-2xl font-bold text-white mb-1">6.8</div>
+<div class="flex items-center text-xs text-slate-500">
+<span class="text-primary mr-1 font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> 2.1%</span> vs last year
+                        </div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">High Priority</span>
+<span class="material-symbols-outlined text-danger text-[20px]">warning</span>
+</div>
+<div class="text-2xl font-bold text-white mb-1">14</div>
+<div class="flex items-center text-xs text-slate-500">
+<span class="text-danger mr-1 font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> +4</span> districts
+                        </div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Budget</span>
+<span class="material-symbols-outlined text-slate-600 text-[20px]">account_balance_wallet</span>
+</div>
+<div class="text-2xl font-bold text-white mb-1">৳ 450M</div>
+<div class="flex items-center text-xs text-slate-500">
+<span class="text-primary mr-1 font-medium">+12%</span> allocation
+                        </div>
+</div>
+<!-- KPI 5 -->
+<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Gini Coeff</span>
+<span class="material-symbols-outlined text-slate-600 text-[20px]">equalizer</span>
+</div>
+<div class="text-2xl font-bold text-white mb-1">0.42</div>
+<div class="flex items-center text-xs text-slate-500">
+<span class="text-warning mr-1 font-medium">Moderate</span> inequality
+                        </div>
+</div>
+<!-- KPI 6 -->
+<div class="bg-card-dark rounded-xl p-4 border border-white/5 relative group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-400 text-xs font-medium uppercase tracking-wider">Population Impact</span>
+<span class="material-symbols-outlined text-slate-600 text-[20px]">groups</span>
+</div>
+<div class="text-2xl font-bold text-white mb-1">12.5M</div>
+<div class="flex items-center text-xs text-slate-500">
+<span class="text-primary mr-1 font-medium">Direct</span> beneficiaries
+                        </div>
+</div>
+</div>
+<!-- Main Section: Map + Top Charts -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6 h-auto xl:h-[500px]">
+<!-- Map Container -->
+<div class="xl:col-span-7 bg-card-dark rounded-xl border border-white/5 flex flex-col overflow-hidden relative">
+<div class="p-5 border-b border-white/5 flex justify-between items-center bg-card-dark/50 backdrop-blur z-10">
+<h2 class="text-white font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">public</span>
+                                Bangladesh Vulnerability Map
+                            </h2>
+<div class="flex gap-2 text-xs">
+<span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-red-600"></span>High</span>
+<span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-orange-500"></span>Med-High</span>
+<span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-yellow-400"></span>Med</span>
+<span class="flex items-center gap-1 text-slate-400"><span class="w-2 h-2 rounded-full bg-primary"></span>Low</span>
+</div>
+</div>
+<div class="flex-1 relative bg-[#151a21] w-full h-full p-4 flex items-center justify-center">
+<!-- Abstract SVG Map of Bangladesh -->
+<svg class="w-full h-full max-h-[420px]" preserveaspectratio="xMidYMid meet" viewbox="0 0 400 500">
+<defs>
+<filter id="glow">
+<fegaussianblur result="coloredBlur" stddeviation="2.5"></fegaussianblur>
+<femerge>
+<femergenode in="coloredBlur"></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<!-- Simplified Paths representing districts -->
+<path class="district-path opacity-80" d="M150,50 L200,30 L250,50 L280,100 L230,120 L180,100 Z" data-alt="Northern high risk district" fill="#ef4444" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M180,100 L230,120 L250,180 L200,200 L150,160 Z" data-alt="North-central medium-high risk district" fill="#f97316" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M230,120 L280,100 L320,150 L300,220 L250,180 Z" data-alt="North-eastern medium risk district" fill="#eab308" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M100,120 L150,160 L200,200 L160,280 L80,250 L80,180 Z" data-alt="Western low risk district" fill="#22c55e" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M200,200 L250,180 L300,220 L280,300 L220,320 L160,280 Z" data-alt="Central high risk district" fill="#ef4444" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M300,220 L320,150 L380,180 L390,280 L340,320 L280,300 Z" data-alt="Eastern medium-high risk district" fill="#f97316" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M160,280 L220,320 L240,400 L180,450 L120,420 L100,350 Z" data-alt="South-western high risk coastal district" fill="#ef4444" stroke="#1e252e" stroke-width="1"></path>
+<path class="district-path opacity-80" d="M220,320 L280,300 L340,320 L360,400 L300,460 L240,400 Z" data-alt="South-eastern medium risk coastal district" fill="#eab308" stroke="#1e252e" stroke-width="1"></path>
+</svg>
+<!-- Floating Tooltip Example (simulated) -->
+<div class="absolute top-1/3 left-1/2 transform -translate-x-1/2 bg-slate-800 text-xs p-3 rounded shadow-lg border border-slate-700 pointer-events-none z-20 hidden group-hover:block">
+<div class="font-bold text-white mb-1">Kurigram District</div>
+<div class="grid grid-cols-2 gap-x-3 gap-y-1">
+<span class="text-slate-400">Risk Level:</span> <span class="text-red-400 font-semibold">High</span>
+<span class="text-slate-400">CRI Score:</span> <span class="text-white">8.4</span>
+</div>
+</div>
+<div class="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur px-3 py-2 rounded border border-white/10 text-xs">
+<div class="text-slate-400 mb-1">Select a district to filter charts</div>
+<div class="flex gap-2">
+<button class="w-6 h-6 flex items-center justify-center bg-white/10 rounded hover:bg-white/20 text-white"><span class="material-symbols-outlined text-[16px]">add</span></button>
+<button class="w-6 h-6 flex items-center justify-center bg-white/10 rounded hover:bg-white/20 text-white"><span class="material-symbols-outlined text-[16px]">remove</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side Charts -->
+<div class="xl:col-span-5 flex flex-col gap-6 h-full">
+<!-- Top 10 Vulnerable Districts -->
+<div class="bg-card-dark rounded-xl border border-white/5 flex flex-col flex-1 min-h-[240px]">
+<div class="p-4 border-b border-white/5 flex justify-between items-center">
+<h3 class="text-white font-semibold text-sm">Top Vulnerable Districts</h3>
+<button class="text-slate-400 hover:text-white"><span class="material-symbols-outlined text-[18px]">more_horiz</span></button>
+</div>
+<div class="p-4 flex-1 flex flex-col justify-center gap-3">
+<!-- Bar Item -->
+<div class="flex items-center text-xs">
+<span class="w-20 text-slate-300 font-medium shrink-0">Kurigram</span>
+<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<div class="h-full bg-red-500 rounded-full" style="width: 92%"></div>
+</div>
+<span class="w-8 text-right text-white font-bold">9.2</span>
+</div>
+<div class="flex items-center text-xs">
+<span class="w-20 text-slate-300 font-medium shrink-0">Satkhira</span>
+<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<div class="h-full bg-red-500 rounded-full" style="width: 88%"></div>
+</div>
+<span class="w-8 text-right text-white font-bold">8.8</span>
+</div>
+<div class="flex items-center text-xs">
+<span class="w-20 text-slate-300 font-medium shrink-0">Sunamganj</span>
+<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<div class="h-full bg-orange-500 rounded-full" style="width: 81%"></div>
+</div>
+<span class="w-8 text-right text-white font-bold">8.1</span>
+</div>
+<div class="flex items-center text-xs">
+<span class="w-20 text-slate-300 font-medium shrink-0">Gaibandha</span>
+<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<div class="h-full bg-orange-500 rounded-full" style="width: 76%"></div>
+</div>
+<span class="w-8 text-right text-white font-bold">7.6</span>
+</div>
+<div class="flex items-center text-xs">
+<span class="w-20 text-slate-300 font-medium shrink-0">Bhola</span>
+<div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden mx-2">
+<div class="h-full bg-orange-500 rounded-full" style="width: 74%"></div>
+</div>
+<span class="w-8 text-right text-white font-bold">7.4</span>
+</div>
+</div>
+</div>
+<!-- Priority Distribution Donut Chart -->
+<div class="bg-card-dark rounded-xl border border-white/5 flex flex-col flex-1 min-h-[220px]">
+<div class="p-4 border-b border-white/5">
+<h3 class="text-white font-semibold text-sm">Priority Distribution</h3>
+</div>
+<div class="p-4 flex items-center justify-between">
+<div class="relative w-32 h-32 flex items-center justify-center shrink-0">
+<!-- CSS Conic Gradient Donut -->
+<div class="w-full h-full rounded-full" style="background: conic-gradient(#ef4444 0% 25%, #f97316 25% 65%, #62a735 65% 100%); mask-image: radial-gradient(transparent 55%, black 56%); -webkit-mask-image: radial-gradient(transparent 55%, black 56%);"></div>
+<div class="absolute text-center">
+<span class="block text-xl font-bold text-white">64</span>
+<span class="text-[10px] text-slate-400 uppercase">Districts</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 flex-1 ml-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-red-500"></span>
+<span class="text-xs text-slate-300">High Priority</span>
+</div>
+<span class="text-xs font-bold text-white">25%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-orange-500"></span>
+<span class="text-xs text-slate-300">Medium Priority</span>
+</div>
+<span class="text-xs font-bold text-white">40%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-xs text-slate-300">Low Priority</span>
+</div>
+<span class="text-xs font-bold text-white">35%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Row: Radar Chart & Comparative Analysis -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Text/Legend Context -->
+<div class="bg-card-dark rounded-xl border border-white/5 p-6 flex flex-col justify-between">
+<div>
+<h3 class="text-lg font-semibold text-white mb-2">CRI Dimension Analysis</h3>
+<p class="text-sm text-slate-400 mb-6">Comparative view of Hazard, Exposure, Sensitivity, and Adaptive Capacity for selected districts.</p>
+<div class="space-y-4">
+<div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+<span class="w-3 h-3 rounded-full bg-primary shadow shadow-primary/50"></span>
+<div class="flex-1">
+<div class="text-sm font-medium text-white">Kurigram</div>
+<div class="text-xs text-slate-500">High flood risk zone</div>
+</div>
+<span class="text-white font-bold text-sm">8.4</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+<span class="w-3 h-3 rounded-full bg-blue-500 shadow shadow-blue-500/50"></span>
+<div class="flex-1">
+<div class="text-sm font-medium text-white">Satkhira</div>
+<div class="text-xs text-slate-500">Salinity prone zone</div>
+</div>
+<span class="text-white font-bold text-sm">7.9</span>
+</div>
+</div>
+</div>
+<button class="mt-6 text-sm text-primary hover:text-primary-dark font-medium flex items-center gap-1 transition-colors">
+                            View Detailed Breakdown <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Radar Chart Visualization Area -->
+<div class="lg:col-span-2 bg-card-dark rounded-xl border border-white/5 p-6 relative overflow-hidden flex items-center justify-center">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 to-transparent pointer-events-none"></div>
+<!-- CSS/SVG Radar Chart Representation -->
+<div class="relative w-full max-w-md aspect-video md:aspect-auto md:h-64">
+<svg class="w-full h-full" overflow="visible" viewbox="0 0 400 300">
+<!-- Background Grid (Spider Web) -->
+<polygon fill="none" points="200,50 350,150 200,250 50,150" stroke="#334155" stroke-width="1"></polygon>
+<polygon fill="none" points="200,80 300,150 200,220 100,150" stroke="#334155" stroke-dasharray="4" stroke-width="1"></polygon>
+<line stroke="#334155" stroke-width="1" x1="200" x2="200" y1="150" y2="50"></line>
+<line stroke="#334155" stroke-width="1" x1="200" x2="350" y1="150" y2="150"></line>
+<line stroke="#334155" stroke-width="1" x1="200" x2="200" y1="150" y2="250"></line>
+<line stroke="#334155" stroke-width="1" x1="200" x2="50" y1="150" y2="150"></line>
+<!-- Labels -->
+<text fill="#94a3b8" font-size="12" font-weight="500" text-anchor="middle" x="200" y="35">Hazard</text>
+<text fill="#94a3b8" font-size="12" font-weight="500" text-anchor="start" x="370" y="155">Exposure</text>
+<text fill="#94a3b8" font-size="12" font-weight="500" text-anchor="middle" x="200" y="275">Sensitivity</text>
+<text fill="#94a3b8" font-size="12" font-weight="500" text-anchor="end" x="30" y="155">Adaptive Capacity</text>
+<!-- Data Polygon 1 (Primary - Green) -->
+<polygon fill="rgba(98, 167, 53, 0.2)" points="200,60 330,150 200,230 140,150" stroke="#62a735" stroke-width="2"></polygon>
+<circle cx="200" cy="60" fill="#62a735" r="4"></circle>
+<circle cx="330" cy="150" fill="#62a735" r="4"></circle>
+<circle cx="200" cy="230" fill="#62a735" r="4"></circle>
+<circle cx="140" cy="150" fill="#62a735" r="4"></circle>
+<!-- Data Polygon 2 (Secondary - Blue) -->
+<polygon fill="rgba(59, 130, 246, 0.2)" points="200,90 280,150 200,200 80,150" stroke="#3b82f6" stroke-dasharray="4" stroke-width="2"></polygon>
+<circle cx="200" cy="90" fill="#3b82f6" r="3"></circle>
+<circle cx="280" cy="150" fill="#3b82f6" r="3"></circle>
+<circle cx="200" cy="200" fill="#3b82f6" r="3"></circle>
+<circle cx="80" cy="150" fill="#3b82f6" r="3"></circle>
+</svg>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="max-w-[1600px] mx-auto mt-12 py-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+<p>© 2023 Oxfam Bangladesh. All rights reserved.</p>
+<div class="flex gap-4 mt-2 md:mt-0">
+<a class="hover:text-white transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-white transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</div>
+</main>
+    </div>
+    <div id="page-layer1" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<!-- Breadcrumbs & Header -->
+<div class="flex flex-col gap-6 mb-8">
+<div class="flex flex-wrap gap-2 text-sm">
+<a class="text-slate-500 hover:text-primary transition-colors font-medium" href="#">Home</a>
+<span class="text-slate-400 font-medium">/</span>
+<a class="text-slate-500 hover:text-primary transition-colors font-medium" href="#">Tools</a>
+<span class="text-slate-400 font-medium">/</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium">Layer 1: CRI Computation</span>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Climate Risk Index (CRI)</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Adjust weighting parameters to model national risk scenarios.</p>
+</div>
+<!-- Formula & Toggle -->
+<div class="flex flex-col items-end gap-2 bg-white dark:bg-surface-dark p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold uppercase text-slate-400 tracking-wider">Method</span>
+<div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+<button class="px-3 py-1 text-xs font-bold rounded bg-primary text-white shadow-sm transition-all">Geometric</button>
+<button class="px-3 py-1 text-xs font-bold rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all">Arithmetic</button>
+</div>
+</div>
+<div class="font-mono text-sm md:text-base text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 px-3 py-1.5 rounded border border-slate-100 dark:border-slate-800">
+                            CRI = (H × E × S / AC)<sup>1/4</sup>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Section: Global Weights -->
+<section class="mb-8">
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+<h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">tune</span>
+                            Global Weighting Parameters
+                        </h3>
+<span class="text-xs font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Total: 1.00</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+<!-- Hazard Slider -->
+<div class="flex flex-col gap-3 group">
+<div class="flex justify-between items-center">
+<label class="text-sm font-bold text-primary uppercase tracking-wide">Hazard (H)</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-300 text-[16px] cursor-pointer hover:text-slate-500">lock_open</span>
+<input class="w-16 text-right text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-1 py-0.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-slate-900 dark:text-slate-100" step="0.01" type="number" value="0.25"/>
+</div>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="1" min="0" step="0.01" type="range" value="0.25"/>
+<div class="flex justify-between text-[10px] text-slate-400 font-mono">
+<span>0.0</span>
+<span>1.0</span>
+</div>
+</div>
+<!-- Exposure Slider -->
+<div class="flex flex-col gap-3 group">
+<div class="flex justify-between items-center">
+<label class="text-sm font-bold text-secondary uppercase tracking-wide">Exposure (E)</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-300 text-[16px] cursor-pointer hover:text-slate-500">lock_open</span>
+<input class="w-16 text-right text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-1 py-0.5 focus:border-secondary focus:ring-1 focus:ring-secondary outline-none text-slate-900 dark:text-slate-100" step="0.01" type="number" value="0.25"/>
+</div>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-secondary" max="1" min="0" step="0.01" type="range" value="0.25"/>
+<div class="flex justify-between text-[10px] text-slate-400 font-mono">
+<span>0.0</span>
+<span>1.0</span>
+</div>
+</div>
+<!-- Sensitivity Slider -->
+<div class="flex flex-col gap-3 group">
+<div class="flex justify-between items-center">
+<label class="text-sm font-bold text-tertiary uppercase tracking-wide">Sensitivity (S)</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-300 text-[16px] cursor-pointer hover:text-slate-500">lock_open</span>
+<input class="w-16 text-right text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-1 py-0.5 focus:border-tertiary focus:ring-1 focus:ring-tertiary outline-none text-slate-900 dark:text-slate-100" step="0.01" type="number" value="0.25"/>
+</div>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-tertiary" max="1" min="0" step="0.01" type="range" value="0.25"/>
+<div class="flex justify-between text-[10px] text-slate-400 font-mono">
+<span>0.0</span>
+<span>1.0</span>
+</div>
+</div>
+<!-- Adaptive Capacity Slider -->
+<div class="flex flex-col gap-3 group">
+<div class="flex justify-between items-center">
+<label class="text-sm font-bold text-success uppercase tracking-wide">Adaptive Cap. (AC)</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-300 text-[16px] cursor-pointer hover:text-slate-500">lock_open</span>
+<input class="w-16 text-right text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-1 py-0.5 focus:border-success focus:ring-1 focus:ring-success outline-none text-slate-900 dark:text-slate-100" step="0.01" type="number" value="0.25"/>
+</div>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-success" max="1" min="0" step="0.01" type="range" value="0.25"/>
+<div class="flex justify-between text-[10px] text-slate-400 font-mono">
+<span>0.0</span>
+<span>1.0</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Grid: Dimension Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<!-- Hazard Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden group hover:border-primary/50 transition-colors">
+<div class="h-1.5 w-full bg-primary"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Hazard</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Occurrence of natural disasters</p>
+</div>
+<div class="bg-primary/10 text-primary rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px]">thunderstorm</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+<!-- Circular Gauge Placeholder -->
+<div class="relative size-28 shrink-0">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+<path class="text-slate-100 dark:text-slate-800" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="65, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+<span class="text-2xl font-black text-slate-900 dark:text-slate-100">65</span>
+<span class="block text-[10px] text-slate-400 uppercase font-bold">Nat. Avg</span>
+</div>
+</div>
+<div class="flex-1 w-full">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Indicators</div>
+<div class="text-right font-mono font-bold text-slate-900 dark:text-slate-100">8</div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Max District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Sunamganj <span class="text-primary font-bold">(82)</span></div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Min District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Dhaka <span class="text-slate-400 font-bold">(12)</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Exposure Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden group hover:border-secondary/50 transition-colors">
+<div class="h-1.5 w-full bg-secondary"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Exposure</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Population &amp; assets in harm's way</p>
+</div>
+<div class="bg-secondary/10 text-secondary rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+<div class="relative size-28 shrink-0">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+<path class="text-slate-100 dark:text-slate-800" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="42, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+<span class="text-2xl font-black text-slate-900 dark:text-slate-100">42</span>
+<span class="block text-[10px] text-slate-400 uppercase font-bold">Nat. Avg</span>
+</div>
+</div>
+<div class="flex-1 w-full">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Indicators</div>
+<div class="text-right font-mono font-bold text-slate-900 dark:text-slate-100">12</div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Max District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Barisal <span class="text-secondary font-bold">(78)</span></div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Min District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Sylhet <span class="text-slate-400 font-bold">(24)</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sensitivity Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden group hover:border-tertiary/50 transition-colors">
+<div class="h-1.5 w-full bg-tertiary"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Sensitivity</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Susceptibility to harm</p>
+</div>
+<div class="bg-tertiary/10 text-tertiary rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px]">water_drop</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+<div class="relative size-28 shrink-0">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+<path class="text-slate-100 dark:text-slate-800" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-tertiary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="58, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+<span class="text-2xl font-black text-slate-900 dark:text-slate-100">58</span>
+<span class="block text-[10px] text-slate-400 uppercase font-bold">Nat. Avg</span>
+</div>
+</div>
+<div class="flex-1 w-full">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Indicators</div>
+<div class="text-right font-mono font-bold text-slate-900 dark:text-slate-100">6</div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Max District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Khulna <span class="text-tertiary font-bold">(71)</span></div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Min District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Rajshahi <span class="text-slate-400 font-bold">(32)</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Adaptive Capacity Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden group hover:border-success/50 transition-colors">
+<div class="h-1.5 w-full bg-success"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Adaptive Capacity</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400">Ability to cope and adapt</p>
+</div>
+<div class="bg-success/10 text-success rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-6 mb-6">
+<div class="relative size-28 shrink-0">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+<path class="text-slate-100 dark:text-slate-800" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-success" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="35, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+<span class="text-2xl font-black text-slate-900 dark:text-slate-100">35</span>
+<span class="block text-[10px] text-slate-400 uppercase font-bold">Nat. Avg</span>
+</div>
+</div>
+<div class="flex-1 w-full">
+<div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Indicators</div>
+<div class="text-right font-mono font-bold text-slate-900 dark:text-slate-100">15</div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Max District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Chittagong <span class="text-success font-bold">(55)</span></div>
+<div class="text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">Min District</div>
+<div class="text-right font-mono font-medium text-slate-700 dark:text-slate-300">Bhola <span class="text-slate-400 font-bold">(15)</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Histogram -->
+<section class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 text-lg">National CRI Score Distribution</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Frequency distribution of CRI scores across all 64 districts</p>
+</div>
+<button class="flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Data
+                    </button>
+</div>
+<div class="relative w-full h-64 mt-4">
+<!-- Background Grid -->
+<div class="absolute inset-0 flex flex-col justify-between text-xs text-slate-400">
+<div class="w-full border-b border-slate-100 dark:border-slate-800 border-dashed"></div>
+<div class="w-full border-b border-slate-100 dark:border-slate-800 border-dashed"></div>
+<div class="w-full border-b border-slate-100 dark:border-slate-800 border-dashed"></div>
+<div class="w-full border-b border-slate-100 dark:border-slate-800 border-dashed"></div>
+<div class="w-full border-b border-slate-200 dark:border-slate-700"></div>
+</div>
+<!-- Histogram Bars Container -->
+<div class="absolute inset-0 flex items-end justify-between px-2 pb-[1px] gap-1 z-10">
+<!-- Low Risk (Green Band) -->
+<div class="flex-1 h-[10%] bg-success/20 hover:bg-success/40 transition-all relative group rounded-t-sm">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">2 Districts</div>
+</div>
+<div class="flex-1 h-[15%] bg-success/30 hover:bg-success/50 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[8%] bg-success/20 hover:bg-success/40 transition-all relative group rounded-t-sm"></div>
+<!-- Moderate Risk (Yellow/Orange Band) -->
+<div class="flex-1 h-[25%] bg-secondary/30 hover:bg-secondary/50 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[45%] bg-secondary/40 hover:bg-secondary/60 transition-all relative group rounded-t-sm">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">12 Districts</div>
+</div>
+<div class="flex-1 h-[35%] bg-secondary/30 hover:bg-secondary/50 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[55%] bg-secondary/50 hover:bg-secondary/70 transition-all relative group rounded-t-sm"></div>
+<!-- High Risk (Primary Blue Band) -->
+<div class="flex-1 h-[70%] bg-primary/40 hover:bg-primary/60 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[85%] bg-primary/60 hover:bg-primary/80 transition-all relative group rounded-t-sm">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">Highest Frequency</div>
+</div>
+<div class="flex-1 h-[60%] bg-primary/40 hover:bg-primary/60 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[50%] bg-primary/30 hover:bg-primary/50 transition-all relative group rounded-t-sm"></div>
+<!-- Severe Risk (Purple Band) -->
+<div class="flex-1 h-[40%] bg-tertiary/30 hover:bg-tertiary/50 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[30%] bg-tertiary/40 hover:bg-tertiary/60 transition-all relative group rounded-t-sm"></div>
+<div class="flex-1 h-[20%] bg-tertiary/50 hover:bg-tertiary/70 transition-all relative group rounded-t-sm">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">Severe Risk</div>
+</div>
+<div class="flex-1 h-[10%] bg-tertiary/60 hover:bg-tertiary/80 transition-all relative group rounded-t-sm"></div>
+</div>
+</div>
+<!-- X Axis Labels & Legend -->
+<div class="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 mt-2 font-mono px-2">
+<span>0</span>
+<span>20</span>
+<span>40</span>
+<span>60</span>
+<span>80</span>
+<span>100</span>
+</div>
+<div class="flex flex-wrap justify-center gap-6 mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-success/40"></div>
+<span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Low Risk</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-secondary/40"></div>
+<span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Moderate Risk</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary/50"></div>
+<span class="text-xs font-semibold text-slate-600 dark:text-slate-300">High Risk</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-tertiary/50"></div>
+<span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Severe Risk</span>
+</div>
+</div>
+</section>
+</main>
+    </div>
+    <div id="page-layer2" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<!-- Breadcrumb & Header -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
+<a class="hover:text-primary" href="#">Home</a>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<a class="hover:text-primary" href="#">Layer 1</a>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-200 font-medium">Layer 2: MCDA Prioritisation</span>
+</div>
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div>
+<h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">MCDA Prioritisation Model</h1>
+<p class="text-slate-500 mt-1 max-w-2xl">Adjust criteria weights to simulate prioritization scenarios. Real-time analysis for climate finance distribution.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#151c2b] text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm shadow-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Export Report
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-blue-600 transition-colors text-sm shadow-md shadow-blue-500/20">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                        Save Model
+                    </button>
+</div>
+</div>
+</div>
+<!-- Weight Configuration Card -->
+<section class="bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+<div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl">tune</span>
+<div>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Weight Configuration</h3>
+<p class="text-xs text-slate-500">Total weight must equal 1.00</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
+<span class="text-sm font-medium text-slate-500">Current Sum:</span>
+<span class="text-lg font-bold text-green-600 flex items-center gap-1">
+                        1.00
+                        <span class="material-symbols-outlined text-sm font-bold">check_circle</span>
+</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Slider 1 -->
+<div class="flex flex-col gap-2 group">
+<div class="flex justify-between items-center text-sm font-medium mb-1">
+<span class="text-slate-700 dark:text-slate-300">Climate Risk Index (CRI)</span>
+<span class="text-primary font-bold bg-primary/10 px-2 py-0.5 rounded text-xs">0.40</span>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30" max="1" min="0" step="0.05" type="range" value="0.4"/>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Lock value">
+<span class="material-symbols-outlined text-[20px]">lock_open</span>
+</button>
+</div>
+</div>
+<!-- Slider 2 -->
+<div class="flex flex-col gap-2 group">
+<div class="flex justify-between items-center text-sm font-medium mb-1">
+<span class="text-slate-700 dark:text-slate-300">Population at Risk</span>
+<span class="text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">0.30</span>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30" max="1" min="0" step="0.05" type="range" value="0.3"/>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Lock value">
+<span class="material-symbols-outlined text-[20px]">lock_open</span>
+</button>
+</div>
+</div>
+<!-- Slider 3 -->
+<div class="flex flex-col gap-2 group">
+<div class="flex justify-between items-center text-sm font-medium mb-1">
+<span class="text-slate-700 dark:text-slate-300">Funding Gap</span>
+<span class="text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">0.20</span>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30" max="1" min="0" step="0.05" type="range" value="0.2"/>
+<button class="text-primary transition-colors" title="Locked">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</button>
+</div>
+</div>
+<!-- Slider 4 -->
+<div class="flex flex-col gap-2 group">
+<div class="flex justify-between items-center text-sm font-medium mb-1">
+<span class="text-slate-700 dark:text-slate-300">Adaptive Capacity</span>
+<span class="text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">0.10</span>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus:ring-2 focus:ring-primary/30" max="1" min="0" step="0.05" type="range" value="0.1"/>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Lock value">
+<span class="material-symbols-outlined text-[20px]">lock_open</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex justify-center mt-6">
+<button class="text-sm text-slate-500 hover:text-primary transition-colors flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-lg">restart_alt</span>
+                    Reset to defaults
+                </button>
+</div>
+</section>
+<!-- Main Content Area: Split View -->
+<div class="flex flex-col lg:flex-row gap-6 h-full">
+<!-- LEFT: Ranking Table (60%) -->
+<div class="flex-1 lg:w-3/5 flex flex-col bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden h-[600px]">
+<div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+<div class="flex items-center gap-3">
+<span class="bg-primary/10 text-primary p-2 rounded-lg material-symbols-outlined">table_chart</span>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Priority Ranking</h3>
+</div>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</span>
+<input class="pl-9 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary w-48 transition-all focus:w-64" placeholder="Search District..." type="text"/>
+</div>
+</div>
+<div class="overflow-auto flex-1">
+<table class="w-full text-left text-sm whitespace-nowrap">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold sticky top-0 z-10 shadow-sm">
+<tr>
+<th class="px-5 py-3 w-20">Rank</th>
+<th class="px-5 py-3">District</th>
+<th class="px-5 py-3">Division</th>
+<th class="px-5 py-3 text-right">CRI Score</th>
+<th class="px-5 py-3 text-right">
+<div class="flex items-center justify-end gap-1 cursor-pointer hover:text-primary">
+                                        Priority Score
+                                        <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</div>
+</th>
+<th class="px-5 py-3 text-center">Trend</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800/50">
+<!-- Row 1 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-primary">#1</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Kurigram</td>
+<td class="px-5 py-3 text-slate-500">Rangpur</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.85</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.92</td>
+<td class="px-5 py-3 text-center">
+<div class="inline-flex items-center justify-center size-6 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-primary">#2</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Gaibandha</td>
+<td class="px-5 py-3 text-slate-500">Rangpur</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.82</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.89</td>
+<td class="px-5 py-3 text-center">
+<span class="material-symbols-outlined text-slate-300 text-[18px]">remove</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-primary">#3</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Sunamganj</td>
+<td class="px-5 py-3 text-slate-500">Sylhet</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.78</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.86</td>
+<td class="px-5 py-3 text-center">
+<div class="inline-flex items-center justify-center size-6 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#4</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Sirajganj</td>
+<td class="px-5 py-3 text-slate-500">Rajshahi</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.75</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.81</td>
+<td class="px-5 py-3 text-center">
+<div class="inline-flex items-center justify-center size-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#5</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Jamalpur</td>
+<td class="px-5 py-3 text-slate-500">Mymensingh</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.71</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.78</td>
+<td class="px-5 py-3 text-center">
+<span class="material-symbols-outlined text-slate-300 text-[18px]">remove</span>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#6</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Bhola</td>
+<td class="px-5 py-3 text-slate-500">Barisal</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.68</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.75</td>
+<td class="px-5 py-3 text-center">
+<div class="inline-flex items-center justify-center size-6 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#7</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Satkhira</td>
+<td class="px-5 py-3 text-slate-500">Khulna</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.65</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.73</td>
+<td class="px-5 py-3 text-center">
+<span class="material-symbols-outlined text-slate-300 text-[18px]">remove</span>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group cursor-pointer border-l-4 border-l-transparent hover:border-l-primary">
+<td class="px-5 py-3 font-bold text-slate-600 dark:text-slate-400">#8</td>
+<td class="px-5 py-3 font-medium text-slate-900 dark:text-white">Bagerhat</td>
+<td class="px-5 py-3 text-slate-500">Khulna</td>
+<td class="px-5 py-3 text-right font-mono text-slate-600 dark:text-slate-400">0.62</td>
+<td class="px-5 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">0.70</td>
+<td class="px-5 py-3 text-center">
+<div class="inline-flex items-center justify-center size-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+<span class="text-xs text-slate-500">Showing 1-8 of 64 districts</span>
+<div class="flex gap-2">
+<button class="size-8 flex items-center justify-center rounded border border-slate-300 bg-white text-slate-400 cursor-not-allowed">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors">
+<span class="text-sm font-medium">1</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded border border-transparent bg-transparent hover:bg-slate-100 text-slate-500 transition-colors">
+<span class="text-sm font-medium">2</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT: Analysis & Visualization (40%) -->
+<div class="flex-1 lg:w-2/5 flex flex-col gap-6">
+<!-- Chart Card -->
+<div class="bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="bg-primary/10 text-primary p-2 rounded-lg material-symbols-outlined">bar_chart</span>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Division Priority</h3>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<!-- CSS-only Stacked Bar Chart Visualization -->
+<div class="flex-1 flex flex-col justify-end gap-4 min-h-[300px]">
+<div class="flex-1 flex items-end justify-between gap-4 px-2">
+<!-- Bar 1: Rangpur -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full relative flex flex-col-reverse h-[200px]">
+<div class="w-full bg-primary rounded-t-sm" style="height: 60%"></div> <!-- High -->
+<div class="w-full bg-blue-300 dark:bg-blue-600/50" style="height: 30%"></div> <!-- Med -->
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-b-sm" style="height: 10%"></div> <!-- Low -->
+<!-- Tooltip -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                        High: 60%
+                                    </div>
+</div>
+<span class="text-xs font-medium text-slate-500">Rangpur</span>
+</div>
+<!-- Bar 2: Sylhet -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full relative flex flex-col-reverse h-[200px]">
+<div class="w-full bg-primary rounded-t-sm" style="height: 45%"></div>
+<div class="w-full bg-blue-300 dark:bg-blue-600/50" style="height: 40%"></div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-b-sm" style="height: 15%"></div>
+</div>
+<span class="text-xs font-medium text-slate-500">Sylhet</span>
+</div>
+<!-- Bar 3: Dhaka -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full relative flex flex-col-reverse h-[200px]">
+<div class="w-full bg-primary rounded-t-sm" style="height: 25%"></div>
+<div class="w-full bg-blue-300 dark:bg-blue-600/50" style="height: 35%"></div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-b-sm" style="height: 40%"></div>
+</div>
+<span class="text-xs font-medium text-slate-500">Dhaka</span>
+</div>
+<!-- Bar 4: Khulna -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full relative flex flex-col-reverse h-[200px]">
+<div class="w-full bg-primary rounded-t-sm" style="height: 55%"></div>
+<div class="w-full bg-blue-300 dark:bg-blue-600/50" style="height: 25%"></div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-b-sm" style="height: 20%"></div>
+</div>
+<span class="text-xs font-medium text-slate-500">Khulna</span>
+</div>
+<!-- Bar 5: Barisal -->
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full relative flex flex-col-reverse h-[200px]">
+<div class="w-full bg-primary rounded-t-sm" style="height: 50%"></div>
+<div class="w-full bg-blue-300 dark:bg-blue-600/50" style="height: 40%"></div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-b-sm" style="height: 10%"></div>
+</div>
+<span class="text-xs font-medium text-slate-500">Barisal</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="flex items-center justify-center gap-4 mt-4 text-xs text-slate-600 dark:text-slate-400">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary"></div>
+<span>High Priority</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-blue-300 dark:bg-blue-600/50"></div>
+<span>Medium</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+<span>Low</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Threshold Editor Mini-Panel -->
+<div class="bg-white dark:bg-[#151c2b] rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400">tune</span>
+<h3 class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Cut-off Configuration</h3>
+</div>
+<button class="text-xs text-primary font-bold hover:underline">Auto-Calibrate</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-medium text-slate-500 mb-1">High Priority (≥)</label>
+<div class="relative">
+<input class="w-full pl-3 pr-8 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" step="0.01" type="number" value="0.75"/>
+<div class="absolute inset-y-0 right-0 flex flex-col border-l border-slate-200 dark:border-slate-700">
+<button class="h-1/2 px-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><span class="material-symbols-outlined text-[10px]">expand_less</span></button>
+<button class="h-1/2 px-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><span class="material-symbols-outlined text-[10px]">expand_more</span></button>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-xs font-medium text-slate-500 mb-1">Low Priority (&lt;)</label>
+<div class="relative">
+<input class="w-full pl-3 pr-8 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50" step="0.01" type="number" value="0.40"/>
+<div class="absolute inset-y-0 right-0 flex flex-col border-l border-slate-200 dark:border-slate-700">
+<button class="h-1/2 px-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><span class="material-symbols-outlined text-[10px]">expand_less</span></button>
+<button class="h-1/2 px-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"><span class="material-symbols-outlined text-[10px]">expand_more</span></button>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors shadow-sm">
+                        Apply Thresholds
+                    </button>
+</div>
+</div>
+</div>
+</main>
+    </div>
+    <div id="page-layer3" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<!-- Header & Controls -->
+<section class="flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-end">
+<div class="flex flex-col gap-2 max-w-2xl">
+<h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Layer 3: Allocation Engine</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm max-w-xl">
+                    Configure parameters to distribute the budget across districts based on vulnerability and population metrics using the equity-adjusted formula.
+                </p>
+</div>
+<!-- Control Parameters Strip -->
+<div class="flex flex-wrap items-center gap-4 bg-white dark:bg-[#1e2b16] p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 w-full xl:w-auto flex-1">
+<!-- Budget Input -->
+<div class="flex flex-col gap-1.5 min-w-[200px] flex-1">
+<label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Budget Envelope (BDT)</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">৳</span>
+<input class="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono font-medium focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" type="text" value="2,50,00,00,000"/>
+</div>
+</div>
+<!-- Vertical Divider -->
+<div class="hidden md:block w-px h-12 bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<!-- Equity Exponent -->
+<div class="flex flex-col gap-1.5 flex-1 min-w-[240px]">
+<div class="flex justify-between items-center">
+<label class="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                            Equity Exponent
+                            <span class="material-symbols-outlined text-[14px] text-slate-400 cursor-help" title="Higher values prioritize vulnerable districts more aggressively">help</span>
+</label>
+<span class="text-primary font-bold text-sm bg-primary/10 px-2 rounded">1.2</span>
+</div>
+<div class="flex items-center gap-3">
+<input class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary" max="2" min="0" step="0.1" type="range" value="1.2"/>
+<!-- Tiny Curve Preview SVG -->
+<svg class="text-slate-400" fill="none" height="24" viewbox="0 0 24 24" width="24">
+<path d="M2 22C10 22 14 10 22 2" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Vertical Divider -->
+<div class="hidden md:block w-px h-12 bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<!-- Population Exponent -->
+<div class="flex flex-col gap-1.5 flex-1 min-w-[180px]">
+<label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Population Weight</label>
+<div class="flex items-center gap-2">
+<button class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="flex-1 text-center font-mono font-medium text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 py-1.5 rounded-lg">0.85</span>
+<button class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary-dark text-slate-900 font-bold py-3 px-6 rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center gap-2 ml-2">
+<span class="material-symbols-outlined">calculate</span>
+<span>Recalculate</span>
+</button>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-[500px]">
+<!-- Col 1: Map Visualization (4 cols) -->
+<div class="lg:col-span-4 bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex flex-col relative overflow-hidden group">
+<div class="flex justify-between items-center mb-4 z-10">
+<h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">public</span>
+                        Allocation Heatmap
+                    </h3>
+<div class="flex gap-2">
+<span class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-slate-500">BDT/Capita</span>
+</div>
+</div>
+<!-- Map Container -->
+<div class="flex-1 w-full bg-slate-50 dark:bg-slate-900 rounded-lg relative flex items-center justify-center overflow-hidden">
+<!-- Placeholder for Map - Using an SVG pattern to represent map data abstractly -->
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#6aec13 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- Abstract Map Representation -->
+<svg class="w-full h-full p-8 drop-shadow-xl filter" viewbox="0 0 200 240">
+<path class="dark:fill-slate-800 dark:stroke-slate-600" d="M60,20 L140,20 L160,80 L130,140 L150,190 L90,220 L40,180 L20,100 Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"></path>
+<!-- Highlighted Regions (Choropleth effect) -->
+<path d="M60,20 L100,20 L110,60 L70,50 Z" fill="#6aec13" fill-opacity="0.2"></path>
+<path d="M100,20 L140,20 L160,80 L110,60 Z" fill="#6aec13" fill-opacity="0.4"></path>
+<path d="M160,80 L130,140 L100,100 L110,60 Z" fill="#6aec13" fill-opacity="0.8"></path> <!-- High allocation -->
+<path d="M40,180 L90,220 L120,170 L80,130 Z" fill="#6aec13" fill-opacity="0.6"></path>
+<path d="M20,100 L70,50 L110,60 L100,100 L80,130 L40,180 Z" fill="#6aec13" fill-opacity="0.3"></path>
+</svg>
+<!-- Legend Overlay -->
+<div class="absolute bottom-4 right-4 bg-white/90 dark:bg-black/60 backdrop-blur-sm p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm text-xs">
+<div class="flex flex-col gap-1">
+<span class="font-semibold mb-1">Allocation Intensity</span>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#6aec13] opacity-20 rounded-sm"></div> <span class="text-slate-500">Low</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#6aec13] opacity-60 rounded-sm"></div> <span class="text-slate-500">Medium</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-[#6aec13] opacity-100 rounded-sm"></div> <span class="text-slate-500">High</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Col 2: Data Table (5 cols) -->
+<div class="lg:col-span-5 bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+<div class="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<h3 class="font-bold text-slate-900 dark:text-white">District Allocations</h3>
+<div class="flex gap-2">
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors">
+<span class="material-symbols-outlined text-lg">download</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+</button>
+</div>
+</div>
+<div class="overflow-auto flex-1">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
+<tr>
+<th class="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">District</th>
+<th class="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Pop (M)</th>
+<th class="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Allocation (Cr)</th>
+<th class="p-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">% Share</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer">
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">Kurigram</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-400 text-right font-mono">2.3</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-bold text-right font-mono">18.5</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">7.4%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 74%"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer">
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">Sunamganj</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-400 text-right font-mono">2.8</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-bold text-right font-mono">16.2</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">6.5%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 65%"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer">
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">Gaibandha</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-400 text-right font-mono">2.5</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-bold text-right font-mono">14.8</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">5.9%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 59%"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer">
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">Satkhira</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-400 text-right font-mono">2.1</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-bold text-right font-mono">13.5</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">5.4%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 54%"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer">
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">Bhola</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-400 text-right font-mono">1.9</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-bold text-right font-mono">11.2</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">4.5%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 45%"></div>
+</div>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer">
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">Sirajganj</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-400 text-right font-mono">3.2</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-bold text-right font-mono">10.8</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">4.3%</span>
+<div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 43%"></div>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500">
+                    Showing top 6 of 64 districts based on allocation
+                </div>
+</div>
+<!-- Col 3: Widgets (3 cols) -->
+<div class="lg:col-span-3 flex flex-col gap-6">
+<!-- Widget 1: Gini Coefficient -->
+<div class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
+<div class="flex justify-between items-start mb-4">
+<h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Inequality (Gini)</h4>
+<span class="material-symbols-outlined text-slate-400 text-lg">info</span>
+</div>
+<div class="relative h-24 flex items-end justify-center mb-2">
+<!-- Semi-circle Gauge Background -->
+<div class="w-32 h-16 bg-slate-100 dark:bg-slate-800 rounded-t-full border-t border-x border-slate-200 dark:border-slate-700 overflow-hidden relative">
+<!-- Gauge Value -->
+<div class="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-primary/10 to-transparent"></div>
+<div class="absolute bottom-0 left-[20%] w-[60%] h-[120%] bg-primary/20 rounded-t-full origin-bottom rotate-[-45deg]"></div>
+</div>
+<!-- Needle -->
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-16 bg-slate-800 dark:bg-slate-200 origin-bottom rounded-full transition-transform duration-700 ease-out" style="transform: translateX(-50%) rotate(-30deg);"></div>
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 size-3 bg-slate-900 dark:bg-white rounded-full"></div>
+</div>
+<div class="text-center">
+<span class="text-2xl font-black text-slate-900 dark:text-white">0.32</span>
+<p class="text-xs text-green-600 font-medium">Within Acceptable Range</p>
+</div>
+</div>
+<!-- Widget 2: Priority Class Bar -->
+<div class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex-1">
+<h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide mb-4">Allocation by Priority</h4>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-400">
+<span>High Vulnerability</span>
+<span>65%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 65%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-400">
+<span>Moderate</span>
+<span>25%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary opacity-60 rounded-full" style="width: 25%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-400">
+<span>Low</span>
+<span>10%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary opacity-30 rounded-full" style="width: 10%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Widget 3: Per Capita Stat -->
+<div class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
+<h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide mb-2">Per-Capita Range</h4>
+<div class="flex items-center gap-4">
+<div class="flex-1">
+<p class="text-xs text-slate-500">Min</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">৳ 450</p>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex-1 text-right">
+<p class="text-xs text-slate-500">Max</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">৳ 1,200</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Comparison Chart Section -->
+<section class="bg-white dark:bg-[#1e2b16] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-bold text-slate-900 dark:text-white text-lg">Impact Analysis: Proportional vs. Equity-Adjusted</h3>
+<div class="flex items-center gap-4 text-sm">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-slate-300"></div>
+<span class="text-slate-600 dark:text-slate-400">Proportional Baseline</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary"></div>
+<span class="text-slate-600 dark:text-slate-400 font-medium">Equity-Adjusted</span>
+</div>
+</div>
+</div>
+<!-- Simple Bar Chart Mockup -->
+<div class="h-48 w-full flex items-end gap-2 md:gap-4 lg:gap-8 justify-between px-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+<!-- Bar Group 1 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[30%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[45%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[48%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Dhaka</span>
+<!-- Tooltip -->
+<div class="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs px-2 py-1 rounded pointer-events-none whitespace-nowrap z-20">
+                        Shift: +15%
+                    </div>
+</div>
+<!-- Bar Group 2 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[40%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[65%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[68%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Sylhet</span>
+</div>
+<!-- Bar Group 3 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[50%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[85%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[88%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Rangpur</span>
+</div>
+<!-- Bar Group 4 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[60%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[70%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[72%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Khulna</span>
+</div>
+<!-- Bar Group 5 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[55%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[60%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[62%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Barisal</span>
+</div>
+<!-- Bar Group 6 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[80%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[50%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[52%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Chittagong</span>
+</div>
+<!-- Bar Group 7 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[40%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[42%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[45%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Rajshahi</span>
+</div>
+<!-- Bar Group 8 -->
+<div class="flex flex-col items-center gap-2 w-full group relative">
+<div class="flex gap-1 h-full items-end w-full justify-center">
+<div class="w-1/3 bg-slate-300 rounded-t-sm h-[50%] transition-all group-hover:bg-slate-400"></div>
+<div class="w-1/3 bg-primary rounded-t-sm h-[55%] shadow-[0_0_10px_rgba(106,236,19,0.3)] transition-all group-hover:h-[58%]"></div>
+</div>
+<span class="text-xs font-medium text-slate-500 uppercase">Mymensingh</span>
+</div>
+</div>
+</section>
+</main>
+    </div>
+    <div id="page-layer4" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<!-- Page Title & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h1 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">Scenario Simulation Engine</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1 font-body">Compare baseline fund allocation models against hypothetical climate scenarios.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-[20px]">restart_alt</span>
+                    Reset to Baseline
+                </button>
+<button class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold text-white bg-primary hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+                    Run Simulation
+                </button>
+</div>
+</div>
+<!-- Configuration Panel (Top) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left: Baseline Config (Read-Only) -->
+<div class="lg:col-span-5 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400">lock</span>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Baseline Configuration</h3>
+</div>
+<span class="text-xs font-mono px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">READ-ONLY</span>
+</div>
+<div class="space-y-4">
+<!-- Metric 1 -->
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="text-slate-500 dark:text-slate-400">Vulnerability Index Weight</span>
+<span class="font-mono font-bold">30%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-slate-400 w-[30%]"></div>
+</div>
+</div>
+<!-- Metric 2 -->
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="text-slate-500 dark:text-slate-400">Hazard Exposure Weight</span>
+<span class="font-mono font-bold">40%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-slate-400 w-[40%]"></div>
+</div>
+</div>
+<!-- Metric 3 -->
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="text-slate-500 dark:text-slate-400">Adaptive Capacity Weight</span>
+<span class="font-mono font-bold">30%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-slate-400 w-[30%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Center: Divider / Icon -->
+<div class="lg:col-span-1 flex items-center justify-center lg:py-0 py-2">
+<div class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
+<span class="material-symbols-outlined block lg:rotate-0 rotate-90">compare_arrows</span>
+</div>
+</div>
+<!-- Right: Scenario Config (Editable) -->
+<div class="lg:col-span-6 bg-white dark:bg-surface-dark rounded-xl border-2 border-primary/30 p-5 shadow-lg shadow-primary/5 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-8xl">tune</span>
+</div>
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">edit</span>
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Scenario Adjustment</h3>
+</div>
+<!-- Presets -->
+<div class="flex gap-2 text-xs">
+<button class="px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all font-medium">Flood Focus</button>
+<button class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Drought Intensity</button>
+<button class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Urban Risk</button>
+</div>
+</div>
+<div class="space-y-6 relative z-10">
+<!-- Slider 1 -->
+<div>
+<div class="flex justify-between text-sm mb-2">
+<label class="font-medium text-slate-700 dark:text-slate-200">Vulnerability Index Weight</label>
+<span class="font-mono font-bold text-primary bg-primary/10 px-2 rounded">45%</span>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="45"/>
+<div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+<span>0%</span>
+<span>50%</span>
+<span>100%</span>
+</div>
+</div>
+<!-- Slider 2 -->
+<div>
+<div class="flex justify-between text-sm mb-2">
+<label class="font-medium text-slate-700 dark:text-slate-200">Hazard Exposure Weight</label>
+<span class="font-mono font-bold text-primary bg-primary/10 px-2 rounded">35%</span>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="35"/>
+</div>
+<!-- Slider 3 -->
+<div>
+<div class="flex justify-between text-sm mb-2">
+<label class="font-medium text-slate-700 dark:text-slate-200">Adaptive Capacity Weight</label>
+<span class="font-mono font-bold text-primary bg-primary/10 px-2 rounded">20%</span>
+</div>
+<input class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="20"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Comparative Results (Middle) -->
+<div class="grid grid-cols-12 gap-0 lg:gap-0 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm min-h-[500px]">
+<!-- Left Panel: Baseline Results -->
+<div class="col-span-12 md:col-span-5 p-4 md:p-6 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-surface-dark">
+<h4 class="text-sm uppercase tracking-wider font-bold text-slate-500 mb-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span> Baseline Outcome
+                </h4>
+<!-- Map Placeholder -->
+<div class="w-full aspect-[4/3] bg-slate-200 dark:bg-[#111722] rounded-lg mb-6 relative overflow-hidden group">
+<div class="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+<span class="material-symbols-outlined text-6xl text-slate-500">public</span>
+</div>
+<!-- Simulated Map Content -->
+<div class="absolute inset-0 p-4" data-alt="Choropleth map of Bangladesh showing district-wise fund allocation for the baseline scenario" data-location="Bangladesh" style="">
+<svg class="w-full h-full drop-shadow-lg" viewbox="0 0 200 240">
+<path d="M60,20 L90,10 L110,30 L100,60 L70,50 Z" fill="#475569" stroke="#1e293b" stroke-width="0.5"></path>
+<path d="M100,60 L130,50 L150,80 L120,100 L90,80 Z" fill="#64748b" stroke="#1e293b" stroke-width="0.5"></path>
+<path d="M70,50 L90,80 L80,120 L40,100 L50,60 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="0.5"></path>
+<path d="M120,100 L160,90 L170,140 L130,160 L110,130 Z" fill="#475569" stroke="#1e293b" stroke-width="0.5"></path>
+<path d="M80,120 L110,130 L100,180 L60,170 Z" fill="#334155" stroke="#1e293b" stroke-width="0.5"></path>
+<!-- Abstract representation of districts -->
+</svg>
+<div class="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm p-1.5 rounded text-[10px] text-white font-mono">
+                            Total Budget: $4.2M
+                         </div>
+</div>
+</div>
+<!-- Top 5 Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left">
+<thead>
+<tr class="text-xs text-slate-500 border-b border-slate-200 dark:border-slate-700">
+<th class="pb-2 font-medium">Rank</th>
+<th class="pb-2 font-medium">District</th>
+<th class="pb-2 font-medium text-right">Budget</th>
+</tr>
+</thead>
+<tbody class="font-mono text-slate-700 dark:text-slate-300">
+<tr class="border-b border-slate-100 dark:border-slate-800/50">
+<td class="py-2">1</td>
+<td>Kurigram</td>
+<td class="text-right">$450k</td>
+</tr>
+<tr class="border-b border-slate-100 dark:border-slate-800/50">
+<td class="py-2">2</td>
+<td>Gaibandha</td>
+<td class="text-right">$410k</td>
+</tr>
+<tr class="border-b border-slate-100 dark:border-slate-800/50">
+<td class="py-2">3</td>
+<td>Jamalpur</td>
+<td class="text-right">$380k</td>
+</tr>
+<tr>
+<td class="py-2">4</td>
+<td>Sirajganj</td>
+<td class="text-right">$355k</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Middle: Delta Strip -->
+<div class="col-span-12 md:col-span-2 bg-[#0d121c] border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col items-center py-6 relative z-10">
+<div class="absolute inset-0 bg-repeat opacity-5 pointer-events-none" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 8px 8px;"></div>
+<h4 class="text-xs uppercase font-bold text-slate-500 mb-8">Delta</h4>
+<!-- Delta Visualizations -->
+<div class="flex flex-row md:flex-col gap-8 w-full px-2">
+<!-- Map Change Indicator -->
+<div class="flex flex-col items-center gap-1 w-full">
+<span class="text-[10px] text-slate-400 text-center">Map Variance</span>
+<div class="h-10 w-px bg-slate-700 md:block hidden"></div>
+<div class="text-xs font-mono text-yellow-500 flex items-center gap-1 bg-yellow-500/10 px-2 py-1 rounded">
+<span class="material-symbols-outlined text-sm">change_history</span>
+                            12%
+                        </div>
+<div class="h-10 w-px bg-slate-700 md:block hidden"></div>
+</div>
+<!-- Rank Shifts -->
+<div class="flex flex-col gap-3 w-full items-center">
+<span class="text-[10px] text-slate-400 text-center">Rank Shifts</span>
+<!-- Row 1 shift -->
+<div class="flex items-center gap-1 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded w-full justify-center">
+<span class="material-symbols-outlined text-sm">arrow_upward</span>
+<span>+2</span>
+</div>
+<!-- Row 2 shift -->
+<div class="flex items-center gap-1 text-xs font-mono text-rose-400 bg-rose-500/10 px-2 py-1 rounded w-full justify-center">
+<span class="material-symbols-outlined text-sm">arrow_downward</span>
+<span>-1</span>
+</div>
+<!-- Row 3 shift -->
+<div class="flex items-center gap-1 text-xs font-mono text-slate-400 bg-slate-500/10 px-2 py-1 rounded w-full justify-center">
+<span class="material-symbols-outlined text-sm">remove</span>
+<span>0</span>
+</div>
+<!-- Row 4 shift -->
+<div class="flex items-center gap-1 text-xs font-mono text-rose-400 bg-rose-500/10 px-2 py-1 rounded w-full justify-center">
+<span class="material-symbols-outlined text-sm">arrow_downward</span>
+<span>-3</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Scenario Results -->
+<div class="col-span-12 md:col-span-5 p-4 md:p-6 bg-white dark:bg-surface-dark relative">
+<div class="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+<h4 class="text-sm uppercase tracking-wider font-bold text-primary mb-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Scenario Outcome
+                </h4>
+<!-- Map Placeholder -->
+<div class="w-full aspect-[4/3] bg-primary/5 rounded-lg mb-6 relative overflow-hidden border border-primary/20">
+<!-- Simulated Map Content Scenario -->
+<div class="absolute inset-0 p-4" data-alt="Choropleth map of Bangladesh showing district-wise fund allocation for the adjusted scenario" data-location="Bangladesh" style="">
+<svg class="w-full h-full drop-shadow-lg" viewbox="0 0 200 240">
+<path d="M60,20 L90,10 L110,30 L100,60 L70,50 Z" fill="#1e3a8a" stroke="#1e40af" stroke-width="0.5"></path>
+<path d="M100,60 L130,50 L150,80 L120,100 L90,80 Z" fill="#1d4ed8" stroke="#1e40af" stroke-width="0.5"></path>
+<path d="M70,50 L90,80 L80,120 L40,100 L50,60 Z" fill="#60a5fa" stroke="#1e40af" stroke-width="0.5"></path>
+<path d="M120,100 L160,90 L170,140 L130,160 L110,130 Z" fill="#2563eb" stroke="#1e40af" stroke-width="0.5"></path>
+<path d="M80,120 L110,130 L100,180 L60,170 Z" fill="#93c5fd" stroke="#1e40af" stroke-width="0.5"></path>
+</svg>
+<div class="absolute bottom-2 left-2 bg-primary/90 backdrop-blur-sm p-1.5 rounded text-[10px] text-white font-mono shadow-lg shadow-blue-900/20">
+                            Total Budget: $4.2M
+                         </div>
+</div>
+</div>
+<!-- Top 5 Table Scenario -->
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left">
+<thead>
+<tr class="text-xs text-slate-500 border-b border-slate-200 dark:border-slate-700">
+<th class="pb-2 font-medium">Rank</th>
+<th class="pb-2 font-medium">District</th>
+<th class="pb-2 font-medium text-right">Budget</th>
+</tr>
+</thead>
+<tbody class="font-mono text-slate-900 dark:text-white">
+<tr class="border-b border-slate-100 dark:border-slate-800/50 bg-primary/5">
+<td class="py-2 text-primary font-bold">1</td>
+<td>Sunamganj</td>
+<td class="text-right font-bold">$485k</td>
+</tr>
+<tr class="border-b border-slate-100 dark:border-slate-800/50">
+<td class="py-2">2</td>
+<td>Kurigram</td>
+<td class="text-right">$400k</td>
+</tr>
+<tr class="border-b border-slate-100 dark:border-slate-800/50">
+<td class="py-2">3</td>
+<td>Gaibandha</td>
+<td class="text-right">$375k</td>
+</tr>
+<tr>
+<td class="py-2">4</td>
+<td>Netrokona</td>
+<td class="text-right">$360k</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Rank Sensitivity Matrix (Bottom) -->
+<div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark p-6">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Rank Sensitivity Matrix</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Heatmap analysis of rank volatility based on parameter weights.</p>
+</div>
+<button class="text-xs font-medium text-primary hover:text-blue-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">download</span> Export Data
+                </button>
+</div>
+<div class="overflow-x-auto no-scrollbar">
+<div class="min-w-[600px] grid grid-cols-[150px_1fr] gap-4">
+<!-- Y-Axis Labels -->
+<div class="flex flex-col gap-1 pt-8">
+<div class="h-8 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">Kurigram</div>
+<div class="h-8 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">Gaibandha</div>
+<div class="h-8 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">Sunamganj</div>
+<div class="h-8 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">Jamalpur</div>
+<div class="h-8 flex items-center text-sm font-medium text-slate-600 dark:text-slate-300">Sirajganj</div>
+</div>
+<!-- Heatmap Grid -->
+<div>
+<!-- X-Axis Labels -->
+<div class="grid grid-cols-5 gap-1 mb-2 text-xs text-center text-slate-500 font-mono">
+<div>Vuln. Weight</div>
+<div>Haz. Weight</div>
+<div>Exp. Weight</div>
+<div>Adapt. Cap</div>
+<div>Sens. Index</div>
+</div>
+<!-- Rows -->
+<div class="flex flex-col gap-1">
+<!-- Row 1 -->
+<div class="grid grid-cols-5 gap-1">
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono cursor-help" title="High Sensitivity">High</div>
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+</div>
+<!-- Row 2 -->
+<div class="grid grid-cols-5 gap-1">
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono">High</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+</div>
+<!-- Row 3 -->
+<div class="grid grid-cols-5 gap-1">
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono">High</div>
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono">High</div>
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+</div>
+<!-- Row 4 -->
+<div class="grid grid-cols-5 gap-1">
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+</div>
+<!-- Row 5 -->
+<div class="grid grid-cols-5 gap-1">
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono">High</div>
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono">High</div>
+<div class="h-8 rounded bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-mono">High</div>
+<div class="h-8 rounded bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xs font-mono">Med</div>
+<div class="h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-mono">Low</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 flex gap-4 text-xs text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded bg-rose-500"></span> High Sensitivity (&gt;15% swing)</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded bg-yellow-500"></span> Moderate Sensitivity (5-15% swing)</div>
+<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded bg-emerald-500"></span> Low Sensitivity (&lt;5% swing)</div>
+</div>
+</div>
+</main>
+    </div>
+    <div id="page-map" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<!-- Interactive Map Base (Simulated) -->
+<div class="absolute inset-0 z-0">
+<!-- Simulated Map Content -->
+<div class="w-full h-full relative opacity-60 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Bangladesh_location_map.svg/1714px-Bangladesh_location_map.svg.png')] bg-cover bg-center grayscale contrast-125 brightness-75" data-alt="Map of Bangladesh showing administrative boundaries" data-location="Bangladesh" style=""></div>
+<!-- Highlighted Region: Satkhira -->
+<div class="map-highlight z-10 cursor-pointer group">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded border border-primary/50 whitespace-nowrap opacity-100 transition-opacity pointer-events-none backdrop-blur-sm">
+                    Satkhira <span class="text-primary font-bold ml-1">High Risk</span>
+</div>
+</div>
+</div>
+<!-- Top Bar: Search & Title -->
+<div class="absolute top-4 left-6 right-6 flex justify-between items-start z-20 pointer-events-none">
+<!-- Left: Branding & Context -->
+<div class="flex flex-col pointer-events-auto">
+<h1 class="text-white text-2xl font-bold tracking-tight drop-shadow-md">CFADT <span class="text-primary font-normal">| Map Explorer</span></h1>
+<p class="text-gray-400 text-sm drop-shadow-md">Oxfam Bangladesh</p>
+</div>
+<!-- Center: Search Bar -->
+<div class="pointer-events-auto w-full max-w-md mx-4">
+<div class="glass-panel rounded-lg flex items-center px-4 h-12 shadow-lg transition-transform hover:scale-[1.01]">
+<span class="material-symbols-outlined text-[#92adc9]">search</span>
+<input class="bg-transparent border-none text-white placeholder-[#92adc9] w-full focus:ring-0 text-sm ml-2" placeholder="Search district, upazila or project..." type="text"/>
+<button class="text-[#92adc9] hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Right: Spacer for balance -->
+<div class="w-[200px]"></div>
+</div>
+<!-- Floating Left Panel: Layer Controls -->
+<div class="absolute top-24 left-6 z-20 w-72 glass-panel rounded-xl flex flex-col shadow-2xl animate-fade-in-left">
+<div class="p-4 border-b border-white/10 flex justify-between items-center">
+<h3 class="text-white font-semibold text-base flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">layers</span>
+                    Map Layers
+                </h3>
+<button class="text-gray-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">restart_alt</span>
+</button>
+</div>
+<div class="p-4 flex flex-col gap-3 custom-scrollbar overflow-y-auto max-h-[calc(100vh-300px)]">
+<!-- Layer Item: CRI -->
+<div class="group">
+<label class="flex items-center justify-between cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded border-gray-600 bg-transparent text-primary focus:ring-offset-0 focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="text-gray-200 text-sm font-medium">Climate Risk Index</span>
+</div>
+<span class="material-symbols-outlined text-gray-500 text-sm group-hover:text-white">info</span>
+</label>
+<!-- Sub-legend inline -->
+<div class="pl-9 pr-2 py-1">
+<div class="h-1.5 w-full rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-600"></div>
+<div class="flex justify-between text-[10px] text-gray-400 mt-1">
+<span>Low</span>
+<span>High</span>
+</div>
+</div>
+</div>
+<!-- Layer Item: Hazard -->
+<label class="flex items-center justify-between cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded border-gray-600 bg-transparent text-primary focus:ring-offset-0 focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="text-gray-200 text-sm font-medium">Hazard Intensity</span>
+</div>
+<span class="material-symbols-outlined text-gray-500 text-sm group-hover:text-white">visibility</span>
+</label>
+<!-- Layer Item: Fiscal Allocation -->
+<label class="flex items-center justify-between cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<input class="rounded border-gray-600 bg-transparent text-primary focus:ring-offset-0 focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="text-gray-200 text-sm font-medium">Fiscal Allocation</span>
+</div>
+</label>
+<!-- Layer Item: Vulnerability -->
+<label class="flex items-center justify-between cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<input class="rounded border-gray-600 bg-transparent text-primary focus:ring-offset-0 focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="text-gray-200 text-sm font-medium">Vulnerability Score</span>
+</div>
+</label>
+<div class="border-t border-white/10 my-1"></div>
+<div class="flex justify-between items-center px-2">
+<span class="text-xs text-gray-400 uppercase tracking-wider font-bold">Base Map</span>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-1">
+<button class="bg-primary/20 border border-primary text-white text-xs py-2 rounded flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-sm">dark_mode</span>
+                        Dark
+                    </button>
+<button class="bg-white/5 border border-transparent hover:bg-white/10 text-gray-300 text-xs py-2 rounded flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-sm">satellite_alt</span>
+                        Satellite
+                    </button>
+</div>
+</div>
+</div>
+<!-- Floating Map Controls (Zoom) -->
+<div class="absolute bottom-8 left-6 z-20 flex flex-col gap-1">
+<div class="glass-panel rounded-lg flex flex-col overflow-hidden">
+<button class="p-2 text-white hover:bg-white/10 transition-colors border-b border-white/10">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+<button class="p-2 text-white hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+</div>
+<div class="glass-panel rounded-lg mt-2 p-2 text-white hover:bg-white/10 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">my_location</span>
+</div>
+</div>
+<!-- Legend (Bottom Left - Floating) -->
+<div class="absolute bottom-8 left-20 ml-4 z-20 glass-panel px-4 py-3 rounded-lg flex items-center gap-4">
+<div class="flex flex-col gap-1">
+<span class="text-xs font-medium text-white">Risk Intensity</span>
+<div class="flex items-center gap-1">
+<div class="w-3 h-3 rounded-full bg-green-500"></div>
+<span class="text-[10px] text-gray-300 mr-2">Low</span>
+<div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+<span class="text-[10px] text-gray-300 mr-2">Med</span>
+<div class="w-3 h-3 rounded-full bg-orange-500"></div>
+<span class="text-[10px] text-gray-300 mr-2">High</span>
+<div class="w-3 h-3 rounded-full bg-red-600"></div>
+<span class="text-[10px] text-gray-300">Severe</span>
+</div>
+</div>
+</div>
+<!-- Right Side Flyout Panel: District Details -->
+<div class="absolute top-4 bottom-4 right-4 w-[400px] z-30 glass-panel rounded-xl flex flex-col shadow-2xl border-l border-white/10 animate-slide-in-right overflow-hidden">
+<!-- Header with Close Button -->
+<div class="relative h-32 w-full shrink-0">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#101922]"></div>
+<div class="w-full h-full bg-gradient-to-br from-primary/40 via-emerald-700/50 to-sidebar opacity-80" aria-label="Satkhira district landscape placeholder"></div>
+<button class="absolute top-3 right-3 p-1 rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+<div class="absolute bottom-4 left-6">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/30 uppercase tracking-wide">Severe Risk</span>
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded border border-primary/30 uppercase tracking-wide">Coastal</span>
+</div>
+<h2 class="text-2xl font-bold text-white leading-none">Satkhira</h2>
+<p class="text-sm text-gray-300 mt-1">Khulna Division</p>
+</div>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white/5 p-3 rounded-lg border border-white/5">
+<p class="text-xs text-gray-400 mb-1">CRI Score</p>
+<div class="text-2xl font-bold text-white flex items-end gap-1">
+                            7.8<span class="text-sm text-gray-500 font-normal mb-1">/10</span>
+</div>
+</div>
+<div class="bg-white/5 p-3 rounded-lg border border-white/5">
+<p class="text-xs text-gray-400 mb-1">Vulnerability</p>
+<div class="text-2xl font-bold text-red-400 flex items-center gap-1">
+                            High <span class="material-symbols-outlined text-sm">trending_up</span>
+</div>
+</div>
+<div class="bg-white/5 p-3 rounded-lg border border-white/5">
+<p class="text-xs text-gray-400 mb-1">Allocated Fund</p>
+<div class="text-xl font-bold text-primary">৳450M</div>
+</div>
+<div class="bg-white/5 p-3 rounded-lg border border-white/5">
+<p class="text-xs text-gray-400 mb-1">Disbursement</p>
+<div class="text-xl font-bold text-green-400">65%</div>
+</div>
+</div>
+<!-- Radar Chart Section -->
+<div class="bg-white/5 rounded-xl p-4 border border-white/5">
+<div class="flex justify-between items-center mb-4">
+<h4 class="text-white font-medium text-sm">Hazard Profile</h4>
+<button class="text-xs text-primary hover:text-primary/80">View Details</button>
+</div>
+<div class="relative w-full aspect-square max-h-[220px] flex items-center justify-center">
+<!-- Simulated Radar Chart using CSS/SVG -->
+<svg class="w-full h-full drop-shadow-lg" viewbox="0 0 200 200">
+<!-- Grid Circles -->
+<circle cx="100" cy="100" fill="none" r="80" stroke="#334155" stroke-dasharray="4 4" stroke-width="1"></circle>
+<circle cx="100" cy="100" fill="none" r="50" stroke="#334155" stroke-dasharray="4 4" stroke-width="1"></circle>
+<circle cx="100" cy="100" fill="none" r="20" stroke="#334155" stroke-dasharray="4 4" stroke-width="1"></circle>
+<!-- Axes -->
+<line stroke="#334155" stroke-width="1" x1="100" x2="100" y1="100" y2="10"></line>
+<line stroke="#334155" stroke-width="1" x1="100" x2="185" y1="100" y2="65"></line>
+<line stroke="#334155" stroke-width="1" x1="100" x2="160" y1="100" y2="175"></line>
+<line stroke="#334155" stroke-width="1" x1="100" x2="40" y1="100" y2="175"></line>
+<line stroke="#334155" stroke-width="1" x1="100" x2="15" y1="100" y2="65"></line>
+<!-- Data Polygon (Satkhira) -->
+<!-- Points mapping: Top(Flood), TR(Salinity), BR(Cyclone), BL(Drought), TL(Erosion) -->
+<!-- Values approx: Flood 60%, Salinity 90%, Cyclone 80%, Drought 40%, Erosion 50% -->
+<polygon fill="rgba(19, 127, 236, 0.4)" points="100,50 170,70 150,165 60,140 50,80" stroke="#137fec" stroke-width="2"></polygon>
+<!-- Dots -->
+<circle cx="100" cy="50" fill="#fff" r="3"></circle>
+<circle cx="170" cy="70" fill="#fff" r="3"></circle>
+<circle cx="150" cy="165" fill="#fff" r="3"></circle>
+<circle cx="60" cy="140" fill="#fff" r="3"></circle>
+<circle cx="50" cy="80" fill="#fff" r="3"></circle>
+<!-- Labels -->
+<text fill="#94a3b8" font-size="10" text-anchor="middle" x="100" y="5">Flood</text>
+<text fill="#94a3b8" font-size="10" text-anchor="middle" x="195" y="65">Salinity</text>
+<text fill="#94a3b8" font-size="10" text-anchor="middle" x="165" y="190">Cyclone</text>
+<text fill="#94a3b8" font-size="10" text-anchor="middle" x="35" y="190">Drought</text>
+<text fill="#94a3b8" font-size="10" text-anchor="middle" x="5" y="65">Erosion</text>
+</svg>
+</div>
+</div>
+<!-- Climate Indicators Table -->
+<div class="space-y-3">
+<h4 class="text-white font-medium text-sm">Climate Indicators</h4>
+<div class="bg-white/5 rounded-lg overflow-hidden border border-white/5">
+<div class="flex items-center justify-between p-3 border-b border-white/5 hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="bg-blue-500/20 p-1.5 rounded text-blue-400">
+<span class="material-symbols-outlined text-[18px]">water_drop</span>
+</div>
+<span class="text-sm text-gray-200">Precipitation</span>
+</div>
+<span class="text-sm font-semibold text-white">1800mm</span>
+</div>
+<div class="flex items-center justify-between p-3 border-b border-white/5 hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="bg-orange-500/20 p-1.5 rounded text-orange-400">
+<span class="material-symbols-outlined text-[18px]">thermostat</span>
+</div>
+<span class="text-sm text-gray-200">Avg. Temp</span>
+</div>
+<span class="text-sm font-semibold text-white">29°C</span>
+</div>
+<div class="flex items-center justify-between p-3 hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="bg-teal-500/20 p-1.5 rounded text-teal-400">
+<span class="material-symbols-outlined text-[18px]">grass</span>
+</div>
+<span class="text-sm text-gray-200">Vegetation Index</span>
+</div>
+<span class="text-sm font-semibold text-white">0.45</span>
+</div>
+</div>
+</div>
+<!-- Allocation Progress -->
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<h4 class="text-white font-medium text-sm">Project Allocation</h4>
+<span class="text-xs text-gray-400">FY 2023-24</span>
+</div>
+<div class="bg-white/5 p-4 rounded-xl border border-white/5">
+<div class="flex justify-between items-end mb-2">
+<div>
+<p class="text-xs text-gray-400">Water Infrastructure</p>
+<p class="text-sm font-bold text-white mt-0.5">৳120M / ৳200M</p>
+</div>
+<span class="text-xs font-bold text-primary">60%</span>
+</div>
+<div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 60%"></div>
+</div>
+<div class="flex justify-between items-end mb-2 mt-4">
+<div>
+<p class="text-xs text-gray-400">Disaster Shelter</p>
+<p class="text-sm font-bold text-white mt-0.5">৳280M / ৳300M</p>
+</div>
+<span class="text-xs font-bold text-green-400">93%</span>
+</div>
+<div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-green-500 h-full rounded-full" style="width: 93%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="p-4 border-t border-white/10 bg-[#16202a]/80 backdrop-blur-sm">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-medium py-3 rounded-lg transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">download</span>
+                    Download District Report
+                </button>
+</div>
+</div>
+</main>
+    </div>
+    <div id="page-data" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<div class="flex flex-col max-w-[1200px] w-full gap-6">
+<!-- Breadcrumbs & Header -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2 text-sm">
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary font-medium" href="#">Home</a>
+<span class="text-slate-400 dark:text-slate-600">/</span>
+<span class="text-slate-900 dark:text-white font-medium">Data Manager</span>
+</div>
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">Data Manager</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal max-w-2xl">
+                            Upload, validate, and manage climate finance datasets. Ensure data integrity before final disbursement analysis.
+                        </p>
+</div>
+<button class="bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm shadow-blue-200 dark:shadow-none flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[20px]">download</span>
+                        Export Template
+                    </button>
+</div>
+</div>
+<!-- Tabs Navigation -->
+<div class="border-b border-slate-200 dark:border-slate-800">
+<div class="flex gap-8">
+<a class="group flex flex-col items-center justify-center border-b-[3px] border-primary pb-3 px-1 cursor-pointer" href="#">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[20px]">cloud_upload</span>
+<span class="text-sm font-bold">Upload Data</span>
+</div>
+</a>
+<a class="group flex flex-col items-center justify-center border-b-[3px] border-transparent hover:border-slate-300 dark:hover:border-slate-600 pb-3 px-1 cursor-pointer transition-colors" href="#">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200">
+<span class="material-symbols-outlined text-[20px]">library_books</span>
+<span class="text-sm font-bold">Indicator Registry</span>
+</div>
+</a>
+<a class="group flex flex-col items-center justify-center border-b-[3px] border-transparent hover:border-slate-300 dark:hover:border-slate-600 pb-3 px-1 cursor-pointer transition-colors" href="#">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200">
+<span class="material-symbols-outlined text-[20px]">fact_check</span>
+<span class="text-sm font-bold">Data Quality</span>
+</div>
+</a>
+</div>
+</div>
+<!-- Tab Content Area -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Left Column: Upload & Status -->
+<div class="lg:col-span-1 flex flex-col gap-6">
+<!-- Drag & Drop Zone -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+<div class="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-primary dark:hover:border-primary bg-slate-50 dark:bg-slate-800/50 px-6 py-10 transition-colors cursor-pointer group">
+<div class="size-12 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">upload_file</span>
+</div>
+<div class="text-center space-y-1">
+<p class="text-slate-900 dark:text-white text-base font-bold">Click to upload or drag and drop</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">CSV, XLS, XLSX (Max 50MB)</p>
+</div>
+<button class="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all">
+                                Browse Files
+                            </button>
+</div>
+</div>
+<!-- Upload Progress -->
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-4">
+<h3 class="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wide">Upload Queue</h3>
+<!-- File Item 1: Completed -->
+<div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+<div class="mt-1 text-emerald-500">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white truncate">finance_2023_q4.csv</p>
+<span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">100%</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">2.4 MB • Complete</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+<!-- File Item 2: Processing -->
+<div class="flex items-start gap-3 p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="mt-1 text-primary animate-spin">
+<span class="material-symbols-outlined">progress_activity</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white truncate">district_allocations_v2.xlsx</p>
+<span class="text-xs text-primary font-medium">Processing...</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full animate-pulse" style="width: 65%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">4.1 MB • Validating structure...</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<!-- File Item 3: Error -->
+<div class="flex items-start gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30">
+<div class="mt-1 text-red-500">
+<span class="material-symbols-outlined">error</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white truncate">bad_data_format.csv</p>
+<span class="text-xs text-red-600 dark:text-red-400 font-medium">Failed</span>
+</div>
+<p class="text-xs text-red-600 dark:text-red-400 mt-1">Column mismatch in row 42</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Preview & Validation -->
+<div class="lg:col-span-2 flex flex-col h-full">
+<div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col h-full overflow-hidden">
+<!-- Preview Header -->
+<div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900">
+<div>
+<h3 class="text-slate-900 dark:text-white font-bold text-lg">Validation Preview</h3>
+<p class="text-xs text-slate-500">Viewing: <span class="font-mono text-slate-700 dark:text-slate-300">district_allocations_v2.xlsx</span></p>
+</div>
+<div class="flex items-center gap-2">
+<span class="flex h-2 w-2 rounded-full bg-amber-500"></span>
+<span class="text-xs font-semibold text-amber-600 dark:text-amber-500">2 Warnings Found</span>
+</div>
+</div>
+<!-- Data Table -->
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+<th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Row</th>
+<th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">District</th>
+<th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Project ID</th>
+<th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Amount (BDT)</th>
+<th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Sector</th>
+<th class="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm text-slate-700 dark:text-slate-300">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-4 py-3 font-mono text-xs text-slate-400">1</td>
+<td class="px-4 py-3">Dhaka</td>
+<td class="px-4 py-3 font-mono">P-2023-001</td>
+<td class="px-4 py-3">15,000,000</td>
+<td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Water</span></td>
+<td class="px-4 py-3 text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check</span> Valid</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-4 py-3 font-mono text-xs text-slate-400">2</td>
+<td class="px-4 py-3">Chittagong</td>
+<td class="px-4 py-3 font-mono">P-2023-002</td>
+<td class="px-4 py-3">8,500,000</td>
+<td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Agri</span></td>
+<td class="px-4 py-3 text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check</span> Valid</td>
+</tr>
+<!-- Warning Row -->
+<tr class="bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors">
+<td class="px-4 py-3 font-mono text-xs text-amber-600">3</td>
+<td class="px-4 py-3 font-medium text-amber-700 dark:text-amber-500">Khulnaa <span class="text-xs font-normal opacity-70">(Spelling?)</span></td>
+<td class="px-4 py-3 font-mono">P-2023-003</td>
+<td class="px-4 py-3">12,200,000</td>
+<td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">Unknown</span></td>
+<td class="px-4 py-3 text-amber-600 dark:text-amber-500 flex items-center gap-1" title="District name mismatch">
+<span class="material-symbols-outlined text-[16px]">warning</span> Check
+                                        </td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-4 py-3 font-mono text-xs text-slate-400">4</td>
+<td class="px-4 py-3">Sylhet</td>
+<td class="px-4 py-3 font-mono">P-2023-004</td>
+<td class="px-4 py-3">5,000,000</td>
+<td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Infra</span></td>
+<td class="px-4 py-3 text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check</span> Valid</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-4 py-3 font-mono text-xs text-slate-400">5</td>
+<td class="px-4 py-3">Barisal</td>
+<td class="px-4 py-3 font-mono">P-2023-005</td>
+<td class="px-4 py-3">22,000,000</td>
+<td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">Water</span></td>
+<td class="px-4 py-3 text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check</span> Valid</td>
+</tr>
+<!-- Error Row -->
+<tr class="bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors">
+<td class="px-4 py-3 font-mono text-xs text-red-600">6</td>
+<td class="px-4 py-3">Rangpur</td>
+<td class="px-4 py-3 font-mono">P-2023-006</td>
+<td class="px-4 py-3 text-red-600 dark:text-red-400 font-bold">NULL</td>
+<td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">Agri</span></td>
+<td class="px-4 py-3 text-red-600 dark:text-red-400 flex items-center gap-1" title="Missing required value">
+<span class="material-symbols-outlined text-[16px]">cancel</span> Error
+                                        </td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Actions -->
+<div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/80 dark:bg-slate-900/50 backdrop-blur-sm">
+<button class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-sm">
+                                Clear All
+                            </button>
+<div class="flex gap-3">
+<button class="px-4 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-sm font-semibold transition-colors">
+                                    Fix Issues
+                                </button>
+<button class="px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-bold shadow-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[18px]">database</span>
+                                    Commit to Database
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+    </div>
+    <div id="page-settings" class="page-section flex-1 flex flex-col overflow-hidden" style="display:none">
+      <main class="flex-1 flex flex-col p-4 md:p-6 gap-4 overflow-y-auto w-full">
+<div class="max-w-5xl mx-auto flex flex-col gap-10 pb-20">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Settings &amp; Configuration</h1>
+<p class="text-slate-500 dark:text-[#92a9c9] mt-1">Manage system parameters for vulnerability scoring and reporting.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 rounded-lg border border-slate-300 dark:border-[#233348] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#233348] font-medium text-sm transition-colors">
+                            Discard
+                        </button>
+<button class="px-4 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                            Save Changes
+                        </button>
+</div>
+</div>
+<!-- Section 1: Formula Configuration -->
+<section class="flex flex-col gap-4 scroll-mt-24" id="formula">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<span class="material-symbols-outlined text-primary">functions</span>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Formula Configuration</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card: Calculation Methods -->
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Calculation Methods</h3>
+<div class="space-y-4">
+<label class="flex items-start gap-4 cursor-pointer group">
+<div class="relative flex items-center">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-900 dark:text-white">Weighted Average Calculation</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Apply predefined weights to vulnerability indicators.</span>
+</div>
+</label>
+<label class="flex items-start gap-4 cursor-pointer group">
+<div class="relative flex items-center">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-900 dark:text-white">Historic Weather Normalization</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Smooth outliers using 10-year weather data averages.</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Card: Precision Values -->
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Precision (Epsilon)</h3>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Calculation Precision (decimal places)</label>
+<select class="w-full rounded-lg border-slate-300 dark:border-[#324867] bg-white dark:bg-[#111822] text-slate-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm">
+<option>2 Decimal Places (0.00)</option>
+<option selected="">4 Decimal Places (0.0000)</option>
+<option>Float (Max Precision)</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Epsilon Value (Zero Threshold)</label>
+<div class="relative rounded-md shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-[#324867] bg-white dark:bg-[#111822] text-slate-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm pr-10" placeholder="0.00001" step="0.00001" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+<span class="text-slate-500 dark:text-slate-400 sm:text-sm">ε</span>
+</div>
+</div>
+<p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Values below this threshold are treated as zero during matrix operations.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Threshold Editor -->
+<section class="flex flex-col gap-4 scroll-mt-24" id="thresholds">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<span class="material-symbols-outlined text-primary">tune</span>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Threshold Editor</h2>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm flex flex-col gap-6">
+<!-- Toggle Mode -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h3 class="text-base font-semibold text-slate-900 dark:text-white">Clustering Logic</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Choose how risk categories (Low, Medium, High) are defined.</p>
+</div>
+<div class="flex p-1 bg-slate-100 dark:bg-[#111822] rounded-lg self-start sm:self-auto">
+<button class="px-4 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-primary text-slate-900 dark:text-white shadow-sm transition-all">Manual</button>
+<button class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Ward's Method</button>
+</div>
+</div>
+<!-- Visual Slider -->
+<div class="bg-slate-50 dark:bg-[#111822] rounded-lg p-6 border border-slate-200 dark:border-[#233348] relative">
+<div class="flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+<span>Low Risk</span>
+<span>Moderate Risk</span>
+<span>High Risk</span>
+</div>
+<!-- Histogram Background (Abstract representation) -->
+<div class="h-16 w-full flex items-end gap-1 mb-[-10px] opacity-30 px-2">
+<div class="w-1/12 bg-primary h-[20%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[35%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[40%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[60%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[80%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[50%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[30%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[20%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[15%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[10%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[5%]" data-alt="Data distribution bar"></div>
+<div class="w-1/12 bg-primary h-[2%]" data-alt="Data distribution bar"></div>
+</div>
+<!-- Slider Track -->
+<div class="relative h-2 bg-slate-200 dark:bg-[#233348] rounded-full mt-4">
+<div class="absolute top-0 left-0 h-full bg-green-500/20 w-[30%] rounded-l-full"></div>
+<div class="absolute top-0 left-[30%] h-full bg-yellow-500/20 w-[40%]"></div>
+<div class="absolute top-0 left-[70%] h-full bg-red-500/20 w-[30%] rounded-r-full"></div>
+<!-- Handle 1 -->
+<div class="absolute top-1/2 -translate-y-1/2 left-[30%] -ml-3 w-6 h-6 rounded-full bg-white dark:bg-primary border-2 border-slate-300 dark:border-white shadow cursor-pointer hover:scale-110 transition-transform flex items-center justify-center z-10">
+<div class="w-1.5 h-1.5 bg-slate-400 dark:bg-white rounded-full"></div>
+</div>
+<!-- Handle 2 -->
+<div class="absolute top-1/2 -translate-y-1/2 left-[70%] -ml-3 w-6 h-6 rounded-full bg-white dark:bg-primary border-2 border-slate-300 dark:border-white shadow cursor-pointer hover:scale-110 transition-transform flex items-center justify-center z-10">
+<div class="w-1.5 h-1.5 bg-slate-400 dark:bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex justify-between mt-4">
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-slate-500 uppercase font-bold">Min</span>
+<span class="text-sm font-mono text-slate-700 dark:text-slate-300">0.00</span>
+</div>
+<div class="flex gap-16">
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-primary uppercase font-bold">Cutoff 1</span>
+<input class="w-16 p-1 text-center text-sm font-mono rounded bg-white dark:bg-[#233348] border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary" type="number" value="0.30"/>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-primary uppercase font-bold">Cutoff 2</span>
+<input class="w-16 p-1 text-center text-sm font-mono rounded bg-white dark:bg-[#233348] border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary" type="number" value="0.70"/>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] text-slate-500 uppercase font-bold">Max</span>
+<span class="text-sm font-mono text-slate-700 dark:text-slate-300">1.00</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Export & Reporting -->
+<section class="flex flex-col gap-4 scroll-mt-24" id="export">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<span class="material-symbols-outlined text-primary">download</span>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Export &amp; Reporting</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Templates -->
+<div class="lg:col-span-2 bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Report Templates</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#233348] hover:bg-slate-50 dark:hover:bg-[#233348] transition-colors cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="bg-red-100 dark:bg-red-900/20 p-2 rounded text-red-600 dark:text-red-400">
+<span class="material-symbols-outlined text-xl">picture_as_pdf</span>
+</div>
+<div>
+<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-primary transition-colors">Standard Disbursement Report</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Monthly breakdown by region</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">radio_button_checked</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#233348] hover:bg-slate-50 dark:hover:bg-[#233348] transition-colors cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="bg-blue-100 dark:bg-blue-900/20 p-2 rounded text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined text-xl">description</span>
+</div>
+<div>
+<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-primary transition-colors">Donor Summary (Brief)</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Executive summary for external stakeholders</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">radio_button_unchecked</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-[#233348] hover:bg-slate-50 dark:hover:bg-[#233348] transition-colors cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="bg-green-100 dark:bg-green-900/20 p-2 rounded text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined text-xl">table_view</span>
+</div>
+<div>
+<p class="text-sm font-medium text-slate-900 dark:text-white group-hover:text-primary transition-colors">Raw Vulnerability Data</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Full CSV export of calculated metrics</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400">radio_button_unchecked</span>
+</div>
+</div>
+</div>
+<!-- Format Options -->
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-[#233348] shadow-sm">
+<h3 class="text-base font-semibold text-slate-900 dark:text-white mb-4">Output Formats</h3>
+<div class="space-y-3">
+<label class="flex items-center gap-3">
+<input checked="" class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">PDF Document</span>
+</label>
+<label class="flex items-center gap-3">
+<input checked="" class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">Microsoft Word (.docx)</span>
+</label>
+<label class="flex items-center gap-3">
+<input class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">CSV / Excel</span>
+</label>
+<label class="flex items-center gap-3">
+<input class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">JSON API Response</span>
+</label>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-200 dark:border-[#233348]">
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Footer Text</p>
+<input class="w-full text-xs rounded border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-[#111822] text-slate-600 dark:text-slate-400" type="text" value="Generated by CFADT v2.4 | Confidential"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Admin & Security -->
+<section class="flex flex-col gap-4 scroll-mt-24" id="admin">
+<div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-[#233348]">
+<span class="material-symbols-outlined text-primary">admin_panel_settings</span>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Admin &amp; Security</h2>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+<!-- User Role Management -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-[#233348] shadow-sm overflow-hidden">
+<div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#233348] bg-slate-50/50 dark:bg-[#111822]/50">
+<h3 class="text-base font-semibold text-slate-900 dark:text-white">User Roles</h3>
+<button class="text-primary text-xs font-bold uppercase hover:underline">Manage Users</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-[#111822] text-slate-500 dark:text-slate-400">
+<tr>
+<th class="px-4 py-3 font-medium">User</th>
+<th class="px-4 py-3 font-medium">Role</th>
+<th class="px-4 py-3 font-medium text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-[#233348] text-slate-700 dark:text-slate-300">
+<tr>
+<td class="px-4 py-3 flex items-center gap-2">
+<div class="size-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">SK</div>
+<span>S. Khan</span>
+</td>
+<td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 font-medium">Super Admin</span></td>
+<td class="px-4 py-3 text-right"><span class="text-green-500 font-medium text-xs">Active</span></td>
+</tr>
+<tr>
+<td class="px-4 py-3 flex items-center gap-2">
+<div class="size-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">TR</div>
+<span>T. Rahman</span>
+</td>
+<td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-medium">Editor</span></td>
+<td class="px-4 py-3 text-right"><span class="text-green-500 font-medium text-xs">Active</span></td>
+</tr>
+<tr>
+<td class="px-4 py-3 flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-500 text-white flex items-center justify-center text-xs">MA</div>
+<span>M. Ahmed</span>
+</td>
+<td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">Viewer</span></td>
+<td class="px-4 py-3 text-right"><span class="text-slate-400 font-medium text-xs">Offline</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Audit Logs -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-[#233348] shadow-sm flex flex-col h-[280px]">
+<div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#233348] bg-slate-50/50 dark:bg-[#111822]/50">
+<h3 class="text-base font-semibold text-slate-900 dark:text-white">Audit Log</h3>
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">refresh</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-xs">
+<div class="flex gap-3">
+<span class="text-slate-400 whitespace-nowrap">10:42 AM</span>
+<div class="flex flex-col">
+<span class="text-slate-800 dark:text-slate-200">System config updated by <span class="text-primary">S. Khan</span></span>
+<span class="text-slate-500">Changed Epsilon from 0.0001 to 0.00001</span>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="text-slate-400 whitespace-nowrap">09:15 AM</span>
+<div class="flex flex-col">
+<span class="text-slate-800 dark:text-slate-200">Export generated</span>
+<span class="text-slate-500">Monthly_Disbursement.pdf downloaded by T. Rahman</span>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="text-slate-400 whitespace-nowrap">Yesterday</span>
+<div class="flex flex-col">
+<span class="text-red-500 font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">warning</span> Login Failed</span>
+<span class="text-slate-500">Multiple failed attempts from IP 192.168.1.45</span>
+</div>
+</div>
+<div class="flex gap-3">
+<span class="text-slate-400 whitespace-nowrap">Yesterday</span>
+<div class="flex flex-col">
+<span class="text-slate-800 dark:text-slate-200">Thresholds modified</span>
+<span class="text-slate-500">Auto-clustering (Ward's Method) enabled</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCRIPTS ============ -->
+<script>
+// Page navigation
+const pageLabels = {
+  overview: "Overview Dashboard",
+  layer1: "Layer 1: Climate Risk Index",
+  layer2: "Layer 2: MCDA Prioritisation",
+  layer3: "Layer 3: Allocation Engine",
+  layer4: "Layer 4: Scenario Simulation",
+  map: "Map Explorer",
+  data: "Data Manager",
+  settings: "Settings & Configuration"
+};
+
+let currentPage = 'overview';
+
+function showPage(pageId) {
+  // Hide all pages
+  document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+  // Show target
+  const target = document.getElementById('page-' + pageId);
+  if (target) target.style.display = 'flex';
+  
+  // Update nav active state
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+  const navItem = document.getElementById('nav-' + pageId);
+  if (navItem) navItem.classList.add('active');
+  
+  // Update breadcrumb
+  document.getElementById('breadcrumb-page').textContent = pageLabels[pageId] || pageId;
+  
+  // Update URL hash
+  window.location.hash = pageId;
+  currentPage = pageId;
+}
+
+// Sidebar toggle
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('sidebar-collapsed');
+}
+
+// Dark mode toggle
+function toggleDarkMode() {
+  document.documentElement.classList.toggle('dark');
+  const icon = document.getElementById('theme-icon');
+  icon.textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+}
+
+// Handle hash navigation
+function handleHash() {
+  const hash = window.location.hash.replace('#', '') || 'overview';
+  if (pageLabels[hash]) showPage(hash);
+}
+
+window.addEventListener('hashchange', handleHash);
+window.addEventListener('DOMContentLoaded', () => {
+  handleHash();
+  // Set initial active
+  if (!window.location.hash) showPage('overview');
+});
+</script>
+
+</body>
+</html>
