@@ -1,135 +1,72 @@
-# CFADT Dashboard — Deployment Guide
+# CFADT Dashboard — oxfam.capec.ai
 ## Climate Finance Availing & Disbursement Toolkit | Oxfam Bangladesh
-### Target Domain: `oxfam.capec.ai`
 
 ---
 
-## 📁 Files Included
+## Quick Deploy
 
-```
-oxfam-cfadt/
-├── index.html        ← Main SPA (all 8 pages in one file)
-├── 404.html          ← SPA fallback (copy of index.html)
-├── _redirects        ← Netlify/Cloudflare SPA redirect rules
-├── netlify.toml      ← Netlify configuration
-├── vercel.json       ← Vercel configuration
-└── README.md         ← This file
-```
+### Cloudflare Pages (recommended if capec.ai is on Cloudflare)
+1. Dashboard → Workers & Pages → Create → Pages → Direct Upload
+2. Upload the contents of this folder
+3. Custom Domains → Add `oxfam.capec.ai`
+4. DNS auto-configured, SSL automatic
 
-## 🚀 Deployment Options
+### Netlify
+1. Drag-drop folder at app.netlify.com
+2. Domain Management → Add `oxfam.capec.ai`
+3. DNS: `oxfam CNAME [site].netlify.app`
 
-### Option A: Cloudflare Pages (Recommended for capec.ai)
+### Vercel
+1. `npx vercel --prod` in this folder
+2. Add domain in dashboard
+3. DNS: `oxfam CNAME cname.vercel-dns.com`
 
-Since `capec.ai` is likely managed via Cloudflare:
-
-1. **Login** to [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Go to **Workers & Pages** → **Create Application** → **Pages**
-3. Choose **Direct Upload** (no Git required)
-4. Drag-and-drop the `oxfam-cfadt/` folder contents
-5. Set project name: `oxfam-cfadt`
-6. Deploy
-
-**Custom Domain Setup:**
-1. In the Pages project → **Custom Domains** → **Set up a custom domain**
-2. Enter: `oxfam.capec.ai`
-3. Cloudflare will auto-configure DNS (CNAME record)
-4. SSL is automatic
-
-### Option B: Netlify
-
-1. Go to [app.netlify.com](https://app.netlify.com)
-2. Drag-and-drop the `oxfam-cfadt/` folder
-3. Site deploys instantly
-4. Go to **Domain Management** → **Add custom domain** → `oxfam.capec.ai`
-5. Add CNAME record in your DNS:
-   ```
-   oxfam.capec.ai  →  CNAME  →  [your-site].netlify.app
-   ```
-
-### Option C: Vercel
-
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run in the folder: `vercel --prod`
-3. Add custom domain in Vercel dashboard
-4. Add CNAME record:
-   ```
-   oxfam.capec.ai  →  CNAME  →  cname.vercel-dns.com
-   ```
-
-### Option D: Any Static Host (Nginx, Apache, S3+CloudFront)
-
-This is a **single HTML file** — it works on any static file server. Just serve the folder contents. For Nginx:
-
+### Any Static Host (Nginx)
 ```nginx
 server {
     listen 443 ssl http2;
     server_name oxfam.capec.ai;
     root /var/www/oxfam-cfadt;
-    index index.html;
-
-    # SPA fallback
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Security headers
-    add_header X-Frame-Options "DENY";
-    add_header X-Content-Type-Options "nosniff";
-    add_header Referrer-Policy "strict-origin-when-cross-origin";
-
-    # SSL (use certbot or cloudflare origin certs)
-    ssl_certificate /etc/ssl/oxfam.capec.ai.pem;
-    ssl_certificate_key /etc/ssl/oxfam.capec.ai.key;
+    location / { try_files $uri /index.html; }
 }
 ```
 
 ---
 
-## 🌐 DNS Configuration
+## Files
 
-Add this record in your `capec.ai` DNS manager:
+| File | Purpose |
+|------|---------|
+| `index.html` | Complete SPA — all 8 dashboard pages (165 KB) |
+| `404.html` | SPA fallback (identical to index.html) |
+| `_redirects` | Netlify/Cloudflare SPA routing |
+| `netlify.toml` | Netlify config with security headers |
+| `vercel.json` | Vercel rewrite rules |
+| `robots.txt` | Search engine directives |
+| `sitemap.xml` | Sitemap for SEO |
+| `cfadt_mathematical_framework_v2.pdf` | V2.0 methodology document |
 
-| Type | Name | Target | TTL |
-|------|------|--------|-----|
-| CNAME | oxfam | [hosting-provider-url] | Auto |
+## Dashboard Pages
 
-**If using Cloudflare Pages:** DNS is auto-configured.
+| Hash | Page | Description |
+|------|------|-------------|
+| `#overview` | Overview Dashboard | KPI cards, choropleth map, priority donut, top districts, radar chart |
+| `#layer1` | Layer 1: CRI | Climate Risk Index — 4 dimension cards with indicator tables |
+| `#layer2` | Layer 2: MCDA | Multi-Criteria prioritisation — weight sliders, ranking table |
+| `#layer3` | Layer 3: Allocation | Funding engine — budget controls, λ/μ sliders, allocation table |
+| `#layer4` | Layer 4: Scenarios | Simulation — baseline vs scenario, sensitivity heatmap |
+| `#map` | Map Explorer | Full-screen interactive map with layer controls |
+| `#data` | Data Manager | Upload datasets, indicator registry, quality checks |
+| `#settings` | Settings | Formula config, thresholds, export templates |
 
----
+## Technical Notes
 
-## 📱 Dashboard Pages
-
-| # | Page | URL Hash | Description |
-|---|------|----------|-------------|
-| 1 | Overview Dashboard | `#overview` | KPI cards, choropleth map, charts |
-| 2 | Layer 1: CRI | `#layer1` | Climate Risk Index computation |
-| 3 | Layer 2: MCDA | `#layer2` | Prioritisation with weight sliders |
-| 4 | Layer 3: Allocation | `#layer3` | Funding allocation engine |
-| 5 | Layer 4: Scenarios | `#layer4` | Simulation & sensitivity analysis |
-| 6 | Map Explorer | `#map` | Full-screen interactive map |
-| 7 | Data Manager | `#data` | Upload and manage datasets |
-| 8 | Settings | `#settings` | Formula config & thresholds |
-
----
-
-## 🔧 Technical Notes
-
-- **Single-Page Application**: All 8 pages in one `index.html` (168KB)
-- **No build step required** — pure HTML/CSS/JS
-- **CDN Dependencies**: Tailwind CSS (CDN), Google Fonts (Inter), Material Symbols
-- **Dark mode**: Toggle via top-bar sun/moon icon
-- **Sidebar**: Collapsible via hamburger menu
-- **Hash routing**: Browser back/forward buttons work
+- Zero build step — pure HTML/CSS/JS single file
+- CDN: Tailwind CSS, Google Fonts (Inter), Material Symbols
+- Dark/light mode toggle, collapsible sidebar, hash routing
+- No external image dependencies (all self-contained)
+- Mathematical framework: V2.0 (20 equations, 11-step pipeline)
 
 ---
 
-## 📋 Framework Reference
-
-Mathematical framework: **CFADT V2.0**
-- IPCC AR6, INFORM Index, ND-GAIN, LVI, GermanWatch CRI, MCDA
-- 20 equations, 11-step pipeline
-- See `cfadt_mathematical_framework_v2.pdf` for full documentation
-
----
-
-**Built by CapeC Consulting** | Strategic Advisory for Oxfam Bangladesh
+Built by **CapeC Consulting** — Strategic Advisory for Oxfam Bangladesh
