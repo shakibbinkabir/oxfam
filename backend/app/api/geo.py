@@ -1,0 +1,280 @@
+import json
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from geoalchemy2.functions import ST_AsGeoJSON, ST_Intersects, ST_MakeEnvelope, ST_Simplify
+from sqlalchemy import func, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user
+from app.database import get_db
+from app.models.boundary import AdminBoundary
+from app.models.user import User
+
+router = APIRouter(prefix="/api/v1/geo", tags=["geo"])
+
+
+def envelope(data=None, message="Success", status_val="success"):
+    return {"status": status_val, "data": data, "message": message}
+
+
+ZOOM_TO_LEVEL = {
+    range(1, 7): 1,
+    range(7, 9): 2,
+    range(9, 11): 3,
+}
+
+SIMPLIFY_TOLERANCE = {
+    1: 0.01,
+    2: 0.005,
+    3: 0.002,
+    4: 0,
+}
+
+
+def get_adm_level(zoom: int) -> int:
+    for zoom_range, level in ZOOM_TO_LEVEL.items():
+        if zoom in zoom_range:
+            return level
+    return 4
+
+
+@router.get("/boundaries")
+async def get_boundaries(
+    zoom: int = Query(7, ge=1, le=18),
+    bbox: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    adm_level = get_adm_level(zoom)
+    tolerance = SIMPLIFY_TOLERANCE[adm_level]
+
+    if tolerance > 0:
+        geom_col = func.ST_AsGeoJSON(func.ST_Simplify(AdminBoundary.geom, tolerance))
+    else:
+        geom_col = func.ST_AsGeoJSON(AdminBoundary.geom)
+
+    query = select(
+        AdminBoundary.name_en,
+        AdminBoundary.pcode,
+        AdminBoundary.adm_level,
+        AdminBoundary.parent_pcode,
+        AdminBoundary.division_name,
+        AdminBoundary.district_name,
+        AdminBoundary.upazila_name,
+        AdminBoundary.area_sq_km,
+        geom_col.label("geojson"),
+    ).where(AdminBoundary.adm_level == adm_level)
+
+    if adm_level == 4 and bbox:
+        try:
+            west, south, east, north = [float(x.strip()) for x in bbox.split(",")]
+        except (ValueError, AttributeError):
+            raise HTTPException(status_code=400, detail="Invalid bbox format. Use: west,south,east,north")
+        bbox_geom = func.ST_MakeEnvelope(west, south, east, north, 4326)
+        query = query.where(func.ST_Intersects(AdminBoundary.geom, bbox_geom))
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    features = []
+    for row in rows:
+        geom = json.loads(row.geojson) if row.geojson else None
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "name_en": row.name_en,
+                "pcode": row.pcode,
+                "adm_level": row.adm_level,
+                "parent_pcode": row.parent_pcode,
+                "division_name": row.division_name,
+                "district_name": row.district_name,
+                "upazila_name": row.upazila_name,
+                "area_sq_km": row.area_sq_km,
+            },
+            "geometry": geom,
+        })
+
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+    }
+
+
+@router.get("/divisions")
+async def get_divisions(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = select(
+        AdminBoundary.name_en,
+        AdminBoundary.pcode,
+        func.ST_AsGeoJSON(AdminBoundary.centroid).label("centroid"),
+    ).where(AdminBoundary.adm_level == 1).order_by(AdminBoundary.name_en)
+
+    result = await db.execute(query)
+    rows = result.all()
+    data = [
+        {
+            "name_en": row.name_en,
+            "pcode": row.pcode,
+            "centroid": json.loads(row.centroid) if row.centroid else None,
+        }
+        for row in rows
+    ]
+    return envelope(data=data)
+
+
+@router.get("/districts")
+async def get_districts(
+    division_pcode: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = select(
+        AdminBoundary.name_en,
+        AdminBoundary.pcode,
+        AdminBoundary.parent_pcode,
+        AdminBoundary.division_name,
+        func.ST_AsGeoJSON(AdminBoundary.centroid).label("centroid"),
+    ).where(AdminBoundary.adm_level == 2).order_by(AdminBoundary.name_en)
+
+    if division_pcode:
+        query = query.where(AdminBoundary.parent_pcode == division_pcode)
+
+    result = await db.execute(query)
+    rows = result.all()
+    data = [
+        {
+            "name_en": row.name_en,
+            "pcode": row.pcode,
+            "parent_pcode": row.parent_pcode,
+            "division_name": row.division_name,
+            "centroid": json.loads(row.centroid) if row.centroid else None,
+        }
+        for row in rows
+    ]
+    return envelope(data=data)
+
+
+@router.get("/upazilas")
+async def get_upazilas(
+    district_pcode: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = select(
+        AdminBoundary.name_en,
+        AdminBoundary.pcode,
+        AdminBoundary.parent_pcode,
+        AdminBoundary.division_name,
+        AdminBoundary.district_name,
+        func.ST_AsGeoJSON(AdminBoundary.centroid).label("centroid"),
+    ).where(AdminBoundary.adm_level == 3).order_by(AdminBoundary.name_en)
+
+    if district_pcode:
+        query = query.where(AdminBoundary.parent_pcode == district_pcode)
+
+    result = await db.execute(query)
+    rows = result.all()
+    data = [
+        {
+            "name_en": row.name_en,
+            "pcode": row.pcode,
+            "parent_pcode": row.parent_pcode,
+            "division_name": row.division_name,
+            "district_name": row.district_name,
+            "centroid": json.loads(row.centroid) if row.centroid else None,
+        }
+        for row in rows
+    ]
+    return envelope(data=data)
+
+
+@router.get("/unions")
+async def get_unions(
+    upazila_pcode: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = select(
+        AdminBoundary.name_en,
+        AdminBoundary.pcode,
+        AdminBoundary.parent_pcode,
+        AdminBoundary.division_name,
+        AdminBoundary.district_name,
+        AdminBoundary.upazila_name,
+        func.ST_AsGeoJSON(AdminBoundary.centroid).label("centroid"),
+    ).where(AdminBoundary.adm_level == 4).order_by(AdminBoundary.name_en)
+
+    if upazila_pcode:
+        query = query.where(AdminBoundary.parent_pcode == upazila_pcode)
+
+    result = await db.execute(query)
+    rows = result.all()
+    data = [
+        {
+            "name_en": row.name_en,
+            "pcode": row.pcode,
+            "parent_pcode": row.parent_pcode,
+            "division_name": row.division_name,
+            "district_name": row.district_name,
+            "upazila_name": row.upazila_name,
+            "centroid": json.loads(row.centroid) if row.centroid else None,
+        }
+        for row in rows
+    ]
+    return envelope(data=data)
+
+
+@router.get("/unions/{pcode}")
+async def get_union_detail(
+    pcode: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = select(
+        AdminBoundary.name_en,
+        AdminBoundary.pcode,
+        AdminBoundary.adm_level,
+        AdminBoundary.parent_pcode,
+        AdminBoundary.division_name,
+        AdminBoundary.district_name,
+        AdminBoundary.upazila_name,
+        AdminBoundary.area_sq_km,
+        func.ST_AsGeoJSON(AdminBoundary.geom).label("geojson"),
+    ).where(AdminBoundary.pcode == pcode)
+
+    result = await db.execute(query)
+    row = result.one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="Union not found")
+
+    data = {
+        "name_en": row.name_en,
+        "pcode": row.pcode,
+        "adm_level": row.adm_level,
+        "parent_pcode": row.parent_pcode,
+        "division_name": row.division_name,
+        "district_name": row.district_name,
+        "upazila_name": row.upazila_name,
+        "area_sq_km": row.area_sq_km,
+        "geometry": json.loads(row.geojson) if row.geojson else None,
+    }
+    return envelope(data=data)
+
+
+@router.get("/stats")
+async def get_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = (
+        select(AdminBoundary.adm_level, func.count(AdminBoundary.id).label("count"))
+        .group_by(AdminBoundary.adm_level)
+        .order_by(AdminBoundary.adm_level)
+    )
+    result = await db.execute(query)
+    rows = result.all()
+    data = [{"adm_level": row.adm_level, "count": row.count} for row in rows]
+    return envelope(data=data)

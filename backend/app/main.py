@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
+from app.api.geo import router as geo_router
 from app.scripts.seed_superadmin import seed_superadmin
 
 
@@ -31,6 +32,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(geo_router)
 
 
 @app.get("/")
