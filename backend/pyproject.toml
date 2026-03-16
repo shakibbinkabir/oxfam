@@ -18,6 +18,8 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 pydantic-settings = "^2.1.0"
 geoalchemy2 = "^0.14.0"
 python-multipart = "^0.0.9"
+geopandas = "^1.0.0"
+shapely = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
