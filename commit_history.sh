@@ -126,7 +126,9 @@ GIT_AUTHOR_DATE="$FULL_DATE" GIT_COMMITTER_DATE="$FULL_DATE" \
 # ============================================================
 FULL_DATE="${DATE_PREFIX}03:19:00${TZ}"
 git add \
-  backend/app/scripts/import_shapefiles.py
+  backend/app/scripts/import_shapefiles.py \
+  backend/app/scripts/import_points.py \
+  backend/app/scripts/import_geojson.py
 GIT_AUTHOR_DATE="$FULL_DATE" GIT_COMMITTER_DATE="$FULL_DATE" \
   git commit -m "feat(seed): add shapefile import script using geopandas to seed adm0-adm4 boundary data"
 

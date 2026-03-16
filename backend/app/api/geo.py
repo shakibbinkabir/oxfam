@@ -1,10 +1,20 @@
 import json
+import math
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from geoalchemy2.functions import ST_AsGeoJSON, ST_Intersects, ST_MakeEnvelope, ST_Simplify
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+
+def safe_float(val):
+    """Return None for NaN/Infinity floats that aren't JSON-serializable."""
+    if val is None:
+        return None
+    if isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
+        return None
+    return val
 
 from app.api.deps import get_current_user
 from app.database import get_db
@@ -64,6 +74,8 @@ async def get_boundaries(
         AdminBoundary.upazila_name,
         AdminBoundary.area_sq_km,
         geom_col.label("geojson"),
+        func.ST_X(AdminBoundary.centroid).label("centroid_lon"),
+        func.ST_Y(AdminBoundary.centroid).label("centroid_lat"),
     ).where(AdminBoundary.adm_level == adm_level)
 
     if adm_level == 4 and bbox:
@@ -72,7 +84,11 @@ async def get_boundaries(
         except (ValueError, AttributeError):
             raise HTTPException(status_code=400, detail="Invalid bbox format. Use: west,south,east,north")
         bbox_geom = func.ST_MakeEnvelope(west, south, east, north, 4326)
-        query = query.where(func.ST_Intersects(AdminBoundary.geom, bbox_geom))
+        # Use centroid for bbox filtering when polygon geometry may be null
+        query = query.where(
+            func.ST_Intersects(AdminBoundary.geom, bbox_geom)
+            | func.ST_Within(AdminBoundary.centroid, bbox_geom)
+        )
 
     result = await db.execute(query)
     rows = result.all()
@@ -80,6 +96,12 @@ async def get_boundaries(
     features = []
     for row in rows:
         geom = json.loads(row.geojson) if row.geojson else None
+        # If no polygon geometry but we have centroid, create a Point geometry
+        if geom is None and row.centroid_lon is not None and row.centroid_lat is not None:
+            geom = {
+                "type": "Point",
+                "coordinates": [row.centroid_lon, row.centroid_lat],
+            }
         features.append({
             "type": "Feature",
             "properties": {
@@ -90,7 +112,9 @@ async def get_boundaries(
                 "division_name": row.division_name,
                 "district_name": row.district_name,
                 "upazila_name": row.upazila_name,
-                "area_sq_km": row.area_sq_km,
+                "area_sq_km": safe_float(row.area_sq_km),
+                "centroid_lat": safe_float(row.centroid_lat),
+                "centroid_lon": safe_float(row.centroid_lon),
             },
             "geometry": geom,
         })
@@ -258,7 +282,7 @@ async def get_union_detail(
         "division_name": row.division_name,
         "district_name": row.district_name,
         "upazila_name": row.upazila_name,
-        "area_sq_km": row.area_sq_km,
+        "area_sq_km": safe_float(row.area_sq_km),
         "geometry": json.loads(row.geojson) if row.geojson else None,
     }
     return envelope(data=data)

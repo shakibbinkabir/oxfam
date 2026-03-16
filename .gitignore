@@ -26,5 +26,10 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
-# Data
-data/
+# Data (downloaded at setup time)
+data/geojson/
+data/shapefiles/*.shp
+data/shapefiles/*.shx
+data/shapefiles/*.sbn
+data/shapefiles/*.sbx
+.data/

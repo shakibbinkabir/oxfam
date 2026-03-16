@@ -7,7 +7,10 @@ export default function MapPage() {
 
   return (
     <div className="relative w-full h-full">
-      <LeafletMap onFeatureClick={setSelectedFeature} />
+      <LeafletMap
+        onFeatureClick={setSelectedFeature}
+        selectedPcode={selectedFeature?.pcode || null}
+      />
       {selectedFeature && (
         <UnionDetailPanel
           feature={selectedFeature}

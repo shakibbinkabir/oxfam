@@ -5,31 +5,46 @@ Interactive geospatial dashboard for visualizing all 5,160 unions of Bangladesh 
 ## Tech Stack
 
 - **Backend**: FastAPI + PostgreSQL/PostGIS + SQLAlchemy 2.0 (async)
-- **Frontend**: React 18 + Vite + Tailwind CSS
-- **Auth**: JWT (HS256) with access/refresh tokens
-- **Map**: Leaflet + OpenStreetMap
-- **Indicators**: 67 climate indicators across 4 components
+- **Frontend**: React 18 + Vite + Tailwind CSS + Leaflet
+- **Auth**: JWT (HS256) with access/refresh tokens, RBAC (superadmin/admin/user)
+- **Map**: Leaflet + OpenStreetMap + geoBoundaries polygon data
+- **Indicators**: 67 climate indicators across 4 components (Hazard, Socioeconomic, Environmental, Infrastructural)
 
 ## Quick Start (Docker)
 
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- `curl` available (for downloading geodata)
+
+### One-command setup
+
 ```bash
-# 1. Clone and configure
-cp backend/.env.example backend/.env   # Edit with your values
-
-# 2. Start all services
 make setup
-
-# 3. Copy shapefiles into ./data/shapefiles/
-
-# 4. Seed geodata and indicators
-make seed
-
-# 5. Access
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:8000/docs
 ```
 
-## Manual Setup
+This will:
+1. Build and start all containers (PostgreSQL/PostGIS, FastAPI, React/Vite)
+2. Run database migrations
+3. Create the superadmin account
+4. Download Bangladesh admin boundary GeoJSON files from OCHA HDX
+5. Import 5,777 admin boundaries (1 country + 8 divisions + 64 districts + 544 upazilas + 5,160 unions)
+6. Import polygon geometry for all boundaries
+7. Seed 67 climate indicators from the Excel spreadsheet
+
+### Access
+
+| Service | URL |
+|---------|-----|
+| **Frontend Dashboard** | http://localhost:5173 |
+| **Backend API Docs** | http://localhost:8000/docs |
+
+### Default Login
+
+- **Email**: `admin@example.com`
+- **Password**: `admin123456`
+
+## Manual Setup (without Docker)
 
 ### Prerequisites
 
@@ -41,7 +56,7 @@ make seed
 
 ```bash
 cd backend
-cp .env.example .env
+cp .env.example .env    # Edit with your database credentials
 pip install poetry
 poetry install
 alembic upgrade head
@@ -56,19 +71,32 @@ npm install
 npm run dev
 ```
 
-### Import GIS Data
+### Data Import
 
 ```bash
+# 1. Import admin boundary attributes from shapefiles
 cd backend
-python -m app.scripts.import_shapefiles --data-dir ../data/shapefiles/
-```
+python -m app.scripts.import_shapefiles --data-dir ../data/shapefiles
 
-### Seed Climate Indicators
+# 2. Import centroid coordinates
+python -m app.scripts.import_points --data-dir ../data/shapefiles
 
-```bash
-cd backend
+# 3. Import polygon geometry from GeoJSON
+python -m app.scripts.import_geojson --data-dir ../data/geojson
+
+# 4. Seed climate indicators
 python -m app.scripts.seed_indicators --file "../Tech Team_Climate Risk_Calculation.xlsx"
 ```
+
+## GIS Data Sources
+
+| Source | Description | Format |
+|--------|-------------|--------|
+| **BBS Shapefiles** | Admin boundary attributes (names, pcodes, hierarchy) | .dbf from .shp bundle |
+| **geoBoundaries (HDX)** | Polygon geometry for ADM0-ADM4 | Simplified GeoJSON |
+| **BBS Points** | Centroid coordinates for 5,160 unions | .dbf with POINT_X/POINT_Y |
+
+The `make download-geodata` command automatically downloads simplified GeoJSON boundary files from [OCHA Humanitarian Data Exchange](https://data.humdata.org/dataset/cod-ab-bgd).
 
 ## Environment Variables
 
@@ -136,6 +164,23 @@ python -m app.scripts.seed_indicators --file "../Tech Team_Climate Risk_Calculat
 | **Admin** | None | Full CRUD | Full | Full |
 | **User** | None | Read Only | Full | Full |
 
+## Make Commands
+
+| Command | Description |
+|---------|-------------|
+| `make setup` | Full setup: build, migrate, download geodata, seed everything |
+| `make dev` | Start all services (foreground) |
+| `make build` | Build and start all services (background) |
+| `make migrate` | Run Alembic database migrations |
+| `make download-geodata` | Download GeoJSON boundary files from HDX |
+| `make seed` | Run all seed scripts |
+| `make seed-geo` | Import shapefiles + points + GeoJSON geometry |
+| `make seed-indicators` | Seed 67 climate indicators from Excel |
+| `make test` | Run backend pytest suite |
+| `make restart-frontend` | Restart frontend container |
+| `make stop` | Stop all services |
+| `make clean` | Stop and remove all data volumes |
+
 ## Running Tests
 
 ```bash
@@ -147,23 +192,34 @@ cd backend
 python -m pytest tests/ -v
 ```
 
-## Make Commands
+## Project Structure
 
-| Command | Description |
-|---------|-------------|
-| `make setup` | Build containers, run migrations, seed superadmin |
-| `make dev` | Start all services |
-| `make test` | Run backend tests |
-| `make seed` | Run all seed scripts |
-| `make migrate` | Run Alembic migrations |
-| `make stop` | Stop all services |
-| `make clean` | Stop and remove volumes |
-
-## Default Credentials
-
-After first run, a superadmin account is created from environment variables:
-- Email: `FIRST_SUPERADMIN_EMAIL`
-- Password: `FIRST_SUPERADMIN_PASSWORD`
+```
+├── backend/
+│   ├── app/
+│   │   ├── api/           # FastAPI route handlers
+│   │   ├── models/        # SQLAlchemy models
+│   │   ├── schemas/       # Pydantic validation schemas
+│   │   └── scripts/       # Data import & seed scripts
+│   ├── alembic/           # Database migrations
+│   ├── tests/             # pytest test suite
+│   ├── Dockerfile
+│   └── pyproject.toml
+├── frontend/
+│   ├── src/
+│   │   ├── api/           # Axios API clients
+│   │   ├── components/    # React components
+│   │   ├── contexts/      # Auth context
+│   │   └── hooks/         # Custom hooks
+│   ├── Dockerfile
+│   └── package.json
+├── data/
+│   ├── shapefiles/        # BBS .dbf attribute files
+│   └── geojson/           # Downloaded boundary polygons
+├── docker-compose.yml
+├── Makefile
+└── README.md
+```
 
 ## Screenshots
 
