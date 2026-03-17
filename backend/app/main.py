@@ -8,6 +8,8 @@ from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api.geo import router as geo_router
 from app.api.indicators import router as indicators_router
+from app.api.units import router as units_router
+from app.api.sources import router as sources_router
 from app.scripts.seed_superadmin import seed_superadmin
 
 
@@ -35,6 +37,8 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(geo_router)
 app.include_router(indicators_router)
+app.include_router(units_router)
+app.include_router(sources_router)
 
 
 @app.get("/")

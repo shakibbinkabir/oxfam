@@ -98,8 +98,8 @@ export default function IndicatorTable({ onEdit, onCreate }) {
       { accessorKey: "subcategory", header: "Subcategory" },
       { accessorKey: "indicator_name", header: "Name" },
       { accessorKey: "code", header: "Code" },
-      { accessorKey: "unit", header: "Unit" },
-      { accessorKey: "source", header: "Source" },
+      { accessorKey: "unit_name", header: "Unit" },
+      { accessorKey: "source_name", header: "Source" },
       ...(isAdmin
         ? [
             {

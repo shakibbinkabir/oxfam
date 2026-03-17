@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Float, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -16,8 +16,12 @@ class ClimateIndicator(Base):
     subcategory: Mapped[str | None] = mapped_column(String(50), nullable=True)
     indicator_name: Mapped[str] = mapped_column(String(200), nullable=False)
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    unit: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    source: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    unit_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("units.id", ondelete="SET NULL"), nullable=True
+    )
+    source_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("sources.id", ondelete="SET NULL"), nullable=True
+    )
     gis_attribute_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
@@ -30,3 +34,6 @@ class ClimateIndicator(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+
+    unit = relationship("Unit", lazy="joined")
+    source = relationship("Source", lazy="joined")

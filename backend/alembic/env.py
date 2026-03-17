@@ -10,6 +10,9 @@ from app.database import Base
 from app.models.user import User  # noqa: F401
 from app.models.boundary import AdminBoundary  # noqa: F401
 from app.models.indicator import ClimateIndicator  # noqa: F401
+from app.models.unit import Unit  # noqa: F401
+from app.models.source import Source  # noqa: F401
+from app.models.indicator_value import IndicatorValue  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

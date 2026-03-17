@@ -126,25 +126,76 @@ def parse_excel(filepath: str) -> list[dict]:
 
 
 async def seed_indicators(indicators: list[dict]):
-    """Upsert indicators into the database."""
+    """Upsert indicators into the database, creating units and sources as needed."""
     async with async_session() as session:
         count = 0
         for ind in indicators:
+            unit_id = None
+            source_id = None
+
+            # Resolve unit
+            if ind.get("unit"):
+                result = await session.execute(
+                    text("SELECT id FROM units WHERE name = :name"),
+                    {"name": ind["unit"]},
+                )
+                row = result.one_or_none()
+                if row:
+                    unit_id = row.id
+                else:
+                    await session.execute(
+                        text("INSERT INTO units (name) VALUES (:name) ON CONFLICT (name) DO NOTHING"),
+                        {"name": ind["unit"]},
+                    )
+                    result = await session.execute(
+                        text("SELECT id FROM units WHERE name = :name"),
+                        {"name": ind["unit"]},
+                    )
+                    unit_id = result.one().id
+
+            # Resolve source
+            if ind.get("source"):
+                result = await session.execute(
+                    text("SELECT id FROM sources WHERE name = :name"),
+                    {"name": ind["source"]},
+                )
+                row = result.one_or_none()
+                if row:
+                    source_id = row.id
+                else:
+                    await session.execute(
+                        text("INSERT INTO sources (name) VALUES (:name) ON CONFLICT (name) DO NOTHING"),
+                        {"name": ind["source"]},
+                    )
+                    result = await session.execute(
+                        text("SELECT id FROM sources WHERE name = :name"),
+                        {"name": ind["source"]},
+                    )
+                    source_id = result.one().id
+
             sql = text("""
                 INSERT INTO climate_indicators
-                    (component, subcategory, indicator_name, code, unit, source, gis_attribute_id)
+                    (component, subcategory, indicator_name, code, unit_id, source_id, gis_attribute_id)
                 VALUES
-                    (:component, :subcategory, :indicator_name, :code, :unit, :source, :gis_attribute_id)
+                    (:component, :subcategory, :indicator_name, :code, :unit_id, :source_id, :gis_attribute_id)
                 ON CONFLICT (code) DO UPDATE SET
                     component = EXCLUDED.component,
                     subcategory = EXCLUDED.subcategory,
                     indicator_name = EXCLUDED.indicator_name,
-                    unit = EXCLUDED.unit,
-                    source = EXCLUDED.source,
+                    unit_id = EXCLUDED.unit_id,
+                    source_id = EXCLUDED.source_id,
                     gis_attribute_id = EXCLUDED.gis_attribute_id,
                     updated_at = NOW()
             """)
-            await session.execute(sql, ind)
+            await session.execute(sql, {
+                "component": ind["component"],
+                "subcategory": ind["subcategory"],
+                "indicator_name": ind["indicator_name"],
+                "code": ind["code"],
+                "unit_id": unit_id,
+                "source_id": source_id,
+                "gis_attribute_id": ind.get("gis_attribute_id"),
+            })
             count += 1
 
         await session.commit()

@@ -17,3 +17,12 @@ export const exportIndicators = (format = "csv") =>
     params: { format },
     responseType: format === "csv" ? "blob" : "json",
   });
+
+export const getIndicatorValuesByBoundary = (pcode) =>
+  client.get(`/indicators/values/by-boundary/${pcode}`);
+
+export const submitIndicatorValue = (data) =>
+  client.post("/indicators/values", data);
+
+export const deleteIndicatorValue = (id) =>
+  client.delete(`/indicators/values/${id}`);

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { createIndicator, updateIndicator } from "../../api/indicators";
+import { listUnits } from "../../api/units";
+import { listSources } from "../../api/sources";
 import toast from "react-hot-toast";
 
 const COMPONENTS = ["Hazard", "Socioeconomic", "Environmental", "Infrastructural"];
@@ -17,11 +19,18 @@ export default function IndicatorForm({ indicator, onClose, onSaved }) {
     subcategory: "",
     indicator_name: "",
     code: "",
-    unit: "",
-    source: "",
+    unit_id: "",
+    source_id: "",
     gis_attribute_id: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [units, setUnits] = useState([]);
+  const [sources, setSources] = useState([]);
+
+  useEffect(() => {
+    listUnits({ limit: 500 }).then((res) => setUnits(res.data.data.units)).catch(() => {});
+    listSources({ limit: 500 }).then((res) => setSources(res.data.data.sources)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (indicator) {
@@ -30,8 +39,8 @@ export default function IndicatorForm({ indicator, onClose, onSaved }) {
         subcategory: indicator.subcategory || "",
         indicator_name: indicator.indicator_name || "",
         code: indicator.code || "",
-        unit: indicator.unit || "",
-        source: indicator.source || "",
+        unit_id: indicator.unit_id || "",
+        source_id: indicator.source_id || "",
         gis_attribute_id: indicator.gis_attribute_id || "",
       });
     }
@@ -56,12 +65,18 @@ export default function IndicatorForm({ indicator, onClose, onSaved }) {
 
     setSubmitting(true);
     try {
+      const payload = {
+        ...form,
+        unit_id: form.unit_id ? Number(form.unit_id) : null,
+        source_id: form.source_id ? Number(form.source_id) : null,
+      };
+
       if (isEdit) {
-        const { code, ...updateData } = form;
+        const { code, ...updateData } = payload;
         await updateIndicator(indicator.id, updateData);
         toast.success("Indicator updated");
       } else {
-        await createIndicator(form);
+        await createIndicator(payload);
         toast.success("Indicator created");
       }
       onSaved();
@@ -145,21 +160,29 @@ export default function IndicatorForm({ indicator, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-              <input
-                type="text"
-                value={form.unit}
-                onChange={(e) => handleChange("unit", e.target.value)}
+              <select
+                value={form.unit_id}
+                onChange={(e) => handleChange("unit_id", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4F72]"
-              />
+              >
+                <option value="">None</option>
+                {units.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}{u.abbreviation ? ` (${u.abbreviation})` : ""}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
-              <input
-                type="text"
-                value={form.source}
-                onChange={(e) => handleChange("source", e.target.value)}
+              <select
+                value={form.source_id}
+                onChange={(e) => handleChange("source_id", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4F72]"
-              />
+              >
+                <option value="">None</option>
+                {sources.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
