@@ -7,6 +7,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+poetry.lock
 *.egg
 
 # Environment
@@ -16,6 +17,8 @@ backend/.env
 # Node
 node_modules/
 frontend/node_modules/
+package-lock.json
+frontend/package-lock.json
 frontend/dist/
 
 # IDE
