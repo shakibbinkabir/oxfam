@@ -1,4 +1,10 @@
-.PHONY: setup dev test seed seed-geo seed-indicators migrate stop clean download-geodata
+.PHONY: setup dev test seed seed-geo seed-indicators migrate stop clean download-geodata nuke
+
+# ========== ONE COMMAND TO RULE THEM ALL ==========
+# Destroys everything and rebuilds from scratch
+nuke: clean
+	rm -rf pgdata/
+	$(MAKE) setup
 
 # Full setup: build, migrate, seed superadmin, download & import geodata, seed indicators
 setup: build migrate seed-superadmin download-geodata seed-geo seed-indicators
