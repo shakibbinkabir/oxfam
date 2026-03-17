@@ -68,3 +68,4 @@ stop:
 # Stop and remove volumes (full reset)
 clean:
 	docker compose down -v
+	@echo "To also remove database data, run: rm -rf pgdata/"
