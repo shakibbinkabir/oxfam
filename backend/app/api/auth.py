@@ -39,7 +39,7 @@ def create_token(data: dict, expires_delta: timedelta) -> str:
 
 def create_tokens(user: User) -> dict:
     access_token = create_token(
-        {"sub": str(user.id), "role": user.role.value},
+        {"sub": str(user.id), "role": user.role},
         timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     refresh_token = create_token(
@@ -66,7 +66,7 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
         email=req.email,
         hashed_password=hash_password(req.password),
         full_name=req.full_name,
-        role=UserRole.user,
+        role="user",
     )
     db.add(user)
     await db.flush()

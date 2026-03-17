@@ -6,14 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
-from app.models.user import User, UserRole
+from app.models.user import User
 
 security = HTTPBearer()
 
 ROLE_HIERARCHY = {
-    UserRole.superadmin: 3,
-    UserRole.admin: 2,
-    UserRole.user: 1,
+    "superadmin": 3,
+    "admin": 2,
+    "user": 1,
 }
 
 
@@ -46,11 +46,10 @@ async def get_current_user(
 
 
 def require_role(min_role: str):
-    min_role_enum = UserRole(min_role)
-    min_level = ROLE_HIERARCHY[min_role_enum]
+    min_level = ROLE_HIERARCHY[min_role]
 
     async def role_checker(current_user: User = Depends(get_current_user)) -> User:
-        user_level = ROLE_HIERARCHY[current_user.role]
+        user_level = ROLE_HIERARCHY.get(current_user.role, 0)
         if user_level < min_level:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

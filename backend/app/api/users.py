@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.auth import hash_password
 from app.api.deps import require_role
 from app.database import get_db
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/api/v1/users", tags=["users"])
@@ -52,7 +52,7 @@ async def create_user(
         email=req.email,
         hashed_password=hash_password(req.password),
         full_name=req.full_name,
-        role=UserRole(req.role),
+        role=req.role,
     )
     db.add(user)
     await db.flush()
@@ -80,7 +80,7 @@ async def update_user(
     if req.full_name is not None:
         user.full_name = req.full_name
     if req.role is not None:
-        user.role = UserRole(req.role)
+        user.role = req.role
     if req.is_active is not None:
         user.is_active = req.is_active
 
