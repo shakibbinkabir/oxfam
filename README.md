@@ -15,22 +15,30 @@ Interactive geospatial dashboard for visualizing all 5,160 unions of Bangladesh 
 ### Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- `curl` available (for downloading geodata)
 
 ### One-command setup
 
 ```bash
-make setup
+docker compose up --build
 ```
 
-This will:
-1. Build and start all containers (PostgreSQL/PostGIS, FastAPI, React/Vite)
-2. Run database migrations
-3. Create the superadmin account
-4. Download Bangladesh admin boundary GeoJSON files from OCHA HDX
-5. Import 5,777 admin boundaries (1 country + 8 divisions + 64 districts + 544 upazilas + 5,160 unions)
-6. Import polygon geometry for all boundaries
-7. Seed 67 climate indicators from the Excel spreadsheet
+Or use Make:
+
+```bash
+make setup      # first-time setup (idempotent)
+make nuke       # full destroy-and-rebuild from scratch
+```
+
+The backend container automatically handles the entire setup on startup:
+1. Waits for PostgreSQL + PostGIS to be ready
+2. Runs database migrations
+3. Creates the superadmin account
+4. Downloads Bangladesh admin boundary GeoJSON files from OCHA HDX (if not cached)
+5. Imports 5,777 admin boundaries (1 country + 8 divisions + 64 districts + 544 upazilas + 5,160 unions)
+6. Imports polygon geometry for all boundaries
+7. Seeds 67 climate indicators from the Excel spreadsheet
+
+All steps are **idempotent** — re-running skips already-completed work.
 
 ### Access
 
@@ -168,8 +176,9 @@ The `make download-geodata` command automatically downloads simplified GeoJSON b
 
 | Command | Description |
 |---------|-------------|
-| `make setup` | Full setup: build, migrate, download geodata, seed everything |
-| `make dev` | Start all services (foreground) |
+| `make setup` | Build + start (entrypoint auto-seeds everything) |
+| `make nuke` | Full destroy-and-rebuild from scratch |
+| `make dev` | Start all services (foreground/attached) |
 | `make build` | Build and start all services (background) |
 | `make migrate` | Run Alembic database migrations |
 | `make download-geodata` | Download GeoJSON boundary files from HDX |
@@ -203,6 +212,7 @@ python -m pytest tests/ -v
 │   │   └── scripts/       # Data import & seed scripts
 │   ├── alembic/           # Database migrations
 │   ├── tests/             # pytest test suite
+│   ├── entrypoint.sh      # Auto-setup: migrations, geodata, seeding
 │   ├── Dockerfile
 │   └── pyproject.toml
 ├── frontend/
