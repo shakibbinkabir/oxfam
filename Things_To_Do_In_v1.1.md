@@ -1,6 +1,0 @@
-1. Take the unit and the source to two different tables, handle the whole the thing there and connect in the main table using unit_id, source_id. Also add two CRUD Pages to manage these units and sources. 
-2. Show all the 67 indicator (also the future indicators if added) in the sidebar, when clicked on the union cluster, but show only the indicators with value. Also when exporting in json, the indicator values will be there too. 
-3. Show only the first 5 indicators in the sidebar, and show a see more button, clicking on that will extend the sidebar to the whole page, like a whole page covering popup, and all the indicators will be shown there. Also there will be a collapse or expand button in the title bar where the union name is, like EXPAND button --- TITLE --- CLOSE Button.
-4. Add a system to submit the indicator value. It will be a different page with a form in it. Selector, select from multi choice, select component -> Subcat -> Name -> Enter Value -> Select Source 
-5. Remove the DB from the docker image, so that the DB doesn't gets fucked up when the image is removed or corrupted.
-6. Complete the User management, but no need to work on RBAC for now. Just simple User CRUD. 
