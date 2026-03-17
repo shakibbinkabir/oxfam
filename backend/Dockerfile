@@ -6,10 +6,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir poetry && \
+COPY pyproject.toml README.md* ./
+RUN touch README.md && \
+    pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi
+    poetry install --no-root --no-interaction --no-ansi
 
 COPY . .
 
