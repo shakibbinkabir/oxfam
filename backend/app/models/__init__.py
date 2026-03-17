@@ -1,3 +1,6 @@
 from app.models.user import User
 from app.models.boundary import AdminBoundary
 from app.models.indicator import ClimateIndicator
+from app.models.unit import Unit
+from app.models.source import Source
+from app.models.indicator_value import IndicatorValue
