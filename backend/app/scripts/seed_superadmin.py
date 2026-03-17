@@ -12,9 +12,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 async def seed_superadmin():
     async with async_session() as session:
-        result = await session.execute(
-            select(User).where(User.role == "superadmin")
-        )
+        try:
+            result = await session.execute(
+                select(User).where(User.role == "superadmin")
+            )
+        except Exception:
+            print("Database tables not ready yet — skipping superadmin seed. Run migrations first.")
+            return
+
         if result.scalar_one_or_none():
             print("Superadmin already exists, skipping seed.")
             return
