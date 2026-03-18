@@ -8,12 +8,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
 
   backend:
     build: ./backend
@@ -43,6 +45,3 @@ services:
       - ./frontend/vite.config.js:/app/vite.config.js
     depends_on:
       - backend
-
-volumes:
-  pgdata:

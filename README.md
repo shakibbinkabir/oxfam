@@ -5,7 +5,7 @@ Interactive geospatial dashboard for visualizing all 5,160 unions of Bangladesh 
 ## Tech Stack
 
 - **Backend**: FastAPI + PostgreSQL/PostGIS + SQLAlchemy 2.0 (async)
-- **Frontend**: React 18 + Vite + Tailwind CSS + Leaflet
+- **Frontend**: React 19 + Vite + Tailwind CSS + Leaflet
 - **Auth**: JWT (HS256) with access/refresh tokens, RBAC (superadmin/admin/user)
 - **Map**: Leaflet + OpenStreetMap + geoBoundaries polygon data
 - **Indicators**: 67 climate indicators across 4 components (Hazard, Socioeconomic, Environmental, Infrastructural)
@@ -15,22 +15,30 @@ Interactive geospatial dashboard for visualizing all 5,160 unions of Bangladesh 
 ### Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- `curl` available (for downloading geodata)
 
 ### One-command setup
 
 ```bash
-make setup
+docker compose up --build
 ```
 
-This will:
-1. Build and start all containers (PostgreSQL/PostGIS, FastAPI, React/Vite)
-2. Run database migrations
-3. Create the superadmin account
-4. Download Bangladesh admin boundary GeoJSON files from OCHA HDX
-5. Import 5,777 admin boundaries (1 country + 8 divisions + 64 districts + 544 upazilas + 5,160 unions)
-6. Import polygon geometry for all boundaries
-7. Seed 67 climate indicators from the Excel spreadsheet
+Or use Make:
+
+```bash
+make setup      # first-time setup (idempotent)
+make nuke       # full destroy-and-rebuild from scratch
+```
+
+The backend container automatically handles the entire setup on startup:
+1. Waits for PostgreSQL + PostGIS to be ready
+2. Runs database migrations
+3. Creates the superadmin account
+4. Downloads Bangladesh admin boundary GeoJSON files from OCHA HDX (if not cached)
+5. Imports 5,777 admin boundaries (1 country + 8 divisions + 64 districts + 544 upazilas + 5,160 unions)
+6. Imports polygon geometry for all boundaries
+7. Seeds 67 climate indicators from the Excel spreadsheet
+
+All steps are **idempotent** — re-running skips already-completed work.
 
 ### Access
 
@@ -155,21 +163,28 @@ The `make download-geodata` command automatically downloads simplified GeoJSON b
 | PUT | `/api/v1/indicators/{id}` | Update indicator | Admin+ |
 | DELETE | `/api/v1/indicators/{id}` | Delete indicator | Admin+ |
 | GET | `/api/v1/indicators/export` | Export as CSV/JSON | Authenticated |
+| GET | `/api/v1/indicators/values` | List all indicator values (filterable, paginated) | Authenticated |
+| POST | `/api/v1/indicators/values` | Submit single indicator value | Admin+ |
+| GET | `/api/v1/indicators/values/sample-csv` | Download sample CSV template | Authenticated |
+| POST | `/api/v1/indicators/values/bulk` | Bulk upload values from CSV | Admin+ |
+| GET | `/api/v1/indicators/values/by-boundary/{pcode}` | Values for a boundary | Authenticated |
+| DELETE | `/api/v1/indicators/values/{id}` | Delete indicator value | Admin+ |
 
 ## RBAC Roles
 
 | Role | Users | Indicators | Map | GIS Data |
 |------|-------|-----------|-----|----------|
-| **Superadmin** | Full CRUD | Full CRUD | Full | Full |
-| **Admin** | None | Full CRUD | Full | Full |
+| **Superadmin** | Full CRUD | Full CRUD + Bulk Upload | Full | Full |
+| **Admin** | None | Full CRUD + Bulk Upload | Full | Full |
 | **User** | None | Read Only | Full | Full |
 
 ## Make Commands
 
 | Command | Description |
 |---------|-------------|
-| `make setup` | Full setup: build, migrate, download geodata, seed everything |
-| `make dev` | Start all services (foreground) |
+| `make setup` | Build + start (entrypoint auto-seeds everything) |
+| `make nuke` | Full destroy-and-rebuild from scratch |
+| `make dev` | Start all services (foreground/attached) |
 | `make build` | Build and start all services (background) |
 | `make migrate` | Run Alembic database migrations |
 | `make download-geodata` | Download GeoJSON boundary files from HDX |
@@ -203,6 +218,7 @@ python -m pytest tests/ -v
 │   │   └── scripts/       # Data import & seed scripts
 │   ├── alembic/           # Database migrations
 │   ├── tests/             # pytest test suite
+│   ├── entrypoint.sh      # Auto-setup: migrations, geodata, seeding
 │   ├── Dockerfile
 │   └── pyproject.toml
 ├── frontend/

@@ -25,6 +25,9 @@ frontend/dist/
 .vscode/
 .idea/
 
+# Database
+pgdata/
+
 # OS
 .DS_Store
 Thumbs.db
