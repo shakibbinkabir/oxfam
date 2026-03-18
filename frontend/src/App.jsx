@@ -8,6 +8,8 @@ import NotFoundPage from "./components/layout/NotFoundPage";
 import MapPage from "./components/map/MapPage";
 import IndicatorsPage from "./components/indicators/IndicatorsPage";
 import SubmitIndicatorPage from "./components/indicators/SubmitIndicatorPage";
+import IndicatorValuesPage from "./components/indicators/IndicatorValuesPage";
+import ValueUploaderPage from "./components/indicators/ValueUploaderPage";
 import UnitsPage from "./components/units/UnitsPage";
 import SourcesPage from "./components/sources/SourcesPage";
 import UsersPage from "./components/users/UsersPage";
@@ -34,6 +36,15 @@ export default function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <SubmitIndicatorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="indicator-values" element={<IndicatorValuesPage />} />
+          <Route
+            path="value-uploader"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ValueUploaderPage />
               </ProtectedRoute>
             }
           />

@@ -5,7 +5,7 @@ Interactive geospatial dashboard for visualizing all 5,160 unions of Bangladesh 
 ## Tech Stack
 
 - **Backend**: FastAPI + PostgreSQL/PostGIS + SQLAlchemy 2.0 (async)
-- **Frontend**: React 18 + Vite + Tailwind CSS + Leaflet
+- **Frontend**: React 19 + Vite + Tailwind CSS + Leaflet
 - **Auth**: JWT (HS256) with access/refresh tokens, RBAC (superadmin/admin/user)
 - **Map**: Leaflet + OpenStreetMap + geoBoundaries polygon data
 - **Indicators**: 67 climate indicators across 4 components (Hazard, Socioeconomic, Environmental, Infrastructural)
@@ -163,13 +163,19 @@ The `make download-geodata` command automatically downloads simplified GeoJSON b
 | PUT | `/api/v1/indicators/{id}` | Update indicator | Admin+ |
 | DELETE | `/api/v1/indicators/{id}` | Delete indicator | Admin+ |
 | GET | `/api/v1/indicators/export` | Export as CSV/JSON | Authenticated |
+| GET | `/api/v1/indicators/values` | List all indicator values (filterable, paginated) | Authenticated |
+| POST | `/api/v1/indicators/values` | Submit single indicator value | Admin+ |
+| GET | `/api/v1/indicators/values/sample-csv` | Download sample CSV template | Authenticated |
+| POST | `/api/v1/indicators/values/bulk` | Bulk upload values from CSV | Admin+ |
+| GET | `/api/v1/indicators/values/by-boundary/{pcode}` | Values for a boundary | Authenticated |
+| DELETE | `/api/v1/indicators/values/{id}` | Delete indicator value | Admin+ |
 
 ## RBAC Roles
 
 | Role | Users | Indicators | Map | GIS Data |
 |------|-------|-----------|-----|----------|
-| **Superadmin** | Full CRUD | Full CRUD | Full | Full |
-| **Admin** | None | Full CRUD | Full | Full |
+| **Superadmin** | Full CRUD | Full CRUD + Bulk Upload | Full | Full |
+| **Admin** | None | Full CRUD + Bulk Upload | Full | Full |
 | **User** | None | Read Only | Full | Full |
 
 ## Make Commands

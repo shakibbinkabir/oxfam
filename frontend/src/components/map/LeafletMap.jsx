@@ -76,7 +76,7 @@ function MapEventHandler({ onViewChange }) {
 }
 
 export default function LeafletMap({ onFeatureClick, selectedPcode }) {
-  const [zoom, setZoom] = useState(7);
+  const [zoom, setZoom] = useState(8);
   const [bounds, setBounds] = useState(null);
   const { geoData, loading } = useGeoData(zoom, bounds);
   const [geoKey, setGeoKey] = useState(0);
@@ -211,7 +211,7 @@ export default function LeafletMap({ onFeatureClick, selectedPcode }) {
       )}
       <MapContainer
         center={[23.685, 90.3563]}
-        zoom={7}
+        zoom={8}
         className="w-full h-full"
         zoomControl={true}
       >
