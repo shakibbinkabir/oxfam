@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import IndicatorTable from "./IndicatorTable";
 import IndicatorForm from "./IndicatorForm";
 
 export default function IndicatorsPage() {
+  const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
   const [editIndicator, setEditIndicator] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -28,7 +30,7 @@ export default function IndicatorsPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Climate Indicators</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('indicators.title')}</h1>
       <IndicatorTable
         key={refreshKey}
         onEdit={handleEdit}

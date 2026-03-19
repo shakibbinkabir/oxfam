@@ -1,8 +1,10 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { bulkUploadIndicatorValues, downloadSampleCsv } from "../../api/indicators";
 import toast from "react-hot-toast";
 
 export default function ValueUploaderPage() {
+  const { t } = useTranslation();
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
@@ -18,14 +20,14 @@ export default function ValueUploaderPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Failed to download sample file");
+      toast.error(t('uploader.downloadSampleError'));
     }
   }
 
   function handleFileChange(e) {
     const selected = e.target.files[0];
     if (selected && !selected.name.endsWith(".csv") && !selected.name.endsWith(".xlsx")) {
-      toast.error("Only CSV and Excel (.xlsx) files are accepted");
+      toast.error(t('uploader.invalidFileType'));
       e.target.value = "";
       return;
     }
@@ -36,7 +38,7 @@ export default function ValueUploaderPage() {
   async function handleUpload(e) {
     e.preventDefault();
     if (!file) {
-      toast.error("Please select a CSV or Excel file");
+      toast.error(t('uploader.noFileSelected'));
       return;
     }
 
@@ -47,15 +49,15 @@ export default function ValueUploaderPage() {
       const data = res.data.data;
       setResult(data);
       if (data.errors.length === 0) {
-        toast.success(`Upload complete: ${data.created} created, ${data.updated} updated`);
+        toast.success(t('uploader.uploadSuccess', { created: data.created, updated: data.updated }));
       } else {
-        toast.success(`Upload complete with ${data.errors.length} warning(s)`);
+        toast.success(t('uploader.uploadWarnings', { count: data.errors.length }));
       }
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       const detail = err.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : "Upload failed");
+      toast.error(typeof detail === "string" ? detail : t('uploader.uploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -63,14 +65,14 @@ export default function ValueUploaderPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-2">Value Uploader</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('uploader.title')}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Bulk upload indicator values using a CSV or Excel (.xlsx) file. Download the sample file for the expected format.
+        {t('uploader.subtitle')}
       </p>
 
       {/* Instructions */}
       <div className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
-        <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Instructions</h2>
+        <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">{t('uploader.instructions')}</h2>
         <ul className="text-sm text-gray-600 space-y-2">
           <li className="flex gap-2">
             <span className="text-gray-400">1.</span>
@@ -96,13 +98,13 @@ export default function ValueUploaderPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Download Sample CSV
+          {t('uploader.downloadSample')}
         </button>
       </div>
 
       {/* Upload Form */}
       <form onSubmit={handleUpload} className="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">Upload File</h2>
+        <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">{t('uploader.uploadFile')}</h2>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
           <svg className="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +119,7 @@ export default function ValueUploaderPage() {
           />
           {file && (
             <p className="mt-2 text-sm text-gray-600">
-              Selected: <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(1)} KB)
+              {t('uploader.selectedFile')}: <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(1)} KB)
             </p>
           )}
         </div>
@@ -127,26 +129,26 @@ export default function ValueUploaderPage() {
           disabled={uploading || !file}
           className="mt-4 w-full py-3 px-4 bg-[#1B4F72] text-white rounded-md font-medium hover:bg-[#154360] disabled:opacity-50 transition-colors"
         >
-          {uploading ? "Uploading..." : "Upload"}
+          {uploading ? t('uploader.uploading') : t('uploader.upload')}
         </button>
       </form>
 
       {/* Results */}
       {result && (
         <div className="mt-6 bg-white border border-gray-200 rounded-lg p-5">
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">Upload Results</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">{t('uploader.resultTitle')}</h2>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">{result.created}</div>
-              <div className="text-xs text-green-700">Created</div>
+              <div className="text-xs text-green-700">{t('uploader.created')}</div>
             </div>
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">{result.updated}</div>
-              <div className="text-xs text-blue-700">Updated</div>
+              <div className="text-xs text-blue-700">{t('uploader.updated')}</div>
             </div>
             <div className="text-center p-3 bg-red-50 rounded-lg">
               <div className="text-2xl font-bold text-red-600">{result.errors?.length || 0}</div>
-              <div className="text-xs text-red-700">Errors</div>
+              <div className="text-xs text-red-700">{t('uploader.errors')}</div>
             </div>
           </div>
           {result.warnings?.length > 0 && (
@@ -162,7 +164,7 @@ export default function ValueUploaderPage() {
           {result.errors?.length > 0 && (
             <div className="bg-red-50 rounded-lg p-3 max-h-48 overflow-y-auto">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-red-800">Errors:</h3>
+                <h3 className="text-sm font-medium text-red-800">{t('uploader.errors')}:</h3>
                 <button
                   onClick={() => {
                     const header = "row_number,indicator_code,boundary_pcode,value,error_message\n";
@@ -181,7 +183,7 @@ export default function ValueUploaderPage() {
                   }}
                   className="text-xs text-red-700 underline hover:text-red-900"
                 >
-                  Download Error Report
+                  {t('uploader.downloadErrorReport')}
                 </button>
               </div>
               <ul className="text-xs text-red-700 space-y-1">

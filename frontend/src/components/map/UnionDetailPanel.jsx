@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getIndicatorValuesByBoundary } from "../../api/indicators";
 import { exportPdf } from "../../api/exports";
 import useScores from "../../hooks/useScores";
@@ -29,6 +30,7 @@ const DIMENSION_LABELS = [
 ];
 
 export default function UnionDetailPanel({ feature, onClose }) {
+  const { t, i18n } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [indicators, setIndicators] = useState([]);
   const [loadingIndicators, setLoadingIndicators] = useState(false);
@@ -71,7 +73,7 @@ export default function UnionDetailPanel({ feature, onClose }) {
   async function handleExportPdf() {
     setPdfLoading(true);
     try {
-      const res = await exportPdf(feature.pcode);
+      const res = await exportPdf(feature.pcode, i18n.language);
       const url = URL.createObjectURL(res.data);
       const a = document.createElement("a");
       a.href = url;
@@ -79,7 +81,7 @@ export default function UnionDetailPanel({ feature, onClose }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Failed to generate PDF report");
+      toast.error(t('detail.failedPdf'));
     } finally {
       setPdfLoading(false);
     }
@@ -126,14 +128,14 @@ export default function UnionDetailPanel({ feature, onClose }) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18l6-6-6-6" />
               </svg>
-              Collapse
+              {t('detail.collapse')}
             </button>
             <h2 className="text-lg font-semibold truncate mx-4">{feature.name_en}</h2>
             <button
               onClick={handleClose}
               className="px-3 py-1.5 text-sm bg-[#154360] hover:bg-[#0E2F44] rounded-md transition-colors"
             >
-              Close
+              {t('detail.close')}
             </button>
           </div>
           <Breadcrumb feature={feature} mapCtx={mapCtx} />
@@ -141,40 +143,40 @@ export default function UnionDetailPanel({ feature, onClose }) {
 
         <div className="max-w-5xl mx-auto p-6">
           {/* CRI Score Card */}
-          <CRIScoreCard scores={scores} loading={loadingScores} />
+          <CRIScoreCard scores={scores} loading={loadingScores} t={t} />
 
           {/* Dimension Bar Charts */}
-          <DimensionBarCharts scores={scores} loading={loadingScores} />
+          <DimensionBarCharts scores={scores} loading={loadingScores} t={t} />
 
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Basic Information</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">{t('detail.basicInfo')}</h3>
               <div className="space-y-2">
-                <InfoRow label="PCODE" value={feature.pcode} />
-                <InfoRow label="Admin Level" value={`ADM${feature.adm_level}`} />
-                {feature.area_sq_km && <InfoRow label="Area" value={`${feature.area_sq_km.toFixed(2)} km²`} />}
+                <InfoRow label={t('detail.pcode')} value={feature.pcode} />
+                <InfoRow label={t('detail.adminLevel')} value={`ADM${feature.adm_level}`} />
+                {feature.area_sq_km && <InfoRow label={t('detail.area')} value={`${feature.area_sq_km.toFixed(2)} km²`} />}
               </div>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Administrative Hierarchy</h3>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">{t('detail.adminHierarchy')}</h3>
               <div className="space-y-2">
-                {feature.division_name && <InfoRow label="Division" value={feature.division_name} />}
-                {feature.district_name && <InfoRow label="District" value={feature.district_name} />}
-                {feature.upazila_name && <InfoRow label="Upazila" value={feature.upazila_name} />}
+                {feature.division_name && <InfoRow label={t('detail.division')} value={feature.division_name} />}
+                {feature.district_name && <InfoRow label={t('detail.district')} value={feature.district_name} />}
+                {feature.upazila_name && <InfoRow label={t('detail.upazila')} value={feature.upazila_name} />}
               </div>
             </div>
           </div>
 
           {/* Normalised Indicators */}
           {scores?.normalised_values && Object.keys(scores.normalised_values).length > 0 && (
-            <NormalisedIndicatorsPanel normalised={scores.normalised_values} />
+            <NormalisedIndicatorsPanel normalised={scores.normalised_values} t={t} />
           )}
 
           {/* Raw indicators */}
           <div className="mb-6 flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-800">
-              Raw Indicator Values ({indicatorsWithValue.length})
+              {t('detail.rawIndicatorValues')} ({indicatorsWithValue.length})
             </h3>
             <div className="flex gap-2">
               <button
@@ -182,22 +184,22 @@ export default function UnionDetailPanel({ feature, onClose }) {
                 disabled={pdfLoading}
                 className="px-3 py-1.5 bg-[#1B4F72] text-white rounded-md text-sm hover:bg-[#154360] disabled:opacity-50"
               >
-                {pdfLoading ? "Generating..." : "Download PDF"}
+                {pdfLoading ? t('detail.generating') : t('detail.downloadPdfShort')}
               </button>
               <button
                 onClick={handleExportJson}
                 className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
               >
-                Export as JSON
+                {t('detail.exportJson')}
               </button>
             </div>
           </div>
 
           {loadingIndicators ? (
-            <div className="text-center py-8 text-gray-400">Loading indicators...</div>
+            <div className="text-center py-8 text-gray-400">{t('detail.loadingIndicators')}</div>
           ) : indicatorsWithValue.length === 0 ? (
             <div className="bg-gray-50 rounded-md p-6 text-center">
-              <p className="text-sm text-gray-400">No indicator values available for this area</p>
+              <p className="text-sm text-gray-400">{t('detail.noIndicatorValues')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -252,21 +254,21 @@ export default function UnionDetailPanel({ feature, onClose }) {
 
         <div className="p-4 space-y-4">
           {/* CRI Score Card (compact) */}
-          <CRIScoreCard scores={scores} loading={loadingScores} compact />
+          <CRIScoreCard scores={scores} loading={loadingScores} compact t={t} />
 
           {/* Dimension Bar Charts (compact) */}
-          <DimensionBarCharts scores={scores} loading={loadingScores} compact />
+          <DimensionBarCharts scores={scores} loading={loadingScores} compact t={t} />
 
           {/* Basic Info */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              Basic Information
+              {t('detail.basicInfo')}
             </h3>
             <div className="space-y-2">
-              <InfoRow label="PCODE" value={feature.pcode} />
-              <InfoRow label="Admin Level" value={`ADM${feature.adm_level}`} />
+              <InfoRow label={t('detail.pcode')} value={feature.pcode} />
+              <InfoRow label={t('detail.adminLevel')} value={`ADM${feature.adm_level}`} />
               {feature.area_sq_km && (
-                <InfoRow label="Area" value={`${feature.area_sq_km.toFixed(2)} km²`} />
+                <InfoRow label={t('detail.area')} value={`${feature.area_sq_km.toFixed(2)} km²`} />
               )}
             </div>
           </div>
@@ -274,12 +276,12 @@ export default function UnionDetailPanel({ feature, onClose }) {
           {/* Hierarchy */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-              Administrative Hierarchy
+              {t('detail.adminHierarchy')}
             </h3>
             <div className="space-y-2">
-              {feature.division_name && <InfoRow label="Division" value={feature.division_name} />}
-              {feature.district_name && <InfoRow label="District" value={feature.district_name} />}
-              {feature.upazila_name && <InfoRow label="Upazila" value={feature.upazila_name} />}
+              {feature.division_name && <InfoRow label={t('detail.division')} value={feature.division_name} />}
+              {feature.district_name && <InfoRow label={t('detail.district')} value={feature.district_name} />}
+              {feature.upazila_name && <InfoRow label={t('detail.upazila')} value={feature.upazila_name} />}
             </div>
           </div>
 
@@ -290,11 +292,11 @@ export default function UnionDetailPanel({ feature, onClose }) {
                 onClick={() => setShowRawIndicators(!showRawIndicators)}
                 className="w-full py-2 text-sm text-[#1B4F72] font-medium hover:bg-gray-50 rounded-md border border-dashed border-gray-300 transition-colors"
               >
-                {showRawIndicators ? "Hide" : "Show"} normalised indicator values ({Object.keys(scores.normalised_values).length})
+                {showRawIndicators ? t('detail.hideNormalised') : t('detail.showNormalised')} ({Object.keys(scores.normalised_values).length})
               </button>
               {showRawIndicators && (
                 <div className="mt-2">
-                  <NormalisedIndicatorsPanel normalised={scores.normalised_values} compact />
+                  <NormalisedIndicatorsPanel normalised={scores.normalised_values} compact t={t} />
                 </div>
               )}
             </div>
@@ -305,7 +307,7 @@ export default function UnionDetailPanel({ feature, onClose }) {
             onClick={() => mapCtx?.openSimulation(feature.pcode)}
             className="w-full py-2.5 text-sm font-medium rounded-md bg-[#1B4F72] text-white hover:bg-[#154360] transition-colors"
           >
-            Simulate This Area
+            {t('detail.simulateArea')}
           </button>
 
           {/* Expand & Export */}
@@ -314,20 +316,20 @@ export default function UnionDetailPanel({ feature, onClose }) {
               onClick={() => setExpanded(true)}
               className="w-full py-2 text-sm text-[#1B4F72] font-medium hover:bg-gray-50 rounded-md border border-dashed border-gray-300 transition-colors"
             >
-              See full details and all indicators
+              {t('detail.fullDetails')}
             </button>
             <button
               onClick={handleExportPdf}
               disabled={pdfLoading}
               className="w-full py-2 px-4 bg-[#1B4F72] text-white rounded-md text-sm font-medium hover:bg-[#154360] disabled:opacity-50 transition-colors"
             >
-              {pdfLoading ? "Generating PDF..." : "Download PDF Report"}
+              {pdfLoading ? t('detail.generatingPdf') : t('detail.downloadPdf')}
             </button>
             <button
               onClick={handleExportJson}
               className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              Export as JSON
+              {t('detail.exportJson')}
             </button>
           </div>
         </div>
@@ -337,11 +339,11 @@ export default function UnionDetailPanel({ feature, onClose }) {
 }
 
 
-function CRIScoreCard({ scores, loading, compact = false }) {
+function CRIScoreCard({ scores, loading, compact = false, t }) {
   if (loading) {
     return (
       <div className={`${compact ? "p-3" : "p-6 mb-8"} bg-gray-50 rounded-lg text-center`}>
-        <p className="text-sm text-gray-400">Computing scores...</p>
+        <p className="text-sm text-gray-400">{t('detail.computingScores')}</p>
       </div>
     );
   }
@@ -349,7 +351,7 @@ function CRIScoreCard({ scores, loading, compact = false }) {
   if (!scores || scores.cri == null) {
     return (
       <div className={`${compact ? "p-3" : "p-6 mb-8"} bg-gray-50 rounded-lg text-center`}>
-        <p className="text-sm text-gray-400">No score data available</p>
+        <p className="text-sm text-gray-400">{t('detail.noScoreData')}</p>
       </div>
     );
   }
@@ -362,18 +364,18 @@ function CRIScoreCard({ scores, loading, compact = false }) {
       <div className={`rounded-lg border-2 p-3 ${colors.bg}`}>
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xs font-semibold text-gray-500 uppercase">Climate Risk Index</div>
+            <div className="text-xs font-semibold text-gray-500 uppercase">{t('detail.climateRiskIndex')}</div>
             <div className={`text-2xl font-bold ${colors.text}`}>
               {scores.cri.toFixed(3)}
             </div>
           </div>
           <div className={`px-3 py-1 rounded-full text-sm font-semibold ${colors.bg} ${colors.text}`}>
-            {category}
+            {t('category.' + category)}
           </div>
         </div>
         {scores.rank && (
           <div className="mt-1 text-xs text-gray-500">
-            Ranked {scores.rank} of {scores.rank_total}
+            {t('detail.ranked')} {scores.rank} {t('detail.of')} {scores.rank_total}
           </div>
         )}
       </div>
@@ -384,19 +386,19 @@ function CRIScoreCard({ scores, loading, compact = false }) {
     <div className={`rounded-xl border-2 p-6 mb-8 ${colors.bg}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Climate Risk Index (CRI)</h3>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('detail.criShort')}</h3>
           <div className={`text-5xl font-bold mt-2 ${colors.text}`}>
             {scores.cri.toFixed(3)}
           </div>
-          <div className="text-sm text-gray-500 mt-1">Score range: 0.000 (lowest) to 1.000 (highest risk)</div>
+          <div className="text-sm text-gray-500 mt-1">{t('detail.scoreRange')}</div>
           {scores.rank && (
             <div className="text-sm text-gray-600 mt-1 font-medium">
-              Ranked {scores.rank} of {scores.rank_total}
+              {t('detail.ranked')} {scores.rank} {t('detail.of')} {scores.rank_total}
             </div>
           )}
         </div>
         <div className={`px-4 py-2 rounded-full text-lg font-bold ${colors.bg} ${colors.text} border ${colors.text.replace("text", "border")}`}>
-          {category}
+          {t('category.' + category)}
         </div>
       </div>
     </div>
@@ -404,13 +406,13 @@ function CRIScoreCard({ scores, loading, compact = false }) {
 }
 
 
-function DimensionBarCharts({ scores, loading, compact = false }) {
+function DimensionBarCharts({ scores, loading, compact = false, t }) {
   if (loading || !scores) return null;
 
   return (
     <div className={compact ? "space-y-2" : "mb-8 space-y-3"}>
       <h3 className={`${compact ? "text-xs" : "text-sm"} font-semibold text-gray-500 uppercase tracking-wider`}>
-        Dimension Scores
+        {t('detail.dimensionScores')}
       </h3>
       {DIMENSION_LABELS.map(({ key, label, color }) => {
         const value = scores[key];
@@ -419,7 +421,7 @@ function DimensionBarCharts({ scores, loading, compact = false }) {
         return (
           <div key={key}>
             <div className="flex justify-between items-center mb-1">
-              <span className={`${compact ? "text-xs" : "text-sm"} font-medium text-gray-700`}>{label}</span>
+              <span className={`${compact ? "text-xs" : "text-sm"} font-medium text-gray-700`}>{t('dimensions.' + key)}</span>
               <span className={`${compact ? "text-xs" : "text-sm"} font-bold text-gray-800`}>{value.toFixed(3)}</span>
             </div>
             <div className={`w-full ${compact ? "h-2" : "h-3"} bg-gray-200 rounded-full overflow-hidden`}>
@@ -436,7 +438,7 @@ function DimensionBarCharts({ scores, loading, compact = false }) {
 }
 
 
-function NormalisedIndicatorsPanel({ normalised, compact = false }) {
+function NormalisedIndicatorsPanel({ normalised, compact = false, t }) {
   // Group by dimension
   const grouped = {};
   for (const [gisId, info] of Object.entries(normalised)) {
@@ -453,7 +455,7 @@ function NormalisedIndicatorsPanel({ normalised, compact = false }) {
   return (
     <div className={compact ? "" : "mb-8"}>
       {!compact && (
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Normalised Indicator Values</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('detail.normalisedValues')}</h3>
       )}
       <div className="space-y-3">
         {dimensionOrder.map((dim) => {
@@ -465,6 +467,7 @@ function NormalisedIndicatorsPanel({ normalised, compact = false }) {
               dimension={dim}
               items={items}
               compact={compact}
+              t={t}
             />
           );
         })}
@@ -474,7 +477,7 @@ function NormalisedIndicatorsPanel({ normalised, compact = false }) {
 }
 
 
-function NormalisedDimensionGroup({ dimension, items, compact }) {
+function NormalisedDimensionGroup({ dimension, items, compact, t }) {
   const [open, setOpen] = useState(!compact);
 
   return (
@@ -498,7 +501,7 @@ function NormalisedDimensionGroup({ dimension, items, compact }) {
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium text-gray-700 truncate">{item.name}</div>
                 <div className="text-xs text-gray-400">
-                  Raw: {item.raw_value} | Dir: {item.direction === "-" ? "Inverted" : "Positive"}
+                  {t('detail.raw')}: {item.raw_value} | {t('detail.direction')}: {item.direction === "-" ? t('detail.inverted') : t('detail.positive')}
                 </div>
               </div>
               <div className="ml-3 flex items-center gap-2">

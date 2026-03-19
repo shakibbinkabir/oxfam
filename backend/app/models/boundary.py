@@ -13,6 +13,7 @@ class AdminBoundary(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     adm_level: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     name_en: Mapped[str] = mapped_column(String(100), nullable=False)
+    name_bn: Mapped[str | None] = mapped_column(String(200), nullable=True)
     pcode: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
     parent_pcode: Mapped[str | None] = mapped_column(String(20), nullable=True)
     division_name: Mapped[str | None] = mapped_column(String(100), nullable=True)

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { runSimulation } from "../../api/simulation";
 import { createScenario } from "../../api/simulation";
 import { getIndicatorValuesByBoundary } from "../../api/indicators";
@@ -10,18 +11,21 @@ const DIMENSION_GROUPS = [
   {
     key: "hazard",
     label: "Hazard",
+    labelKey: "dimensions.hazard",
     color: "border-red-300 bg-red-50",
     codes: ["rainfall", "heat", "colddays", "drought", "water", "erosion", "surge", "salinity", "lightning"],
   },
   {
     key: "soc_exposure",
     label: "Socioeconomic Exposure",
+    labelKey: "sim.socExposure",
     color: "border-amber-300 bg-amber-50",
     codes: ["population", "household", "female", "child_old"],
   },
   {
     key: "sensitivity",
     label: "Sensitivity",
+    labelKey: "dimensions.sensitivity",
     color: "border-orange-300 bg-orange-50",
     codes: [
       "pop_density", "dependency", "disable", "unemployed", "fm_ratio",
@@ -32,6 +36,7 @@ const DIMENSION_GROUPS = [
   {
     key: "adaptive_capacity",
     label: "Adaptive Capacity",
+    labelKey: "dimensions.adaptive_capacity",
     color: "border-emerald-300 bg-emerald-50",
     codes: [
       "literacy", "electricity", "solar", "drink_water", "sanitation",
@@ -43,12 +48,14 @@ const DIMENSION_GROUPS = [
   {
     key: "env_exposure",
     label: "Environmental Exposure",
+    labelKey: "sim.envExposure",
     color: "border-teal-300 bg-teal-50",
     codes: ["forest", "waterbody", "agri_land"],
   },
   {
     key: "env_sensitivity",
     label: "Environmental Sensitivity",
+    labelKey: "sim.envSensitivity",
     color: "border-cyan-300 bg-cyan-50",
     codes: ["ndvi", "wetland_loss", "groundwater"],
   },
@@ -63,6 +70,7 @@ const CRI_CATEGORY_COLORS = {
 };
 
 export default function SimulationModal() {
+  const { t } = useTranslation();
   const { simulationModalOpen, simulationPcode, closeSimulation, setSimulationResult, selectedFeature } = useMapContext();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
@@ -156,7 +164,7 @@ export default function SimulationModal() {
       }
       setEditedValues(initial);
     } catch {
-      setError("Failed to load indicator data");
+      setError(t('sim.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -219,7 +227,7 @@ export default function SimulationModal() {
       setResult(simResult);
       setSimulationResult(simResult);
     } catch (err) {
-      setError(err.response?.data?.detail || "Simulation failed");
+      setError(err.response?.data?.detail || t('sim.failedSim'));
     } finally {
       setRunning(false);
     }
@@ -253,7 +261,7 @@ export default function SimulationModal() {
       setScenarioName("");
       setScenarioDesc("");
     } catch {
-      setError("Failed to save scenario");
+      setError(t('sim.failedSave'));
     } finally {
       setSaving(false);
     }
@@ -275,7 +283,7 @@ export default function SimulationModal() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-[#1B4F72] text-white rounded-t-xl">
           <div>
-            <h2 className="text-lg font-semibold">What-If Simulation</h2>
+            <h2 className="text-lg font-semibold">{t('sim.title')}</h2>
             <p className="text-sm text-blue-200">{boundaryName} ({pcode})</p>
           </div>
           <button
@@ -292,7 +300,7 @@ export default function SimulationModal() {
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="text-gray-400">Loading indicator data...</div>
+              <div className="text-gray-400">{t('sim.loadingData')}</div>
             </div>
           ) : error && !result ? (
             <div className="text-red-600 text-sm bg-red-50 rounded-lg p-4">{error}</div>
@@ -300,7 +308,7 @@ export default function SimulationModal() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column — Inputs */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Indicator Values</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('sim.indicatorValues')}</h3>
 
                 {DIMENSION_GROUPS.map((group) => {
                   const available = group.codes.filter((c) => c in storedValues);
@@ -313,7 +321,7 @@ export default function SimulationModal() {
                         onClick={() => toggleGroup(group.key)}
                         className="w-full flex items-center justify-between px-3 py-2"
                       >
-                        <span className="text-xs font-semibold uppercase">{group.label} ({available.length})</span>
+                        <span className="text-xs font-semibold uppercase">{t(group.labelKey)} ({available.length})</span>
                         <svg
                           className={`w-4 h-4 transition-transform ${isCollapsed ? "" : "rotate-180"}`}
                           fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -343,7 +351,7 @@ export default function SimulationModal() {
                                     )}
                                   </div>
                                   <span className="text-xs text-gray-400 ml-2">
-                                    Stored: {stored}
+                                    {t('sim.stored')}: {stored}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -377,7 +385,7 @@ export default function SimulationModal() {
                     onClick={() => setShowWeights(!showWeights)}
                     className="w-full flex items-center justify-between px-3 py-2 bg-gray-50"
                   >
-                    <span className="text-xs font-semibold text-gray-600 uppercase">Custom Weights (Optional)</span>
+                    <span className="text-xs font-semibold text-gray-600 uppercase">{t('sim.customWeights')}</span>
                     <svg
                       className={`w-4 h-4 transition-transform ${showWeights ? "rotate-180" : ""}`}
                       fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -391,7 +399,7 @@ export default function SimulationModal() {
                         <div key={key}>
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-medium text-gray-600 capitalize">
-                              {key.replace("_", " ")}
+                              {t('dimensions.' + key)}
                             </span>
                             <span className="text-xs font-bold text-gray-700">{val.toFixed(2)}</span>
                           </div>
@@ -408,13 +416,13 @@ export default function SimulationModal() {
                       ))}
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-400">
-                          Sum: {Object.values(weights).reduce((s, v) => s + v, 0).toFixed(2)}
+                          {t('sim.sum')}: {Object.values(weights).reduce((s, v) => s + v, 0).toFixed(2)}
                         </span>
                         <button
                           onClick={resetWeights}
                           className="text-xs text-blue-600 hover:underline"
                         >
-                          Reset to equal
+                          {t('sim.resetEqual')}
                         </button>
                       </div>
                     </div>
@@ -424,14 +432,14 @@ export default function SimulationModal() {
 
               {/* Right Column — Results */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Results</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('sim.results')}</h3>
 
                 {!result ? (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-gray-50 rounded-lg">
                     <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
-                    <p className="text-sm">Modify values and click Run Simulation</p>
+                    <p className="text-sm">{t('sim.modifyAndRun')}</p>
                   </div>
                 ) : (
                   <>
@@ -439,7 +447,7 @@ export default function SimulationModal() {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-center flex-1">
-                          <div className="text-xs text-gray-500 mb-1">Original CRI</div>
+                          <div className="text-xs text-gray-500 mb-1">{t('sim.originalCri')}</div>
                           <div className="text-3xl font-bold text-gray-700">
                             {result.original_scores.cri?.toFixed(3) ?? "N/A"}
                           </div>
@@ -455,7 +463,7 @@ export default function SimulationModal() {
                           </svg>
                         </div>
                         <div className="text-center flex-1">
-                          <div className="text-xs text-gray-500 mb-1">Simulated CRI</div>
+                          <div className="text-xs text-gray-500 mb-1">{t('sim.simulatedCri')}</div>
                           <div className={`text-3xl font-bold ${
                             result.deltas.cri < 0 ? "text-green-600" : result.deltas.cri > 0 ? "text-red-600" : "text-gray-700"
                           }`}>
@@ -472,7 +480,7 @@ export default function SimulationModal() {
                         <div className={`text-center text-sm font-medium ${
                           result.deltas.cri < 0 ? "text-green-600" : result.deltas.cri > 0 ? "text-red-600" : "text-gray-500"
                         }`}>
-                          Delta: {result.deltas.cri >= 0 ? "+" : ""}{result.deltas.cri.toFixed(4)}
+                          {t('sim.delta')}: {result.deltas.cri >= 0 ? "+" : ""}{result.deltas.cri.toFixed(4)}
                           {result.original_scores.cri > 0 && (
                             <span className="text-gray-400 ml-1">
                               ({((result.deltas.cri / result.original_scores.cri) * 100).toFixed(1)}%)
@@ -485,7 +493,7 @@ export default function SimulationModal() {
                     {/* Category Change Alert */}
                     {result.category_changed && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-                        Category changed: <strong>{result.original_category}</strong> &rarr; <strong>{result.simulated_category}</strong>
+                        {t('sim.categoryChanged')}: <strong>{result.original_category}</strong> &rarr; <strong>{result.simulated_category}</strong>
                       </div>
                     )}
 
@@ -499,7 +507,7 @@ export default function SimulationModal() {
                         return (
                           <div key={dim}>
                             <div className="flex justify-between text-xs mb-1">
-                              <span className="font-medium text-gray-700 capitalize">{dim.replace("_", " ")}</span>
+                              <span className="font-medium text-gray-700 capitalize">{t('dimensions.' + dim)}</span>
                               <span className="text-gray-500">
                                 {orig?.toFixed(3)} &rarr; {sim?.toFixed(3)}
                                 {delta != null && (
@@ -530,16 +538,16 @@ export default function SimulationModal() {
                     {/* Modified Indicators Table */}
                     {result.modified_indicators?.length > 0 && (
                       <div>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Modified Indicators</h4>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{t('sim.modifiedIndicators')}</h4>
                         <div className="border rounded-lg overflow-hidden">
                           <table className="w-full text-xs">
                             <thead className="bg-gray-50">
                               <tr>
-                                <th className="px-3 py-2 text-left font-medium text-gray-600">Indicator</th>
-                                <th className="px-3 py-2 text-right font-medium text-gray-600">Original</th>
-                                <th className="px-3 py-2 text-right font-medium text-gray-600">Simulated</th>
-                                <th className="px-3 py-2 text-right font-medium text-gray-600">Norm Orig</th>
-                                <th className="px-3 py-2 text-right font-medium text-gray-600">Norm Sim</th>
+                                <th className="px-3 py-2 text-left font-medium text-gray-600">{t('sim.indicator')}</th>
+                                <th className="px-3 py-2 text-right font-medium text-gray-600">{t('sim.original')}</th>
+                                <th className="px-3 py-2 text-right font-medium text-gray-600">{t('sim.simulated_col')}</th>
+                                <th className="px-3 py-2 text-right font-medium text-gray-600">{t('sim.normOrig')}</th>
+                                <th className="px-3 py-2 text-right font-medium text-gray-600">{t('sim.normSim')}</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y">
@@ -566,19 +574,19 @@ export default function SimulationModal() {
                             onClick={() => setShowSaveForm(true)}
                             className="w-full py-2 text-sm font-medium rounded-md bg-[#1B4F72] text-white hover:bg-[#154360] transition-colors"
                           >
-                            Save as Scenario
+                            {t('sim.saveAsScenario')}
                           </button>
                         ) : (
                           <div className="border rounded-lg p-3 space-y-2">
                             <input
                               type="text"
-                              placeholder="Scenario name (required)"
+                              placeholder={t('sim.scenarioName')}
                               value={scenarioName}
                               onChange={(e) => setScenarioName(e.target.value)}
                               className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
                             />
                             <textarea
-                              placeholder="Description (optional)"
+                              placeholder={t('sim.description')}
                               value={scenarioDesc}
                               onChange={(e) => setScenarioDesc(e.target.value)}
                               className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -590,13 +598,13 @@ export default function SimulationModal() {
                                 disabled={!scenarioName.trim() || saving}
                                 className="flex-1 py-1.5 text-sm font-medium rounded-md bg-[#1B4F72] text-white hover:bg-[#154360] disabled:opacity-50 transition-colors"
                               >
-                                {saving ? "Saving..." : "Save"}
+                                {saving ? t('sim.saving') : t('sim.save')}
                               </button>
                               <button
                                 onClick={() => setShowSaveForm(false)}
                                 className="px-3 py-1.5 text-sm border rounded-md text-gray-600 hover:bg-gray-50"
                               >
-                                Cancel
+                                {t('sim.cancel')}
                               </button>
                             </div>
                           </div>
@@ -620,12 +628,12 @@ export default function SimulationModal() {
             onClick={handleResetAll}
             className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
           >
-            Reset All
+            {t('sim.resetAll')}
           </button>
           <div className="flex items-center gap-2">
             {hasChanges && (
               <span className="text-xs text-blue-600">
-                {Object.keys(modifiedCodes).length} indicator{Object.keys(modifiedCodes).length > 1 ? "s" : ""} modified
+                {Object.keys(modifiedCodes).length} indicator{Object.keys(modifiedCodes).length > 1 ? "s" : ""} {t('sim.modified')}
               </span>
             )}
             <button
@@ -633,7 +641,7 @@ export default function SimulationModal() {
               disabled={!hasChanges || running}
               className="px-6 py-2 text-sm font-medium rounded-md bg-[#1B4F72] text-white hover:bg-[#154360] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {running ? "Running..." : "Run Simulation"}
+              {running ? t('sim.running') : t('sim.runSimulation')}
             </button>
           </div>
         </div>
