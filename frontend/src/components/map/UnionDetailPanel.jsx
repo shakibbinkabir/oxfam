@@ -94,10 +94,10 @@ export default function UnionDetailPanel({ feature, onClose }) {
         [
           iv.indicator_code,
           `"${(iv.indicator_name || "").replace(/"/g, '""')}"`,
-          iv.component || "",
-          iv.subcategory || "",
+          `"${(iv.component || "").replace(/"/g, '""')}"`,
+          `"${(iv.subcategory || "").replace(/"/g, '""')}"`,
           iv.value,
-          iv.source_name || "",
+          `"${(iv.source_name || "").replace(/"/g, '""')}"`,
         ].join(",")
       )
       .join("\n");

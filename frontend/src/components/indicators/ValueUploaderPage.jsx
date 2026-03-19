@@ -25,12 +25,40 @@ export default function ValueUploaderPage() {
     }
   }
 
+  function splitCSVRow(line) {
+    const cells = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else if (ch === '"') {
+          inQuotes = false;
+        } else {
+          current += ch;
+        }
+      } else if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        cells.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    cells.push(current.trim());
+    return cells;
+  }
+
   function parseCSVPreview(text) {
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) return null;
-    const headers = lines[0].split(",").map((h) => h.trim());
+    const headers = splitCSVRow(lines[0]);
     const rows = lines.slice(1, 11).map((line) => {
-      const cells = line.split(",").map((c) => c.trim());
+      const cells = splitCSVRow(line);
       const row = {};
       headers.forEach((h, i) => {
         row[h] = cells[i] || "";
@@ -258,8 +286,8 @@ export default function ValueUploaderPage() {
                     const header = "row_number,indicator_code,boundary_pcode,value,error_message\n";
                     const rows = result.errors.map((e) =>
                       typeof e === "object"
-                        ? `${e.row},${e.indicator_code},${e.boundary_pcode},${e.value},"${e.error}"`
-                        : `,,,"${e}"`
+                        ? `${e.row},${e.indicator_code},${e.boundary_pcode},${e.value},"${(e.error || "").replace(/"/g, '""')}"`
+                        : `,,,"${String(e).replace(/"/g, '""')}"`
                     ).join("\n");
                     const blob = new Blob([header + rows], { type: "text/csv" });
                     const url = URL.createObjectURL(blob);
