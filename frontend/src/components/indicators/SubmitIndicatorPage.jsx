@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { listIndicators, submitIndicatorValue } from "../../api/indicators";
 import { listSources } from "../../api/sources";
 import { getUnions, getUpazilas, getDistricts, getDivisions } from "../../api/geo";
@@ -13,6 +14,7 @@ const SUBCATEGORIES_BY_COMPONENT = {
 };
 
 export default function SubmitIndicatorPage() {
+  const { t } = useTranslation();
   // Cascading selectors
   const [component, setComponent] = useState("");
   const [subcategory, setSubcategory] = useState("");
@@ -82,13 +84,13 @@ export default function SubmitIndicatorPage() {
     e.preventDefault();
 
     if (!indicatorId || !unionPcode || !value) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('submitIndicator.requiredFields'));
       return;
     }
 
     const numValue = parseFloat(value);
     if (isNaN(numValue)) {
-      toast.error("Value must be a valid number");
+      toast.error(t('submitIndicator.invalidNumber'));
       return;
     }
 
@@ -100,11 +102,11 @@ export default function SubmitIndicatorPage() {
         value: numValue,
         source_id: sourceId ? Number(sourceId) : null,
       });
-      toast.success("Indicator value submitted successfully");
+      toast.success(t('submitIndicator.submitSuccess'));
       // Reset form
       setValue("");
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Submission failed");
+      toast.error(err.response?.data?.detail || t('submitIndicator.submitFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -115,20 +117,20 @@ export default function SubmitIndicatorPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-2">Submit Indicator Value</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('submitIndicator.title')}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Select a component, indicator, and boundary area to submit a value.
+        {t('submitIndicator.subtitle')}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Step 1: Select Indicator */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">1. Select Indicator</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('submitIndicator.selectIndicator')}</h2>
 
           <div>
             <label className={labelClass}>Component *</label>
             <select value={component} onChange={(e) => { setComponent(e.target.value); setSubcategory(""); }} required className={selectClass}>
-              <option value="">Select component</option>
+              <option value="">{t('submitIndicator.selectComponent')}</option>
               {COMPONENTS.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
@@ -137,7 +139,7 @@ export default function SubmitIndicatorPage() {
             <div>
               <label className={labelClass}>Subcategory</label>
               <select value={subcategory} onChange={(e) => setSubcategory(e.target.value)} className={selectClass}>
-                <option value="">All subcategories</option>
+                <option value="">{t('submitIndicator.selectSubcategory')}</option>
                 {subcategories.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
@@ -146,7 +148,7 @@ export default function SubmitIndicatorPage() {
           <div>
             <label className={labelClass}>Indicator *</label>
             <select value={indicatorId} onChange={(e) => setIndicatorId(e.target.value)} required disabled={!component} className={selectClass + " disabled:bg-gray-100"}>
-              <option value="">Select indicator</option>
+              <option value="">{t('submitIndicator.selectIndicatorOption')}</option>
               {indicators.map((ind) => (
                 <option key={ind.id} value={ind.id}>
                   {ind.indicator_name} ({ind.code})
@@ -158,34 +160,34 @@ export default function SubmitIndicatorPage() {
 
         {/* Step 2: Select Boundary */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">2. Select Boundary</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('submitIndicator.selectBoundary')}</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Division</label>
+              <label className={labelClass}>{t('detail.division')}</label>
               <select value={divisionPcode} onChange={(e) => setDivisionPcode(e.target.value)} className={selectClass}>
-                <option value="">Select division</option>
+                <option value="">{t('wizard.selectDivision')}</option>
                 {divisions.map((d) => <option key={d.pcode} value={d.pcode}>{d.name_en}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelClass}>District</label>
+              <label className={labelClass}>{t('detail.district')}</label>
               <select value={districtPcode} onChange={(e) => setDistrictPcode(e.target.value)} disabled={!divisionPcode} className={selectClass + " disabled:bg-gray-100"}>
-                <option value="">Select district</option>
+                <option value="">{t('wizard.selectDistrict')}</option>
                 {districts.map((d) => <option key={d.pcode} value={d.pcode}>{d.name_en}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelClass}>Upazila</label>
+              <label className={labelClass}>{t('detail.upazila')}</label>
               <select value={upazilaPcode} onChange={(e) => setUpazilaPcode(e.target.value)} disabled={!districtPcode} className={selectClass + " disabled:bg-gray-100"}>
-                <option value="">Select upazila</option>
+                <option value="">{t('wizard.selectUpazila')}</option>
                 {upazilas.map((u) => <option key={u.pcode} value={u.pcode}>{u.name_en}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelClass}>Union *</label>
+              <label className={labelClass}>{t('detail.union')} *</label>
               <select value={unionPcode} onChange={(e) => setUnionPcode(e.target.value)} required disabled={!upazilaPcode} className={selectClass + " disabled:bg-gray-100"}>
-                <option value="">Select union</option>
+                <option value="">{t('wizard.selectUnion')}</option>
                 {unions.map((u) => <option key={u.pcode} value={u.pcode}>{u.name_en}</option>)}
               </select>
             </div>
@@ -194,7 +196,7 @@ export default function SubmitIndicatorPage() {
 
         {/* Step 3: Enter Value */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">3. Enter Value</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">{t('submitIndicator.enterValueSection')}</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -205,14 +207,14 @@ export default function SubmitIndicatorPage() {
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 required
-                placeholder="Enter numeric value"
+                placeholder={t('submitIndicator.enterValue')}
                 className={selectClass}
               />
             </div>
             <div>
               <label className={labelClass}>Source</label>
               <select value={sourceId} onChange={(e) => setSourceId(e.target.value)} className={selectClass}>
-                <option value="">Select source (optional)</option>
+                <option value="">{t('submitIndicator.selectSource')}</option>
                 {sources.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
@@ -224,7 +226,7 @@ export default function SubmitIndicatorPage() {
           disabled={submitting}
           className="w-full py-3 px-4 bg-[#1B4F72] text-white rounded-md font-medium hover:bg-[#154360] disabled:opacity-50 transition-colors"
         >
-          {submitting ? "Submitting..." : "Submit Indicator Value"}
+          {submitting ? t('submitIndicator.submitting') : t('submitIndicator.submitBtn')}
         </button>
       </form>
     </div>

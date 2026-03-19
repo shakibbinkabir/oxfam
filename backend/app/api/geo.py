@@ -66,6 +66,7 @@ async def get_boundaries(
 
     query = select(
         AdminBoundary.name_en,
+        AdminBoundary.name_bn,
         AdminBoundary.pcode,
         AdminBoundary.adm_level,
         AdminBoundary.parent_pcode,
@@ -106,6 +107,7 @@ async def get_boundaries(
             "type": "Feature",
             "properties": {
                 "name_en": row.name_en,
+                "name_bn": row.name_bn,
                 "pcode": row.pcode,
                 "adm_level": row.adm_level,
                 "parent_pcode": row.parent_pcode,
@@ -132,6 +134,7 @@ async def get_divisions(
 ):
     query = select(
         AdminBoundary.name_en,
+        AdminBoundary.name_bn,
         AdminBoundary.pcode,
         func.ST_AsGeoJSON(AdminBoundary.centroid).label("centroid"),
     ).where(AdminBoundary.adm_level == 1).order_by(AdminBoundary.name_en)
@@ -141,6 +144,7 @@ async def get_divisions(
     data = [
         {
             "name_en": row.name_en,
+            "name_bn": row.name_bn,
             "pcode": row.pcode,
             "centroid": json.loads(row.centroid) if row.centroid else None,
         }
@@ -157,6 +161,7 @@ async def get_districts(
 ):
     query = select(
         AdminBoundary.name_en,
+        AdminBoundary.name_bn,
         AdminBoundary.pcode,
         AdminBoundary.parent_pcode,
         AdminBoundary.division_name,
@@ -171,6 +176,7 @@ async def get_districts(
     data = [
         {
             "name_en": row.name_en,
+            "name_bn": row.name_bn,
             "pcode": row.pcode,
             "parent_pcode": row.parent_pcode,
             "division_name": row.division_name,
@@ -189,6 +195,7 @@ async def get_upazilas(
 ):
     query = select(
         AdminBoundary.name_en,
+        AdminBoundary.name_bn,
         AdminBoundary.pcode,
         AdminBoundary.parent_pcode,
         AdminBoundary.division_name,
@@ -204,6 +211,7 @@ async def get_upazilas(
     data = [
         {
             "name_en": row.name_en,
+            "name_bn": row.name_bn,
             "pcode": row.pcode,
             "parent_pcode": row.parent_pcode,
             "division_name": row.division_name,
@@ -223,6 +231,7 @@ async def get_unions(
 ):
     query = select(
         AdminBoundary.name_en,
+        AdminBoundary.name_bn,
         AdminBoundary.pcode,
         AdminBoundary.parent_pcode,
         AdminBoundary.division_name,
@@ -239,6 +248,7 @@ async def get_unions(
     data = [
         {
             "name_en": row.name_en,
+            "name_bn": row.name_bn,
             "pcode": row.pcode,
             "parent_pcode": row.parent_pcode,
             "division_name": row.division_name,
@@ -259,6 +269,7 @@ async def get_union_detail(
 ):
     query = select(
         AdminBoundary.name_en,
+        AdminBoundary.name_bn,
         AdminBoundary.pcode,
         AdminBoundary.adm_level,
         AdminBoundary.parent_pcode,
@@ -276,6 +287,7 @@ async def get_union_detail(
 
     data = {
         "name_en": row.name_en,
+        "name_bn": row.name_bn,
         "pcode": row.pcode,
         "adm_level": row.adm_level,
         "parent_pcode": row.parent_pcode,

@@ -81,6 +81,7 @@ async def list_indicator_references(
             IndicatorReference.weight,
             IndicatorReference.updated_at,
             ClimateIndicator.indicator_name,
+            ClimateIndicator.indicator_name_bn,
             ClimateIndicator.code,
             ClimateIndicator.gis_attribute_id,
             ClimateIndicator.component,
@@ -95,6 +96,7 @@ async def list_indicator_references(
             "id": row.id,
             "indicator_id": row.indicator_id,
             "indicator_name": row.indicator_name,
+            "indicator_name_bn": row.indicator_name_bn,
             "code": row.code,
             "gis_attribute_id": row.gis_attribute_id,
             "component": row.component,
@@ -180,6 +182,7 @@ async def get_scores_map_geojson(
         query = (
             select(
                 AdminBoundary.name_en,
+                AdminBoundary.name_bn,
                 AdminBoundary.pcode,
                 AdminBoundary.adm_level,
                 AdminBoundary.parent_pcode,
@@ -265,6 +268,7 @@ async def get_scores_map_geojson(
         query = (
             select(
                 AdminBoundary.name_en,
+                AdminBoundary.name_bn,
                 AdminBoundary.pcode,
                 AdminBoundary.adm_level,
                 AdminBoundary.parent_pcode,
@@ -322,6 +326,7 @@ async def get_scores_map_geojson(
             "type": "Feature",
             "properties": {
                 "name_en": row.name_en,
+                "name_bn": row.name_bn,
                 "pcode": row.pcode,
                 "adm_level": row.adm_level,
                 "parent_pcode": row.parent_pcode,
@@ -457,6 +462,7 @@ async def list_scores(
             ComputedScore.cri_score,
             ComputedScore.computed_at,
             AdminBoundary.name_en,
+            AdminBoundary.name_bn,
             AdminBoundary.adm_level,
             AdminBoundary.division_name,
             AdminBoundary.district_name,
@@ -497,6 +503,7 @@ async def list_scores(
         data.append({
             "boundary_pcode": row.boundary_pcode,
             "name_en": row.name_en,
+            "name_bn": row.name_bn,
             "adm_level": row.adm_level,
             "division_name": row.division_name,
             "district_name": row.district_name,
@@ -528,7 +535,7 @@ async def get_scores_for_boundary(
 ):
     """Compute and return full CVI breakdown for a single boundary."""
     bnd_result = await db.execute(
-        select(AdminBoundary.adm_level, AdminBoundary.name_en).where(
+        select(AdminBoundary.adm_level, AdminBoundary.name_en, AdminBoundary.name_bn).where(
             AdminBoundary.pcode == boundary_pcode
         )
     )
@@ -542,6 +549,7 @@ async def get_scores_for_boundary(
         scores = await aggregate_scores_for_parent(db, boundary_pcode)
 
     scores["name_en"] = boundary.name_en
+    scores["name_bn"] = boundary.name_bn
     scores["adm_level"] = boundary.adm_level
     scores["cri_category"] = get_cri_category(scores.get("cri"))
 

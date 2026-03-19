@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { listAuditLogs, exportAuditLogs } from "../../api/auditLog";
 import toast from "react-hot-toast";
 
@@ -13,6 +14,7 @@ const ENTITY_TYPES = ["indicator_value", "risk_index", "bulk_upload", "indicator
 const ACTIONS = ["create", "update", "delete", "restore"];
 
 export default function AuditLogPage() {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function AuditLogPage() {
       setLogs(res.data.data.logs || []);
       setTotal(res.data.data.total || 0);
     } catch {
-      toast.error("Failed to load audit logs");
+      toast.error(t('audit.failedLoad'));
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function AuditLogPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Failed to export audit logs");
+      toast.error(t('audit.failedExport'));
     }
   }
 
@@ -70,12 +72,12 @@ export default function AuditLogPage() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Audit Log</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t('audit.title')}</h1>
         <button
           onClick={handleExport}
           className="px-4 py-2 border border-[#1B4F72] text-[#1B4F72] rounded-md text-sm font-medium hover:bg-[#1B4F72] hover:text-white transition-colors"
         >
-          Export CSV
+          {t('audit.exportCsv')}
         </button>
       </div>
 
@@ -86,7 +88,7 @@ export default function AuditLogPage() {
           onChange={(e) => { setEntityFilter(e.target.value); setPage(0); }}
           className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
         >
-          <option value="">All Entities</option>
+          <option value="">{t('audit.allEntities')}</option>
           {ENTITY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <select
@@ -94,7 +96,7 @@ export default function AuditLogPage() {
           onChange={(e) => { setActionFilter(e.target.value); setPage(0); }}
           className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
         >
-          <option value="">All Actions</option>
+          <option value="">{t('audit.allActions')}</option>
           {ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
         <input
@@ -118,22 +120,22 @@ export default function AuditLogPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Timestamp</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">User</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Action</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Entity</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Entity ID</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600">Changes</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">{t('audit.timestamp')}</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">{t('audit.user')}</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">{t('audit.action')}</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">{t('audit.entity')}</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">{t('audit.entityId')}</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600">{t('audit.changes')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">Loading...</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">{t('audit.loading')}</td>
               </tr>
             ) : logs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">No audit logs found</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">{t('audit.noLogs')}</td>
               </tr>
             ) : (
               logs.map((log) => (
@@ -158,7 +160,7 @@ export default function AuditLogPage() {
                         onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
                         className="text-[#1B4F72] text-xs hover:underline"
                       >
-                        {expandedId === log.id ? "Hide" : "View Changes"}
+                        {expandedId === log.id ? t('audit.hide') : t('audit.viewChanges')}
                       </button>
                     ) : (
                       <span className="text-xs text-gray-400">-</span>
@@ -174,11 +176,11 @@ export default function AuditLogPage() {
       {/* Expanded change details */}
       {expandedId && logs.find((l) => l.id === expandedId) && (
         <div className="mt-2 bg-gray-50 border rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-600 mb-2">Change Details</h3>
+          <h3 className="text-sm font-semibold text-gray-600 mb-2">{t('audit.changeDetails')}</h3>
           <div className="grid grid-cols-2 gap-4">
             {logs.find((l) => l.id === expandedId).old_values && (
               <div>
-                <div className="text-xs font-medium text-red-600 mb-1">Old Values</div>
+                <div className="text-xs font-medium text-red-600 mb-1">{t('audit.oldValues')}</div>
                 <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-48">
                   {JSON.stringify(logs.find((l) => l.id === expandedId).old_values, null, 2)}
                 </pre>
@@ -186,7 +188,7 @@ export default function AuditLogPage() {
             )}
             {logs.find((l) => l.id === expandedId).new_values && (
               <div>
-                <div className="text-xs font-medium text-green-600 mb-1">New Values</div>
+                <div className="text-xs font-medium text-green-600 mb-1">{t('audit.newValues')}</div>
                 <pre className="text-xs bg-white p-2 rounded border overflow-auto max-h-48">
                   {JSON.stringify(logs.find((l) => l.id === expandedId).new_values, null, 2)}
                 </pre>
@@ -199,21 +201,21 @@ export default function AuditLogPage() {
       {/* Pagination */}
       {total > 0 && (
         <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-          <span>Showing {page * pageSize + 1}--{Math.min((page + 1) * pageSize, total)} of {total}</span>
+          <span>{t('audit.showing')} {page * pageSize + 1}--{Math.min((page + 1) * pageSize, total)} {t('audit.ofTotal')} {total}</span>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
               className="px-3 py-1 border rounded-md disabled:opacity-40 hover:bg-gray-50"
             >
-              Previous
+              {t('audit.previous')}
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="px-3 py-1 border rounded-md disabled:opacity-40 hover:bg-gray-50"
             >
-              Next
+              {t('audit.next')}
             </button>
           </div>
         </div>

@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getScoresSummary } from "../../api/scores";
 import { exportCsv, exportShapefile } from "../../api/exports";
 import useMapContext from "../../contexts/MapContext";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
 
-const LEVEL_LABELS = { 1: "Divisions", 2: "Districts", 3: "Upazilas", 4: "Unions" };
-
 export default function KPISummaryBar() {
+  const { t } = useTranslation();
   const { level, parentPcode } = useMapContext();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
@@ -24,7 +24,7 @@ export default function KPISummaryBar() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Failed to export CSV");
+      toast.error(t('kpi.failedCsv'));
     }
   }
 
@@ -38,7 +38,7 @@ export default function KPISummaryBar() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Failed to export Shapefile");
+      toast.error(t('kpi.failedShapefile'));
     }
   }
 
@@ -63,12 +63,12 @@ export default function KPISummaryBar() {
     return () => { cancelled = true; };
   }, [level, parentPcode]);
 
-  const levelLabel = LEVEL_LABELS[level] || "Areas";
+  const levelLabel = t('levels.' + level) || t('levels.4');
 
   if (loading && !summary) {
     return (
       <div className="h-[60px] bg-[#1B4F72] flex items-center justify-center">
-        <span className="text-white/60 text-sm">Loading summary...</span>
+        <span className="text-white/60 text-sm">{t('kpi.loadingSummary')}</span>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function KPISummaryBar() {
   if (!summary) {
     return (
       <div className="h-[60px] bg-[#1B4F72] flex items-center justify-center">
-        <span className="text-white/60 text-sm">No summary data available</span>
+        <span className="text-white/60 text-sm">{t('kpi.noSummaryData')}</span>
       </div>
     );
   }
@@ -85,7 +85,7 @@ export default function KPISummaryBar() {
     <div className="h-[60px] bg-[#1B4F72] flex items-center px-4 gap-6 overflow-x-auto">
       {/* Highest Risk */}
       <KPIItem
-        label="Highest Risk"
+        label={t('kpi.highestRisk')}
         value={summary.highest_risk ? `${summary.highest_risk.name}` : "—"}
         sub={summary.highest_risk ? `CRI ${summary.highest_risk.cri?.toFixed(3)}` : null}
         highlight
@@ -95,7 +95,7 @@ export default function KPISummaryBar() {
 
       {/* Average CRI */}
       <KPIItem
-        label="Average CRI"
+        label={t('kpi.averageCri')}
         value={summary.average_cri != null ? summary.average_cri.toFixed(3) : "—"}
       />
 
@@ -103,7 +103,7 @@ export default function KPISummaryBar() {
 
       {/* High Risk Count */}
       <KPIItem
-        label={`High Risk ${levelLabel}`}
+        label={t('kpi.highRisk') + ' ' + levelLabel}
         value={summary.high_risk_boundaries ?? 0}
         sub="CRI > 0.6"
       />
@@ -112,16 +112,16 @@ export default function KPISummaryBar() {
 
       {/* Data Coverage */}
       <KPIItem
-        label="Data Coverage"
+        label={t('kpi.dataCoverage')}
         value={`${summary.data_coverage_pct?.toFixed(1) ?? 0}%`}
-        sub={`${summary.boundaries_with_data ?? 0} of ${summary.total_boundaries ?? 0} ${levelLabel.toLowerCase()}`}
+        sub={`${summary.boundaries_with_data ?? 0} ${t('kpi.of')} ${summary.total_boundaries ?? 0} ${levelLabel.toLowerCase()}`}
       />
 
       <div className="ml-auto flex items-center gap-2 shrink-0">
         <button
           onClick={handleExportCsv}
           className="px-2.5 py-1 text-xs font-medium text-white/80 border border-white/30 rounded hover:bg-white/10 transition-colors"
-          title="Export CSV"
+          title={t('kpi.exportCsv')}
         >
           CSV
         </button>
@@ -129,7 +129,7 @@ export default function KPISummaryBar() {
           <button
             onClick={handleExportShapefile}
             className="px-2.5 py-1 text-xs font-medium text-white/80 border border-white/30 rounded hover:bg-white/10 transition-colors"
-            title="Export Shapefile (Admin)"
+            title={t('kpi.exportShapefile')}
           >
             SHP
           </button>

@@ -15,6 +15,7 @@ class ClimateIndicator(Base):
     component: Mapped[str] = mapped_column(String(50), nullable=False)
     subcategory: Mapped[str | None] = mapped_column(String(50), nullable=True)
     indicator_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    indicator_name_bn: Mapped[str | None] = mapped_column(String(300), nullable=True)
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     unit_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("units.id", ondelete="SET NULL"), nullable=True

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Bangla font for bn locale */
+[lang="bn"],
+[lang="bn"] * {
+  font-family: 'Noto Sans Bengali', sans-serif;
+}
+
 /* Score tooltip styling for Leaflet map */
 .score-tooltip {
   background-color: rgba(30, 30, 30, 0.9) !important;

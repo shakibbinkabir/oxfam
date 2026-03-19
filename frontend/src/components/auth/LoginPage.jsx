@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
+import LanguageSwitcher from "../layout/LanguageSwitcher";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
@@ -9,16 +11,17 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
     try {
       await login(email, password);
-      toast.success("Login successful");
+      toast.success(t('auth.loginSuccess'));
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Login failed");
+      toast.error(err.response?.data?.detail || t('auth.loginFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -27,14 +30,17 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher variant="auth" />
+        </div>
         <h1 className="text-2xl font-bold text-center text-[#1B4F72] mb-6">
-          Climate Risk Platform
+          {t('app.fullTitle')}
         </h1>
-        <p className="text-center text-gray-500 mb-8">Sign in to your account</p>
+        <p className="text-center text-gray-500 mb-8">{t('auth.signInSubtitle')}</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -47,7 +53,7 @@ export default function LoginPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -63,13 +69,13 @@ export default function LoginPage() {
             disabled={submitting}
             className="w-full py-2 px-4 bg-[#1B4F72] text-white rounded-md hover:bg-[#154360] disabled:opacity-50 transition-colors"
           >
-            {submitting ? "Signing in..." : "Sign In"}
+            {submitting ? t('auth.signingIn') : t('auth.signIn')}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{" "}
+          {t('auth.noAccount')}{" "}
           <Link to="/register" className="text-[#1B4F72] font-medium hover:underline">
-            Register
+            {t('auth.register')}
           </Link>
         </p>
       </div>

@@ -5,6 +5,7 @@ import {
   getSortedRowModel,
   flexRender,
 } from "@tanstack/react-table";
+import { useTranslation } from "react-i18next";
 import { listIndicatorValues, deleteIndicatorValue, restoreIndicatorValue } from "../../api/indicators";
 import { exportCsv } from "../../api/exports";
 import { useAuth } from "../../contexts/AuthContext";
@@ -20,6 +21,7 @@ const COMPONENT_COLORS = {
 const COMPONENTS = ["Hazard", "Socioeconomic", "Environmental", "Infrastructural"];
 
 export default function IndicatorValuesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
@@ -44,17 +46,17 @@ export default function IndicatorValuesPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Failed to export CSV");
+      toast.error(t('indicators.exportCsvError'));
     }
   }
 
   async function handleRestore(id) {
     try {
       await restoreIndicatorValue(id);
-      toast.success("Value restored");
+      toast.success(t('indicators.restoreSuccess'));
       fetchData();
     } catch {
-      toast.error("Failed to restore value");
+      toast.error(t('indicators.restoreError'));
     }
   }
 
@@ -69,7 +71,7 @@ export default function IndicatorValuesPage() {
       setData(res.data.data.values);
       setTotal(res.data.data.total);
     } catch {
-      toast.error("Failed to load indicator values");
+      toast.error(t('indicators.loadError'));
     } finally {
       setLoading(false);
     }
@@ -83,11 +85,11 @@ export default function IndicatorValuesPage() {
     if (!deleteId) return;
     try {
       await deleteIndicatorValue(deleteId);
-      toast.success("Value deleted");
+      toast.success(t('indicators.deleteSuccess'));
       setDeleteId(null);
       fetchData();
     } catch {
-      toast.error("Failed to delete value");
+      toast.error(t('indicators.deleteError'));
     }
   }
 
@@ -95,7 +97,7 @@ export default function IndicatorValuesPage() {
     () => [
       {
         accessorKey: "component",
-        header: "Component",
+        header: t('indicators.colComponent'),
         cell: ({ getValue }) => {
           const val = getValue();
           return (
@@ -105,11 +107,11 @@ export default function IndicatorValuesPage() {
           );
         },
       },
-      { accessorKey: "indicator_name", header: "Indicator" },
-      { accessorKey: "indicator_code", header: "Code" },
+      { accessorKey: "indicator_name", header: t('indicators.colIndicator') },
+      { accessorKey: "indicator_code", header: t('indicators.colCode') },
       {
         accessorKey: "boundary_name",
-        header: "Boundary",
+        header: t('indicators.colBoundary'),
         cell: ({ row }) => {
           const r = row.original;
           const parts = [r.boundary_name || r.boundary_pcode];
@@ -127,22 +129,22 @@ export default function IndicatorValuesPage() {
       },
       {
         accessorKey: "value",
-        header: "Value",
+        header: t('indicators.colValue'),
         cell: ({ getValue }) => (
           <span className="font-mono">{getValue()}</span>
         ),
       },
-      { accessorKey: "source_name", header: "Source" },
+      { accessorKey: "source_name", header: t('indicators.colSource') },
       {
         accessorKey: "updated_at",
-        header: "Updated",
+        header: t('indicators.colUpdated'),
         cell: ({ getValue }) => new Date(getValue()).toLocaleDateString(),
       },
       ...(isAdmin
         ? [
             {
               id: "actions",
-              header: "Actions",
+              header: t('indicators.colActions'),
               cell: ({ row }) => {
                 if (row.original.is_deleted) {
                   return (
@@ -150,7 +152,7 @@ export default function IndicatorValuesPage() {
                       onClick={() => handleRestore(row.original.id)}
                       className="text-purple-600 hover:text-purple-800 text-sm"
                     >
-                      Restore
+                      {t('common.restore')}
                     </button>
                   );
                 }
@@ -159,7 +161,7 @@ export default function IndicatorValuesPage() {
                     onClick={() => setDeleteId(row.original.id)}
                     className="text-red-600 hover:text-red-800 text-sm"
                   >
-                    Delete
+                    {t('common.delete')}
                   </button>
                 );
               },
@@ -186,12 +188,12 @@ export default function IndicatorValuesPage() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Indicator Values</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t('indicators.valuesTitle')}</h1>
         <button
           onClick={handleExportCsv}
           className="px-4 py-2 border border-[#1B4F72] text-[#1B4F72] rounded-md text-sm font-medium hover:bg-[#1B4F72] hover:text-white transition-colors"
         >
-          Export CSV
+          {t('indicators.exportCsvBtn')}
         </button>
       </div>
 
@@ -202,14 +204,14 @@ export default function IndicatorValuesPage() {
           onChange={(e) => { setComponentFilter(e.target.value); setPage(0); }}
           className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
         >
-          <option value="">All Components</option>
+          <option value="">{t('indicators.allComponents')}</option>
           {COMPONENTS.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
         <input
           type="text"
-          placeholder="Search indicator name..."
+          placeholder={t('indicators.search')}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(0); }}
           className="px-3 py-1.5 border border-gray-300 rounded-md text-sm flex-1 min-w-[200px]"
@@ -222,7 +224,7 @@ export default function IndicatorValuesPage() {
               onChange={(e) => { setIncludeDeleted(e.target.checked); setPage(0); }}
               className="rounded border-gray-300"
             />
-            Show deleted
+            {t('indicators.showDeleted')}
           </label>
         )}
       </div>
@@ -253,13 +255,13 @@ export default function IndicatorValuesPage() {
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-400">
-                  Loading...
+                  {t('common.loading')}
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-400">
-                  No indicator values found
+                  {t('indicators.noValues')}
                 </td>
               </tr>
             ) : (
@@ -289,14 +291,14 @@ export default function IndicatorValuesPage() {
               disabled={page === 0}
               className="px-3 py-1 border rounded-md disabled:opacity-40 hover:bg-gray-50"
             >
-              Previous
+              {t('common.previous')}
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="px-3 py-1 border rounded-md disabled:opacity-40 hover:bg-gray-50"
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
         </div>
@@ -306,20 +308,20 @@ export default function IndicatorValuesPage() {
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Delete Value</h3>
-            <p className="text-gray-600 mb-4">Are you sure you want to delete this indicator value? This action cannot be undone.</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('indicators.deleteTitle')}</h3>
+            <p className="text-gray-600 mb-4">{t('indicators.deleteConfirm')}</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setDeleteId(null)}
                 className="px-4 py-2 border rounded-md text-sm hover:bg-gray-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"
               >
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>

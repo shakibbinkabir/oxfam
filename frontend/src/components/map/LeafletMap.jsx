@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { MapContainer, TileLayer, GeoJSON, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import useMapScores from "../../hooks/useMapScores";
@@ -62,17 +63,17 @@ function getFeatureStyle(feature) {
   };
 }
 
-function buildTooltipHtml(props, indicator, rank, total) {
+function buildTooltipHtml(props, indicator, rank, total, t) {
   const score = props.score;
   const category = getCategory(score);
-  const indicatorLabel = INDICATOR_OPTIONS.find((o) => o.value === indicator)?.label || "CRI";
+  const indicatorLabel = t('indicator_selector.' + indicator);
   const parts = [`<div style="font-size:13px;line-height:1.5">`];
   parts.push(`<b>${props.name_en}</b>`);
   if (score != null) {
-    parts.push(`<br/>${indicatorLabel}: <b>${score.toFixed(3)}</b> <span style="opacity:0.7">(${category})</span>`);
-    if (rank && total) parts.push(`<br/>Rank: <b>${rank}</b> of ${total}`);
+    parts.push(`<br/>${indicatorLabel}: <b>${score.toFixed(3)}</b> <span style="opacity:0.7">(${t('category.' + category)})</span>`);
+    if (rank && total) parts.push(`<br/>${t('tooltip.rank')}: <b>${rank}</b> ${t('tooltip.of')} ${total}`);
   } else {
-    parts.push(`<br/><span style="opacity:0.6">No data available</span>`);
+    parts.push(`<br/><span style="opacity:0.6">${t('tooltip.noDataAvailable')}</span>`);
   }
   parts.push("</div>");
   return parts.join("");
@@ -111,6 +112,7 @@ function FitBoundsOnData({ geoData }) {
 }
 
 function SimulationOverlay({ simulationResult, geoData }) {
+  const { t } = useTranslation();
   const map = useMap();
   const overlayRef = useRef(null);
 
@@ -141,7 +143,7 @@ function SimulationOverlay({ simulationResult, geoData }) {
     });
 
     layer.bindTooltip(
-      `<div style="font-size:13px;line-height:1.5"><b>Simulated</b><br/>CRI: <b>${simCri?.toFixed(3) ?? "N/A"}</b></div>`,
+      `<div style="font-size:13px;line-height:1.5"><b>${t('map.simulated')}</b><br/>CRI: <b>${simCri?.toFixed(3) ?? "N/A"}</b></div>`,
       { sticky: true, direction: "top", offset: [0, -8] }
     );
 
@@ -169,12 +171,15 @@ function SimulationOverlay({ simulationResult, geoData }) {
 }
 
 export default function LeafletMap() {
+  const { t } = useTranslation();
   const {
     level, indicator, selectedPcode, parentPcode,
     canDrillDown, canDrillUp,
     setIndicator, selectFeature, clearSelection, drillDown, drillUp, resetView,
     simulationResult,
   } = useMapContext();
+
+  const LEGEND_KEYS = { "Very Low": "legend.veryLow", "Low": "legend.low", "Medium": "legend.medium", "High": "legend.high", "Very High": "legend.veryHigh" };
 
   const [bounds, setBounds] = useState(null);
   const [tileLayer, setTileLayer] = useState("osm");
@@ -229,7 +234,7 @@ export default function LeafletMap() {
     (feature, layer) => {
       const props = feature.properties;
       const r = rankMap[props.pcode];
-      layer.bindTooltip(buildTooltipHtml(props, indicator, r?.rank, r?.total), {
+      layer.bindTooltip(buildTooltipHtml(props, indicator, r?.rank, r?.total, t), {
         sticky: true,
         direction: "top",
         offset: [0, -8],
@@ -301,18 +306,17 @@ export default function LeafletMap() {
         },
       });
     },
-    [indicator, rankMap, canDrillDown, selectFeature, drillDown]
+    [indicator, rankMap, canDrillDown, selectFeature, drillDown, t]
   );
 
   const hasFeatures = geoData?.features?.length > 0;
   const tile = TILE_LAYERS[tileLayer];
-  const indicatorLabel = INDICATOR_OPTIONS.find((o) => o.value === indicator)?.label || "CRI";
 
   return (
     <div className="relative w-full h-full">
       {loading && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-md shadow-md text-sm text-gray-600">
-          Loading scores...
+          {t('map.loadingScores')}
         </div>
       )}
 
@@ -345,7 +349,7 @@ export default function LeafletMap() {
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
-            {opt.label}
+            {t('indicator_selector.' + opt.value)}
           </button>
         ))}
       </div>
@@ -357,7 +361,7 @@ export default function LeafletMap() {
           <button
             onClick={() => setShowLayerMenu(!showLayerMenu)}
             className="bg-white rounded-md shadow-md p-2 hover:bg-gray-50 transition-colors"
-            title="Switch map style"
+            title={t('map.switchMapStyle')}
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -385,7 +389,7 @@ export default function LeafletMap() {
           <button
             onClick={drillUp}
             className="bg-white rounded-md shadow-md p-2 hover:bg-gray-50 transition-colors"
-            title="Go back one level"
+            title={t('map.goBackLevel')}
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -396,7 +400,7 @@ export default function LeafletMap() {
           <button
             onClick={resetView}
             className="bg-white rounded-md shadow-md p-2 hover:bg-gray-50 transition-colors"
-            title="Reset to divisions"
+            title={t('map.resetDivisions')}
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" />
@@ -407,24 +411,24 @@ export default function LeafletMap() {
 
       {/* Legend */}
       <div className="absolute bottom-6 left-4 z-[1000] bg-white rounded-md shadow-md p-3 min-w-[140px]">
-        <h4 className="text-xs font-semibold text-gray-600 mb-2">{indicatorLabel} Score</h4>
+        <h4 className="text-xs font-semibold text-gray-600 mb-2">{t('indicator_selector.' + indicator)} {t('legend.score')}</h4>
         <div className="space-y-1">
           {SCORE_COLORS.map((band) => (
             <div key={band.label} className="flex items-center gap-2">
               <span className="w-4 h-3 rounded-sm inline-block" style={{ backgroundColor: band.color }} />
               <span className="text-xs text-gray-700">
-                {band.label} ({band.min.toFixed(1)}–{band.max.toFixed(1)})
+                {t(LEGEND_KEYS[band.label] || band.label)} ({band.min.toFixed(1)}–{band.max.toFixed(1)})
               </span>
             </div>
           ))}
           <div className="flex items-center gap-2">
             <span className="w-4 h-3 rounded-sm inline-block" style={{ backgroundColor: NO_DATA_COLOR }} />
-            <span className="text-xs text-gray-400">No data</span>
+            <span className="text-xs text-gray-400">{t('legend.noData')}</span>
           </div>
           {simulationResult && (
             <div className="flex items-center gap-2 mt-1 pt-1 border-t">
               <span className="w-4 h-3 rounded-sm inline-block border-2 border-dashed border-[#1B4F72]" />
-              <span className="text-xs text-blue-700 font-medium">Simulated</span>
+              <span className="text-xs text-blue-700 font-medium">{t('legend.simulated')}</span>
             </div>
           )}
         </div>

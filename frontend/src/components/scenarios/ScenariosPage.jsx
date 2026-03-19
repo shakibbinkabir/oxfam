@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { listScenarios, deleteScenario } from "../../api/simulation";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -20,6 +21,7 @@ function getCriCategory(cri) {
 }
 
 export default function ScenariosPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
@@ -51,7 +53,7 @@ export default function ScenariosPage() {
   }, [fetchScenarios]);
 
   async function handleDelete(id) {
-    if (!confirm("Delete this scenario?")) return;
+    if (!confirm(t('scenarios.deleteConfirm'))) return;
     try {
       await deleteScenario(id);
       fetchScenarios();
@@ -66,17 +68,17 @@ export default function ScenariosPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Saved Scenarios</h1>
-          <p className="text-sm text-gray-500 mt-1">What-if simulation scenarios saved by administrators</p>
+          <h1 className="text-2xl font-bold text-gray-800">{t('scenarios.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('scenarios.subtitle')}</p>
         </div>
-        <div className="text-sm text-gray-500">{total} scenario{total !== 1 ? "s" : ""}</div>
+        <div className="text-sm text-gray-500">{total} {total !== 1 ? t('scenarios.scenarios_plural') : t('scenarios.scenario')}</div>
       </div>
 
       {/* Search */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search scenarios..."
+          placeholder={t('scenarios.search')}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(0); }}
           className="w-full max-w-sm px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400"
@@ -84,11 +86,11 @@ export default function ScenariosPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading scenarios...</div>
+        <div className="text-center py-12 text-gray-400">{t('scenarios.loading')}</div>
       ) : scenarios.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-12 text-center">
-          <p className="text-gray-400">No scenarios found</p>
-          <p className="text-sm text-gray-400 mt-1">Run a simulation from the dashboard and save it as a scenario</p>
+          <p className="text-gray-400">{t('scenarios.noScenarios')}</p>
+          <p className="text-sm text-gray-400 mt-1">{t('scenarios.noScenariosHint')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -162,7 +164,7 @@ export default function ScenariosPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* CRI comparison */}
                       <div className="bg-white rounded-lg p-3 border">
-                        <div className="text-xs text-gray-500 mb-2">CRI Comparison</div>
+                        <div className="text-xs text-gray-500 mb-2">{t('scenarios.criComparison')}</div>
                         <div className="flex items-center gap-2">
                           <div className="text-center flex-1">
                             <div className="text-xl font-bold text-gray-700">{s.original_cri?.toFixed(3)}</div>
@@ -191,7 +193,7 @@ export default function ScenariosPage() {
                       {/* Modified values */}
                       <div className="bg-white rounded-lg p-3 border">
                         <div className="text-xs text-gray-500 mb-2">
-                          Modified Indicators ({Object.keys(s.modified_values || {}).length})
+                          {t('scenarios.modifiedIndicators')} ({Object.keys(s.modified_values || {}).length})
                         </div>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                           {Object.entries(s.modified_values || {}).map(([code, val]) => (
@@ -205,22 +207,22 @@ export default function ScenariosPage() {
 
                       {/* Meta */}
                       <div className="bg-white rounded-lg p-3 border">
-                        <div className="text-xs text-gray-500 mb-2">Details</div>
+                        <div className="text-xs text-gray-500 mb-2">{t('scenarios.details')}</div>
                         <div className="space-y-1 text-xs">
                           <div className="flex justify-between">
-                            <span className="text-gray-500">Created by</span>
+                            <span className="text-gray-500">{t('scenarios.createdBy')}</span>
                             <span className="text-gray-700">{s.creator_name || "Unknown"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">Date</span>
+                            <span className="text-gray-500">{t('scenarios.date')}</span>
                             <span className="text-gray-700">
                               {s.created_at ? new Date(s.created_at).toLocaleString() : ""}
                             </span>
                           </div>
                           {s.weights && (
                             <div className="flex justify-between">
-                              <span className="text-gray-500">Custom weights</span>
-                              <span className="text-gray-700">Yes</span>
+                              <span className="text-gray-500">{t('scenarios.customWeights')}</span>
+                              <span className="text-gray-700">{t('scenarios.yes')}</span>
                             </div>
                           )}
                         </div>
@@ -229,7 +231,7 @@ export default function ScenariosPage() {
                             onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
                             className="mt-3 w-full text-xs text-red-600 border border-red-200 rounded-md py-1 hover:bg-red-50 transition-colors"
                           >
-                            Delete Scenario
+                            {t('scenarios.deleteScenario')}
                           </button>
                         )}
                       </div>
@@ -248,17 +250,17 @@ export default function ScenariosPage() {
                 onClick={() => setPage((p) => p - 1)}
                 className="px-3 py-1 text-sm border rounded-md disabled:opacity-50 hover:bg-gray-50"
               >
-                Previous
+                {t('scenarios.previous')}
               </button>
               <span className="text-sm text-gray-500">
-                Page {page + 1} of {totalPages}
+                {t('scenarios.page')} {page + 1} {t('scenarios.ofPages')} {totalPages}
               </span>
               <button
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => p + 1)}
                 className="px-3 py-1 text-sm border rounded-md disabled:opacity-50 hover:bg-gray-50"
               >
-                Next
+                {t('scenarios.next')}
               </button>
             </div>
           )}

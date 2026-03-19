@@ -6,6 +6,7 @@ import { createRiskIndex, updateRiskIndex } from "../../api/riskIndex";
 import { runSimulation } from "../../api/simulation";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const HAZARD_FIELDS = [
   { code: "rainfall", label: "Rainfall Risk Index", unit: "Index", source: "BAMIS/DAE" },
@@ -97,6 +98,7 @@ function getCriCategory(cri) {
 }
 
 export default function RiskIndexWizard() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const editPcode = searchParams.get("edit");
 
@@ -261,11 +263,11 @@ export default function RiskIndexWizard() {
           values: submitValues,
         });
       }
-      toast.success("Risk index saved successfully");
+      toast.success(t('wizard.saved'));
       setSuccess(true);
     } catch (err) {
       const detail = err.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : "Failed to save risk index");
+      toast.error(typeof detail === "string" ? detail : t('wizard.failedSave'));
     } finally {
       setSubmitting(false);
     }
@@ -289,14 +291,14 @@ export default function RiskIndexWizard() {
           <svg className="mx-auto w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Risk Index Saved</h2>
-          <p className="text-gray-500 mb-6">All indicator values have been saved and CVI scores computed.</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">{t('wizard.successTitle')}</h2>
+          <p className="text-gray-500 mb-6">{t('wizard.successMessage')}</p>
           <div className="flex justify-center gap-3">
             <button onClick={handleReset} className="px-4 py-2 bg-[#1B4F72] text-white rounded-md hover:bg-[#154360]">
-              Enter Another
+              {t('wizard.enterAnother')}
             </button>
             <a href="/dashboard" className="px-4 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50">
-              View on Map
+              {t('wizard.viewOnMap')}
             </a>
           </div>
         </div>
@@ -307,10 +309,10 @@ export default function RiskIndexWizard() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-2">
-        {editPcode ? "Edit Risk Index" : "Submit Risk Index"}
+        {editPcode ? t('wizard.editTitle') : t('wizard.submitTitle')}
       </h1>
       <p className="text-sm text-gray-500 mb-6">
-        Enter all indicator values for a union. {editPcode ? "Editing existing data." : "Data will be validated and CVI scores computed on submission."}
+        {t('wizard.subtitle')} {editPcode ? t('wizard.editingExisting') : t('wizard.validationNote')}
       </p>
 
       {/* Progress bar */}
@@ -330,57 +332,57 @@ export default function RiskIndexWizard() {
       </div>
 
       <div className="text-xs text-gray-400 mb-4">
-        Step {step} of 5: {["Location Selection", "Hazard Indicators", "Socioeconomic Data", "Adaptive Capacity & Environmental", "Review & Submit"][step - 1]}
+        {t('wizard.step')} {step} {t('wizard.of')} 5: {[t('wizard.steps.1'), t('wizard.steps.2'), t('wizard.steps.3'), t('wizard.steps.4'), t('wizard.steps.5')][step - 1]}
       </div>
 
       {/* Step 1: Location */}
       {step === 1 && (
         <div className="bg-white border rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-700">Location Selection</h2>
+          <h2 className="text-lg font-semibold text-gray-700">{t('wizard.locationSelection')}</h2>
           {!editPcode && (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Division</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{t('detail.division')}</label>
                   <select value={divisionPcode} onChange={(e) => setDivisionPcode(e.target.value)} className="w-full px-3 py-2 border rounded-md text-sm">
-                    <option value="">Select Division</option>
+                    <option value="">{t('wizard.selectDivision')}</option>
                     {divisions.map((d) => <option key={d.pcode} value={d.pcode}>{d.name_en}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">District</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{t('detail.district')}</label>
                   <select value={districtPcode} onChange={(e) => setDistrictPcode(e.target.value)} disabled={!divisionPcode} className="w-full px-3 py-2 border rounded-md text-sm disabled:opacity-50">
-                    <option value="">Select District</option>
+                    <option value="">{t('wizard.selectDistrict')}</option>
                     {districts.map((d) => <option key={d.pcode} value={d.pcode}>{d.name_en}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Upazila</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{t('detail.upazila')}</label>
                   <select value={upazilaPcode} onChange={(e) => setUpazilaPcode(e.target.value)} disabled={!districtPcode} className="w-full px-3 py-2 border rounded-md text-sm disabled:opacity-50">
-                    <option value="">Select Upazila</option>
+                    <option value="">{t('wizard.selectUpazila')}</option>
                     {upazilas.map((d) => <option key={d.pcode} value={d.pcode}>{d.name_en}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Union</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{t('detail.union')}</label>
                   <select value={unionPcode} onChange={(e) => setUnionPcode(e.target.value)} disabled={!upazilaPcode} className="w-full px-3 py-2 border rounded-md text-sm disabled:opacity-50">
-                    <option value="">Select Union</option>
+                    <option value="">{t('wizard.selectUnion')}</option>
                     {unions.map((d) => <option key={d.pcode} value={d.pcode}>{d.name_en}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Year</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">{t('wizard.year')}</label>
                 <input type="number" value={year} onChange={(e) => setYear(parseInt(e.target.value) || new Date().getFullYear())} className="w-32 px-3 py-2 border rounded-md text-sm" />
               </div>
             </>
           )}
           {editPcode && (
-            <p className="text-sm text-gray-600">Editing boundary: <span className="font-mono font-medium">{editPcode}</span></p>
+            <p className="text-sm text-gray-600">{t('wizard.editingBoundary')} <span className="font-mono font-medium">{editPcode}</span></p>
           )}
           {existingData && !editPcode && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-sm text-yellow-800">
-              Data already exists for this union. Submitting will update existing values.
+              {t('wizard.dataExists')}
             </div>
           )}
         </div>
@@ -388,23 +390,23 @@ export default function RiskIndexWizard() {
 
       {/* Step 2: Hazard Indicators */}
       {step === 2 && (
-        <FieldGroup title="Hazard Indicators" fields={HAZARD_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} />
+        <FieldGroup title={t('wizard.hazardIndicators')} fields={HAZARD_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} t={t} />
       )}
 
       {/* Step 3: Socioeconomic Data */}
       {step === 3 && (
         <div className="space-y-6">
-          <FieldGroup title="Socioeconomic Exposure" fields={SOC_EXPOSURE_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} />
-          <FieldGroup title="Sensitivity" fields={SENSITIVITY_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} />
+          <FieldGroup title={t('wizard.socExposure')} fields={SOC_EXPOSURE_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} t={t} />
+          <FieldGroup title={t('wizard.sensitivity')} fields={SENSITIVITY_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} t={t} />
         </div>
       )}
 
       {/* Step 4: Adaptive Capacity & Environmental */}
       {step === 4 && (
         <div className="space-y-6">
-          <FieldGroup title="Adaptive Capacity" fields={ADAPTIVE_CAPACITY_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} />
-          <FieldGroup title="Environmental Exposure" fields={ENV_EXPOSURE_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} />
-          <FieldGroup title="Environmental Sensitivity" fields={ENV_SENSITIVITY_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} />
+          <FieldGroup title={t('wizard.adaptiveCapacity')} fields={ADAPTIVE_CAPACITY_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} t={t} />
+          <FieldGroup title={t('wizard.envExposure')} fields={ENV_EXPOSURE_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} t={t} />
+          <FieldGroup title={t('wizard.envSensitivity')} fields={ENV_SENSITIVITY_FIELDS} values={values} onUpdate={updateValue} references={references} isOutOfRange={isOutOfRange} t={t} />
         </div>
       )}
 
@@ -412,21 +414,21 @@ export default function RiskIndexWizard() {
       {step === 5 && (
         <div className="space-y-6">
           <div className="bg-white border rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">Review Entered Values</h2>
-            <ReviewSection title="Hazard" fields={HAZARD_FIELDS} values={values} />
-            <ReviewSection title="Socioeconomic Exposure" fields={SOC_EXPOSURE_FIELDS} values={values} />
-            <ReviewSection title="Sensitivity" fields={SENSITIVITY_FIELDS} values={values} />
-            <ReviewSection title="Adaptive Capacity" fields={ADAPTIVE_CAPACITY_FIELDS} values={values} />
-            <ReviewSection title="Env. Exposure" fields={ENV_EXPOSURE_FIELDS} values={values} />
-            <ReviewSection title="Env. Sensitivity" fields={ENV_SENSITIVITY_FIELDS} values={values} />
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">{t('wizard.reviewValues')}</h2>
+            <ReviewSection title={t('wizard.hazardIndicators')} fields={HAZARD_FIELDS} values={values} />
+            <ReviewSection title={t('wizard.socExposure')} fields={SOC_EXPOSURE_FIELDS} values={values} />
+            <ReviewSection title={t('wizard.sensitivity')} fields={SENSITIVITY_FIELDS} values={values} />
+            <ReviewSection title={t('wizard.adaptiveCapacity')} fields={ADAPTIVE_CAPACITY_FIELDS} values={values} />
+            <ReviewSection title={t('wizard.envExposure')} fields={ENV_EXPOSURE_FIELDS} values={values} />
+            <ReviewSection title={t('wizard.envSensitivity')} fields={ENV_SENSITIVITY_FIELDS} values={values} />
           </div>
 
           {/* CVI Preview */}
           <div className="bg-white border rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-700">CVI Score Preview</h2>
+              <h2 className="text-lg font-semibold text-gray-700">{t('wizard.cviPreview')}</h2>
               <button onClick={handlePreview} disabled={previewLoading} className="px-4 py-2 bg-[#1B4F72] text-white text-sm rounded-md hover:bg-[#154360] disabled:opacity-50">
-                {previewLoading ? "Computing..." : "Compute Preview"}
+                {previewLoading ? t('wizard.computing') : t('wizard.computePreview')}
               </button>
             </div>
             {previewScores && (
@@ -455,7 +457,7 @@ export default function RiskIndexWizard() {
           disabled={step === 1}
           className="px-6 py-2 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-40"
         >
-          Back
+          {t('wizard.back')}
         </button>
         {step < 5 ? (
           <button
@@ -463,7 +465,7 @@ export default function RiskIndexWizard() {
             disabled={step === 1 && !unionPcode && !editPcode}
             className="px-6 py-2 bg-[#1B4F72] text-white rounded-md text-sm hover:bg-[#154360] disabled:opacity-40"
           >
-            Next
+            {t('wizard.next')}
           </button>
         ) : (
           <button
@@ -471,7 +473,7 @@ export default function RiskIndexWizard() {
             disabled={submitting}
             className="px-6 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
           >
-            {submitting ? "Submitting..." : "Confirm & Submit"}
+            {submitting ? t('wizard.submitting') : t('wizard.confirmSubmit')}
           </button>
         )}
       </div>
@@ -480,7 +482,7 @@ export default function RiskIndexWizard() {
 }
 
 
-function FieldGroup({ title, fields, values, onUpdate, references, isOutOfRange }) {
+function FieldGroup({ title, fields, values, onUpdate, references, isOutOfRange, t }) {
   return (
     <div className="bg-white border rounded-lg p-6">
       <h2 className="text-lg font-semibold text-gray-700 mb-4">{title}</h2>
@@ -511,7 +513,7 @@ function FieldGroup({ title, fields, values, onUpdate, references, isOutOfRange 
                   </span>
                 )}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">Source: {f.source}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{t('wizard.source')}: {f.source}</div>
             </div>
           );
         })}
