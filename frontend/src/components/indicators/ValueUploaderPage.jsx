@@ -8,6 +8,7 @@ export default function ValueUploaderPage() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
+  const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
 
   async function handleDownloadSample() {
@@ -24,6 +25,49 @@ export default function ValueUploaderPage() {
     }
   }
 
+  function splitCSVRow(line) {
+    const cells = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"' && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else if (ch === '"') {
+          inQuotes = false;
+        } else {
+          current += ch;
+        }
+      } else if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        cells.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    cells.push(current.trim());
+    return cells;
+  }
+
+  function parseCSVPreview(text) {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return null;
+    const headers = splitCSVRow(lines[0]);
+    const rows = lines.slice(1, 11).map((line) => {
+      const cells = splitCSVRow(line);
+      const row = {};
+      headers.forEach((h, i) => {
+        row[h] = cells[i] || "";
+      });
+      return row;
+    });
+    return { headers, rows, totalRows: lines.length - 1 };
+  }
+
   function handleFileChange(e) {
     const selected = e.target.files[0];
     if (selected && !selected.name.endsWith(".csv") && !selected.name.endsWith(".xlsx")) {
@@ -33,6 +77,18 @@ export default function ValueUploaderPage() {
     }
     setFile(selected || null);
     setResult(null);
+    setPreview(null);
+
+    if (selected && selected.name.endsWith(".csv")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const parsed = parseCSVPreview(ev.target.result);
+        if (parsed) setPreview(parsed);
+      };
+      reader.readAsText(selected);
+    } else if (selected && selected.name.endsWith(".xlsx")) {
+      setPreview({ headers: [], rows: [], totalRows: 0, isXlsx: true });
+    }
   }
 
   async function handleUpload(e) {
@@ -48,6 +104,7 @@ export default function ValueUploaderPage() {
       const res = await bulkUploadIndicatorValues(file);
       const data = res.data.data;
       setResult(data);
+      setPreview(null);
       if (data.errors.length === 0) {
         toast.success(t('uploader.uploadSuccess', { created: data.created, updated: data.updated }));
       } else {
@@ -63,8 +120,15 @@ export default function ValueUploaderPage() {
     }
   }
 
+  function handleClearFile() {
+    setFile(null);
+    setPreview(null);
+    setResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('uploader.title')}</h1>
       <p className="text-sm text-gray-500 mb-6">
         {t('uploader.subtitle')}
@@ -118,11 +182,63 @@ export default function ValueUploaderPage() {
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#1B4F72] file:text-white hover:file:bg-[#154360] file:cursor-pointer"
           />
           {file && (
-            <p className="mt-2 text-sm text-gray-600">
-              {t('uploader.selectedFile')}: <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(1)} KB)
-            </p>
+            <div className="mt-2 flex items-center justify-center gap-3">
+              <p className="text-sm text-gray-600">
+                {t('uploader.selectedFile')}: <span className="font-medium">{file.name}</span> ({(file.size / 1024).toFixed(1)} KB)
+              </p>
+              <button
+                type="button"
+                onClick={handleClearFile}
+                className="text-xs text-red-500 hover:text-red-700 underline"
+              >
+                {t('uploader.clear')}
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Preview Table */}
+        {preview && !preview.isXlsx && preview.rows.length > 0 && (
+          <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-600">{t('uploader.previewTitle')}</h3>
+              <span className="text-xs text-gray-400">
+                {t('uploader.previewShowing', { shown: preview.rows.length, total: preview.totalRows })}
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    {preview.headers.map((h) => (
+                      <th key={h} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {preview.rows.map((row, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      {preview.headers.map((h) => (
+                        <td key={h} className="px-3 py-2 text-gray-700 whitespace-nowrap">{row[h]}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-gray-50 px-4 py-2">
+              <p className="text-xs text-gray-500">
+                {t('uploader.previewColumns')}: {preview.headers.join(", ")}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {preview && preview.isXlsx && (
+          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+            {t('uploader.xlsxPreviewNote')}
+          </div>
+        )}
 
         <button
           type="submit"
@@ -170,8 +286,8 @@ export default function ValueUploaderPage() {
                     const header = "row_number,indicator_code,boundary_pcode,value,error_message\n";
                     const rows = result.errors.map((e) =>
                       typeof e === "object"
-                        ? `${e.row},${e.indicator_code},${e.boundary_pcode},${e.value},"${e.error}"`
-                        : `,,,"${e}"`
+                        ? `${e.row},${e.indicator_code},${e.boundary_pcode},${e.value},"${(e.error || "").replace(/"/g, '""')}"`
+                        : `,,,"${String(e).replace(/"/g, '""')}"`
                     ).join("\n");
                     const blob = new Blob([header + rows], { type: "text/csv" });
                     const url = URL.createObjectURL(blob);

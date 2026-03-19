@@ -15,7 +15,10 @@ function MapContent() {
         {selectedFeature ? `Selected: ${selectedFeature.name_en}` : ""}
       </div>
       <div className="relative flex-1 min-h-0">
-        <LeafletMap />
+        {/* On mobile, hide map when detail panel is open */}
+        <div className={selectedFeature ? "hidden lg:block w-full h-full" : "w-full h-full"}>
+          <LeafletMap />
+        </div>
         {selectedFeature && (
           <UnionDetailPanel
             feature={selectedFeature}

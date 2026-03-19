@@ -86,26 +86,26 @@ export default function UnionDetailPanel({ feature, onClose }) {
     }
   }
 
-  function handleExportJson() {
-    const exportData = {
-      ...feature,
-      scores,
-      indicators: indicators.map((iv) => ({
-        indicator_name: iv.indicator_name,
-        indicator_code: iv.indicator_code,
-        component: iv.component,
-        subcategory: iv.subcategory,
-        value: iv.value,
-        source: iv.source_name,
-      })),
-    };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: "application/json",
-    });
+  function handleExportCsv() {
+    const header = "indicator_code,indicator_name,component,subcategory,value,source\n";
+    const rows = indicators
+      .filter((iv) => iv.value != null)
+      .map((iv) =>
+        [
+          iv.indicator_code,
+          `"${(iv.indicator_name || "").replace(/"/g, '""')}"`,
+          `"${(iv.component || "").replace(/"/g, '""')}"`,
+          `"${(iv.subcategory || "").replace(/"/g, '""')}"`,
+          iv.value,
+          `"${(iv.source_name || "").replace(/"/g, '""')}"`,
+        ].join(",")
+      )
+      .join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${feature.pcode}_data.json`;
+    a.download = `${feature.pcode}_indicators.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -186,10 +186,10 @@ export default function UnionDetailPanel({ feature, onClose }) {
                 {pdfLoading ? t('detail.generating') : t('detail.downloadPdfShort')}
               </button>
               <button
-                onClick={handleExportJson}
+                onClick={handleExportCsv}
                 className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
               >
-                {t('detail.exportJson')}
+                {t('detail.exportCsv')}
               </button>
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function UnionDetailPanel({ feature, onClose }) {
       />
 
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-lg z-[1001] overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-full lg:w-96 bg-white shadow-lg z-[1001] overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           visible ? "translate-x-0" : "translate-x-full"
         }`}
         role="complementary"
@@ -327,10 +327,10 @@ export default function UnionDetailPanel({ feature, onClose }) {
               {pdfLoading ? t('detail.generatingPdf') : t('detail.downloadPdf')}
             </button>
             <button
-              onClick={handleExportJson}
+              onClick={handleExportCsv}
               className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              {t('detail.exportJson')}
+              {t('detail.exportCsv')}
             </button>
           </div>
         </div>

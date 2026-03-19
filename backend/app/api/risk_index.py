@@ -16,6 +16,7 @@ from app.models.indicator_value import IndicatorValue
 from app.models.user import User
 from app.services.audit import create_audit_log
 from app.services.cvi_engine import compute_and_cache
+from app.api.websocket import broadcast_event
 
 router = APIRouter(prefix="/api/v1/risk-index", tags=["risk-index"])
 
@@ -143,6 +144,11 @@ async def create_risk_index(
             return None
         return round(v, 6)
 
+    await broadcast_event("scores_updated", {
+        "boundary_pcode": req.boundary_pcode,
+        "cri": safe_float(scores.get("cri")),
+    })
+
     return envelope(
         data={
             "boundary_pcode": req.boundary_pcode,
@@ -260,6 +266,11 @@ async def update_risk_index(
         if v is None:
             return None
         return round(v, 6)
+
+    await broadcast_event("scores_updated", {
+        "boundary_pcode": boundary_pcode,
+        "cri": safe_float(scores.get("cri")),
+    })
 
     return envelope(
         data={

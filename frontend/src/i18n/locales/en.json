@@ -120,7 +120,7 @@
     "fullDetails": "See full details and all indicators",
     "downloadPdf": "Download PDF Report",
     "generatingPdf": "Generating PDF...",
-    "exportJson": "Export as JSON",
+    "exportCsv": "Export CSV",
     "rawIndicatorValues": "Raw Indicator Values",
     "downloadPdfShort": "Download PDF",
     "generating": "Generating...",
@@ -367,9 +367,15 @@
     "downloadSampleError": "Failed to download sample file",
     "instructions": "Upload a CSV or Excel file with indicator values. Use the sample template for correct formatting.",
     "uploadFile": "Upload File",
-    "uploadSuccess": "Successfully uploaded: {{inserted}} inserted, {{updated}} updated",
-    "uploadWarnings": "Uploaded with {{errors}} errors",
-    "downloadErrorReport": "Download Error Report"
+    "uploadSuccess": "Successfully uploaded: {{created}} created, {{updated}} updated",
+    "uploadWarnings": "Uploaded with {{count}} errors",
+    "downloadErrorReport": "Download Error Report",
+    "previewTitle": "File Preview",
+    "previewShowing": "Showing {{shown}} of {{total}} rows",
+    "previewColumns": "Detected columns",
+    "xlsxPreviewNote": "Excel file detected. Preview is available for CSV files only. The file will be validated on upload.",
+    "created": "Created",
+    "subtitle": "Upload indicator values in bulk from CSV or Excel files."
   },
   "submitIndicator": {
     "title": "Submit Indicator Value",
