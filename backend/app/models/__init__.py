@@ -6,3 +6,4 @@ from app.models.source import Source
 from app.models.indicator_value import IndicatorValue
 from app.models.indicator_reference import IndicatorReference
 from app.models.computed_score import ComputedScore
+from app.models.batch_job import BatchJob

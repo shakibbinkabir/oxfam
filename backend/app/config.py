@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     SHAPEFILE_DIR: str = "./data/shapefiles"
     CORS_ORIGINS: str = "http://localhost:5173"
     ENVIRONMENT: str = "development"
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
