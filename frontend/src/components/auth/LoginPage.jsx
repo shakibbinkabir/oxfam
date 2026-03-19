@@ -30,6 +30,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher variant="auth" />
+        </div>
         <h1 className="text-2xl font-bold text-center text-[#1B4F72] mb-6">
           {t('app.fullTitle')}
         </h1>
@@ -75,9 +78,6 @@ export default function LoginPage() {
             {t('auth.register')}
           </Link>
         </p>
-      </div>
-      <div className="mt-4">
-        <LanguageSwitcher />
       </div>
     </div>
   );
