@@ -17,16 +17,16 @@ async def seed_test_data(db_session: AsyncSession):
     # Create a test union boundary
     await db_session.execute(
         text("""
-            INSERT INTO admin_boundaries (adm_level, name_en, pcode, parent_pcode, division_name, district_name, upazila_name)
-            VALUES (4, 'Test Union', '99990001', '9999000', 'Test Division', 'Test District', 'Test Upazila')
+            INSERT INTO admin_boundaries (adm_level, name_en, pcode, parent_pcode, division_name, district_name, upazila_name, created_at)
+            VALUES (4, 'Test Union', '99990001', '9999000', 'Test Division', 'Test District', 'Test Upazila', NOW())
             ON CONFLICT (pcode) DO NOTHING
         """)
     )
     # Create a parent upazila boundary
     await db_session.execute(
         text("""
-            INSERT INTO admin_boundaries (adm_level, name_en, pcode, parent_pcode, division_name)
-            VALUES (3, 'Test Upazila', '9999000', '9999', 'Test Division')
+            INSERT INTO admin_boundaries (adm_level, name_en, pcode, parent_pcode, division_name, created_at)
+            VALUES (3, 'Test Upazila', '9999000', '9999', 'Test Division', NOW())
             ON CONFLICT (pcode) DO NOTHING
         """)
     )
