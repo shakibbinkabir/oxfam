@@ -8,7 +8,7 @@ from tests.conftest import auth_header
 
 @pytest.mark.asyncio
 async def test_authenticated_can_list(client: AsyncClient, user_token):
-    res = await client.get("/api/v1/indicators", headers=auth_header(user_token))
+    res = await client.get("/api/v1/indicators/", headers=auth_header(user_token))
     assert res.status_code == 200
     data = res.json()["data"]
     assert "indicators" in data
@@ -17,8 +17,8 @@ async def test_authenticated_can_list(client: AsyncClient, user_token):
 
 @pytest.mark.asyncio
 async def test_unauthenticated_cannot_list(client: AsyncClient):
-    res = await client.get("/api/v1/indicators")
-    assert res.status_code == 403 or res.status_code == 401
+    res = await client.get("/api/v1/indicators/")
+    assert res.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
