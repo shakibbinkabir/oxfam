@@ -1,7 +1,7 @@
 """010 batch_jobs table
 
 Revision ID: 010_batch_jobs
-Revises: 009_bilingual_columns
+Revises: 009
 Create Date: 2026-03-20
 """
 
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import UUID, JSON
 
 revision = "010_batch_jobs"
-down_revision = "009_bilingual_columns"
+down_revision = "009"
 branch_labels = None
 depends_on = None
 
