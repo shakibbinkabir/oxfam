@@ -11,6 +11,9 @@ export const listScores = (params = {}) =>
 export const getScoresMapGeoJSON = (params = {}) =>
   client.get("/scores/map/geojson", { params });
 
+export const getScoresSummary = (params = {}) =>
+  client.get("/scores/summary", { params });
+
 export const recomputeAllScores = () => client.post("/scores/recompute");
 
 export const listIndicatorReferences = () => client.get("/scores/reference");

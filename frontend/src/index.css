@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+/* Score tooltip styling for Leaflet map */
+.score-tooltip {
+  background-color: rgba(30, 30, 30, 0.9) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 6px 10px !important;
+  font-size: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+.score-tooltip::before {
+  border-top-color: rgba(30, 30, 30, 0.9) !important;
+}

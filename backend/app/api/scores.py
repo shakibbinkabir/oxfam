@@ -159,6 +159,7 @@ async def update_indicator_reference(
 async def get_scores_map_geojson(
     level: int = Query(4, ge=1, le=4),
     indicator: str = Query("cri"),
+    parent_pcode: Optional[str] = Query(None),
     bbox: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -178,6 +179,12 @@ async def get_scores_map_geojson(
             AdminBoundary.pcode,
             AdminBoundary.adm_level,
             AdminBoundary.parent_pcode,
+            AdminBoundary.division_name,
+            AdminBoundary.district_name,
+            AdminBoundary.upazila_name,
+            AdminBoundary.area_sq_km,
+            func.ST_X(AdminBoundary.centroid).label("centroid_lon"),
+            func.ST_Y(AdminBoundary.centroid).label("centroid_lat"),
             geom_col.label("geojson"),
             ComputedScore.hazard_score,
             ComputedScore.soc_exposure_score,
@@ -190,6 +197,9 @@ async def get_scores_map_geojson(
         .outerjoin(ComputedScore, AdminBoundary.pcode == ComputedScore.boundary_pcode)
         .where(AdminBoundary.adm_level == level)
     )
+
+    if parent_pcode:
+        query = query.where(AdminBoundary.parent_pcode == parent_pcode)
 
     if bbox:
         try:
@@ -216,6 +226,8 @@ async def get_scores_map_geojson(
     features = []
     for row in rows:
         geom = json.loads(row.geojson) if row.geojson else None
+        if geom is None and row.centroid_lon is not None and row.centroid_lat is not None:
+            geom = {"type": "Point", "coordinates": [row.centroid_lon, row.centroid_lat]}
         score_val = safe_float(getattr(row, score_field, None))
         features.append({
             "type": "Feature",
@@ -224,6 +236,10 @@ async def get_scores_map_geojson(
                 "pcode": row.pcode,
                 "adm_level": row.adm_level,
                 "parent_pcode": row.parent_pcode,
+                "division_name": row.division_name,
+                "district_name": row.district_name,
+                "upazila_name": row.upazila_name,
+                "area_sq_km": safe_float(row.area_sq_km),
                 "score": score_val,
                 "cri": safe_float(row.cri_score),
                 "hazard": safe_float(row.hazard_score),
@@ -237,6 +253,71 @@ async def get_scores_map_geojson(
         })
 
     return {"type": "FeatureCollection", "features": features}
+
+
+@router.get("/summary")
+async def get_scores_summary(
+    level: int = Query(1, ge=1, le=4),
+    parent_pcode: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return aggregate KPI statistics for the KPI summary bar."""
+    query = (
+        select(
+            AdminBoundary.name_en,
+            AdminBoundary.pcode,
+            ComputedScore.cri_score,
+        )
+        .join(ComputedScore, AdminBoundary.pcode == ComputedScore.boundary_pcode)
+        .where(AdminBoundary.adm_level == level)
+    )
+
+    if parent_pcode:
+        query = query.where(AdminBoundary.parent_pcode == parent_pcode)
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    total_query = select(func.count(AdminBoundary.id)).where(AdminBoundary.adm_level == level)
+    if parent_pcode:
+        total_query = total_query.where(AdminBoundary.parent_pcode == parent_pcode)
+    total_result = await db.execute(total_query)
+    total_boundaries = total_result.scalar() or 0
+
+    if not rows:
+        return envelope(data={
+            "highest_risk": None,
+            "average_cri": None,
+            "high_risk_boundaries": 0,
+            "total_boundaries": total_boundaries,
+            "boundaries_with_data": 0,
+            "data_coverage_pct": 0.0,
+        })
+
+    valid_rows = [(r.name_en, r.pcode, r.cri_score) for r in rows if r.cri_score is not None]
+    boundaries_with_data = len(valid_rows)
+
+    if valid_rows:
+        highest = max(valid_rows, key=lambda x: x[2])
+        highest_risk = {"name": highest[0], "pcode": highest[1], "cri": safe_float(highest[2])}
+        avg_cri = safe_float(sum(r[2] for r in valid_rows) / len(valid_rows))
+        high_risk_count = sum(1 for r in valid_rows if r[2] > 0.6)
+    else:
+        highest_risk = None
+        avg_cri = None
+        high_risk_count = 0
+
+    data_coverage = round((boundaries_with_data / total_boundaries * 100), 1) if total_boundaries else 0.0
+
+    return envelope(data={
+        "highest_risk": highest_risk,
+        "average_cri": avg_cri,
+        "high_risk_boundaries": high_risk_count,
+        "total_boundaries": total_boundaries,
+        "boundaries_with_data": boundaries_with_data,
+        "data_coverage_pct": data_coverage,
+    })
 
 
 @router.post("/recompute")

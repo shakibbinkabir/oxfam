@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { getScoresMapGeoJSON } from "../api/scores";
 import useDebounce from "./useDebounce";
 
-export default function useMapScores(level, indicator = "cri", bounds) {
+export default function useMapScores(level, indicator = "cri", bounds, parentPcode) {
   const [geoData, setGeoData] = useState(null);
   const [loading, setLoading] = useState(false);
   const cache = useRef(new Map());
@@ -14,11 +14,12 @@ export default function useMapScores(level, indicator = "cri", bounds) {
   const debouncedLevel = useDebounce(level, 300);
   const debouncedBbox = useDebounce(bboxString, 300);
   const debouncedIndicator = useDebounce(indicator, 300);
+  const debouncedParent = useDebounce(parentPcode, 300);
 
   useEffect(() => {
     if (debouncedLevel == null) return;
 
-    const cacheKey = `${debouncedLevel}_${debouncedIndicator}_${debouncedBbox || "all"}`;
+    const cacheKey = `${debouncedLevel}_${debouncedIndicator}_${debouncedParent || "all"}_${debouncedBbox || "all"}`;
 
     if (cache.current.has(cacheKey)) {
       const cached = cache.current.get(cacheKey);
@@ -33,6 +34,7 @@ export default function useMapScores(level, indicator = "cri", bounds) {
 
     const params = { level: debouncedLevel, indicator: debouncedIndicator };
     if (debouncedBbox) params.bbox = debouncedBbox;
+    if (debouncedParent) params.parent_pcode = debouncedParent;
 
     getScoresMapGeoJSON(params)
       .then((res) => {
@@ -52,7 +54,7 @@ export default function useMapScores(level, indicator = "cri", bounds) {
     return () => {
       cancelled = true;
     };
-  }, [debouncedLevel, debouncedIndicator, debouncedBbox]);
+  }, [debouncedLevel, debouncedIndicator, debouncedBbox, debouncedParent]);
 
   return { geoData, loading };
 }
