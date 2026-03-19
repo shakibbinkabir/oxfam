@@ -43,7 +43,7 @@ def upgrade():
     op.create_index(
         "ix_audit_logs_entity_type",
         "audit_logs",
-        ["entity_type", "created_at"],
+        ["entity_type", "timestamp"],
     )
 
 
