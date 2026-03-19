@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { loginApi, registerApi, getMeApi } from "../api/auth";
+import { loginApi, registerApi, getMeApi, logoutApi } from "../api/auth";
 import { setAccessToken } from "../api/client";
 
 const AuthContext = createContext(null);
@@ -9,26 +9,37 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (refreshToken) {
-      loadUser();
-    } else {
-      setLoading(false);
-    }
+    // On page load, attempt silent refresh via httpOnly cookie
+    silentRefresh();
   }, []);
 
-  async function loadUser() {
+  async function silentRefresh() {
     try {
-      const storedToken = localStorage.getItem("access_token");
-      if (storedToken) {
-        setAccessToken(storedToken);
+      // The httpOnly cookie is sent automatically — try to get a new access token
+      const refreshRes = await fetch(
+        (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1") +
+          "/auth/refresh",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({}),
+        }
+      );
+
+      if (!refreshRes.ok) {
+        throw new Error("Refresh failed");
       }
+
+      const refreshData = await refreshRes.json();
+      const newToken = refreshData.data.access_token;
+      setAccessToken(newToken);
+
+      // Now fetch user profile
       const res = await getMeApi();
       setUser(res.data.data);
     } catch {
       setAccessToken(null);
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
     } finally {
       setLoading(false);
     }
@@ -36,10 +47,9 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const res = await loginApi(email, password);
-    const { access_token, refresh_token, user: userData } = res.data.data;
+    const { access_token, user: userData } = res.data.data;
+    // Access token stored in memory only — refresh token set as httpOnly cookie by backend
     setAccessToken(access_token);
-    localStorage.setItem("access_token", access_token);
-    localStorage.setItem("refresh_token", refresh_token);
     setUser(userData);
     return userData;
   }
@@ -49,10 +59,13 @@ export function AuthProvider({ children }) {
     return res.data.data;
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await logoutApi();
+    } catch {
+      // Ignore errors during logout
+    }
     setAccessToken(null);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
     setUser(null);
   }
 

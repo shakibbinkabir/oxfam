@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy import select
@@ -21,6 +21,8 @@ from app.schemas.user import UserResponse
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+_IS_PROD = settings.ENVIRONMENT == "production"
 
 
 def hash_password(password: str) -> str:
@@ -47,6 +49,27 @@ def create_tokens(user: User) -> dict:
         timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
     return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
+    """Set refresh token as an httpOnly cookie."""
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=_IS_PROD,
+        samesite="strict",
+        path="/api/v1/auth/refresh",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+
+
+def _clear_refresh_cookie(response: Response) -> None:
+    """Clear the refresh token cookie."""
+    response.delete_cookie(
+        key="refresh_token",
+        path="/api/v1/auth/refresh",
+    )
 
 
 def envelope(data=None, message="Success", status_val="success"):
@@ -78,7 +101,7 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login")
-async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(req: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
     if not user or not verify_password(req.password, user.hashed_password):
@@ -87,9 +110,13 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Account is inactive")
 
     tokens = create_tokens(user)
+
+    # Set refresh token as httpOnly cookie
+    _set_refresh_cookie(response, tokens["refresh_token"])
+
     return envelope(
         data={
-            **tokens,
+            "access_token": tokens["access_token"],
             "token_type": "bearer",
             "user": UserResponse.model_validate(user).model_dump(mode="json"),
         },
@@ -98,12 +125,24 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh")
-async def refresh(req: RefreshRequest, db: AsyncSession = Depends(get_db)):
+async def refresh(
+    request: Request,
+    response: Response,
+    req: RefreshRequest | None = None,
+    db: AsyncSession = Depends(get_db),
+):
     from jose import JWTError
+
+    # Read refresh token from httpOnly cookie first, fall back to request body
+    token = request.cookies.get("refresh_token")
+    if not token and req and req.refresh_token:
+        token = req.refresh_token
+    if not token:
+        raise HTTPException(status_code=401, detail="No refresh token provided")
 
     try:
         payload = jwt.decode(
-            req.refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
         )
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Invalid refresh token")
@@ -117,10 +156,20 @@ async def refresh(req: RefreshRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="User not found or inactive")
 
     tokens = create_tokens(user)
+
+    # Set new refresh token cookie
+    _set_refresh_cookie(response, tokens["refresh_token"])
+
     return envelope(
-        data={**tokens, "token_type": "bearer"},
+        data={"access_token": tokens["access_token"], "token_type": "bearer"},
         message="Token refreshed",
     )
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    _clear_refresh_cookie(response)
+    return envelope(message="Logged out successfully")
 
 
 @router.get("/me")

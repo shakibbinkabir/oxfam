@@ -1,8 +1,9 @@
 import axios from "axios";
 
 const client = axios.create({
-  baseURL: "http://localhost:8000/api/v1",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1",
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 let accessToken = null;
@@ -32,30 +33,22 @@ client.interceptors.response.use(
       originalRequest._retry = true;
 
       if (!refreshPromise) {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (refreshToken) {
-          refreshPromise = client
-            .post("/auth/refresh", { refresh_token: refreshToken })
-            .then((res) => {
-              const newAccess = res.data.data.access_token;
-              const newRefresh = res.data.data.refresh_token;
-              setAccessToken(newAccess);
-              localStorage.setItem("refresh_token", newRefresh);
-              return newAccess;
-            })
-            .catch((err) => {
-              setAccessToken(null);
-              localStorage.removeItem("refresh_token");
-              window.location.href = "/login";
-              return Promise.reject(err);
-            })
-            .finally(() => {
-              refreshPromise = null;
-            });
-        } else {
-          window.location.href = "/login";
-          return Promise.reject(error);
-        }
+        // Refresh token is sent automatically as httpOnly cookie
+        refreshPromise = client
+          .post("/auth/refresh", {})
+          .then((res) => {
+            const newAccess = res.data.data.access_token;
+            setAccessToken(newAccess);
+            return newAccess;
+          })
+          .catch((err) => {
+            setAccessToken(null);
+            window.location.href = "/login";
+            return Promise.reject(err);
+          })
+          .finally(() => {
+            refreshPromise = null;
+          });
       }
 
       const newToken = await refreshPromise;
