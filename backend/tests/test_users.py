@@ -8,7 +8,7 @@ from tests.conftest import auth_header
 
 @pytest.mark.asyncio
 async def test_superadmin_can_list_users(client: AsyncClient, superadmin_token):
-    res = await client.get("/api/v1/users", headers=auth_header(superadmin_token))
+    res = await client.get("/api/v1/users/", headers=auth_header(superadmin_token))
     assert res.status_code == 200
     data = res.json()["data"]
     assert "users" in data
@@ -17,13 +17,13 @@ async def test_superadmin_can_list_users(client: AsyncClient, superadmin_token):
 
 @pytest.mark.asyncio
 async def test_admin_cannot_list_users(client: AsyncClient, admin_token):
-    res = await client.get("/api/v1/users", headers=auth_header(admin_token))
+    res = await client.get("/api/v1/users/", headers=auth_header(admin_token))
     assert res.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_superadmin_can_create_user(client: AsyncClient, superadmin_token):
-    res = await client.post("/api/v1/users",
+    res = await client.post("/api/v1/users/",
         headers=auth_header(superadmin_token),
         json={
             "email": f"created_{uuid.uuid4().hex[:6]}@test.com",
