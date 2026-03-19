@@ -45,8 +45,8 @@ async def seed_test_data(db_session: AsyncSession):
     for component, subcategory, name, code, gis_attr in indicators:
         result = await db_session.execute(
             text("""
-                INSERT INTO climate_indicators (component, subcategory, indicator_name, code, gis_attribute_id)
-                VALUES (:comp, :sub, :name, :code, :gis)
+                INSERT INTO climate_indicators (component, subcategory, indicator_name, code, gis_attribute_id, created_at, updated_at)
+                VALUES (:comp, :sub, :name, :code, :gis, NOW(), NOW())
                 ON CONFLICT (code) DO UPDATE SET gis_attribute_id = EXCLUDED.gis_attribute_id
                 RETURNING id
             """),
@@ -67,8 +67,8 @@ async def seed_test_data(db_session: AsyncSession):
     for gis_attr, value in values.items():
         await db_session.execute(
             text("""
-                INSERT INTO indicator_values (indicator_id, boundary_pcode, value)
-                VALUES (:ind_id, '99990001', :val)
+                INSERT INTO indicator_values (indicator_id, boundary_pcode, value, created_at, updated_at)
+                VALUES (:ind_id, '99990001', :val, NOW(), NOW())
                 ON CONFLICT ON CONSTRAINT uq_indicator_boundary DO UPDATE SET value = EXCLUDED.value
             """),
             {"ind_id": indicator_ids[gis_attr], "val": value},
@@ -86,8 +86,8 @@ async def seed_test_data(db_session: AsyncSession):
     for gis_attr, (gmin, gmax, direction) in references.items():
         await db_session.execute(
             text("""
-                INSERT INTO indicator_reference (indicator_id, global_min, global_max, direction, weight)
-                VALUES (:ind_id, :gmin, :gmax, :dir, 1.0)
+                INSERT INTO indicator_reference (indicator_id, global_min, global_max, direction, weight, updated_at)
+                VALUES (:ind_id, :gmin, :gmax, :dir, 1.0, NOW())
                 ON CONFLICT ON CONSTRAINT uq_indicator_reference_indicator DO UPDATE SET
                     global_min = EXCLUDED.global_min,
                     global_max = EXCLUDED.global_max,
