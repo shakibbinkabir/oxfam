@@ -410,6 +410,165 @@ async def aggregate_scores_for_parent(db: AsyncSession, parent_pcode: str) -> di
     return aggregated
 
 
+def compute_weighted_scores(
+    dimension_scores: dict,
+    weights: dict | None = None,
+) -> dict:
+    """Compute vulnerability and CRI using optional custom dimension weights.
+
+    When weights are provided (hazard, exposure, sensitivity, adaptive_capacity
+    summing to ~1.0), use weighted aggregation instead of equal-weight defaults.
+    """
+    if not weights:
+        return compute_full_scores(dimension_scores)
+
+    w_h = weights.get("hazard", 0.25)
+    w_e = weights.get("exposure", 0.25)
+    w_s = weights.get("sensitivity", 0.25)
+    w_a = weights.get("adaptive_capacity", 0.25)
+
+    # Combined exposure & sensitivity (same as standard pipeline)
+    exp_parts = [
+        s for s in [dimension_scores.get("soc_exposure"), dimension_scores.get("env_exposure")]
+        if s is not None
+    ]
+    combined_exposure = sum(exp_parts) / len(exp_parts) if exp_parts else None
+
+    sens_parts = [
+        s for s in [dimension_scores.get("sensitivity"), dimension_scores.get("env_sensitivity")]
+        if s is not None
+    ]
+    combined_sensitivity = sum(sens_parts) / len(sens_parts) if sens_parts else None
+
+    ac = dimension_scores.get("adaptive_capacity")
+
+    # Weighted vulnerability
+    vuln_parts = []
+    vuln_weight_sum = 0.0
+    if combined_exposure is not None:
+        vuln_parts.append(w_e * combined_exposure)
+        vuln_weight_sum += w_e
+    if combined_sensitivity is not None:
+        vuln_parts.append(w_s * combined_sensitivity)
+        vuln_weight_sum += w_s
+    if ac is not None:
+        vuln_parts.append(w_a * (1.0 - ac))
+        vuln_weight_sum += w_a
+
+    vulnerability = sum(vuln_parts) / vuln_weight_sum if vuln_weight_sum > 0 else None
+
+    # Weighted CRI
+    hazard = dimension_scores.get("hazard")
+    cri_parts = []
+    cri_weight_sum = 0.0
+    if hazard is not None:
+        cri_parts.append(w_h * hazard)
+        cri_weight_sum += w_h
+    if vulnerability is not None:
+        non_hazard_weight = 1.0 - w_h
+        cri_parts.append(non_hazard_weight * vulnerability)
+        cri_weight_sum += non_hazard_weight
+
+    cri = sum(cri_parts) / cri_weight_sum if cri_weight_sum > 0 else None
+    if cri is not None:
+        cri = max(0.0, min(1.0, cri))
+
+    return {
+        "exposure": combined_exposure,
+        "vulnerability": vulnerability,
+        "cri": cri,
+    }
+
+
+async def run_simulation(
+    db: AsyncSession,
+    boundary_pcode: str,
+    modified_values: dict[str, float],
+    weights: dict | None = None,
+) -> dict:
+    """Run what-if simulation: apply modified indicator values and optional custom weights.
+
+    Returns original scores, simulated scores, deltas, and modified indicator details.
+    No data is persisted.
+    """
+    reference_map = await load_reference_map(db)
+    raw_values = await load_indicator_values(db, boundary_pcode)
+
+    if not raw_values:
+        return None
+
+    # Compute original scores
+    orig_normalised = normalise_all(raw_values, reference_map)
+    orig_dimension = compute_dimension_scores(orig_normalised)
+    orig_full = compute_full_scores(orig_dimension)
+
+    original_scores = {
+        "hazard": orig_dimension.get("hazard"),
+        "exposure": orig_full["exposure"],
+        "sensitivity": orig_dimension.get("sensitivity"),
+        "adaptive_capacity": orig_dimension.get("adaptive_capacity"),
+        "vulnerability": orig_full["vulnerability"],
+        "cri": orig_full["cri"],
+    }
+
+    # Build simulated raw values by applying overrides
+    sim_raw = {}
+    for gis_id, val_info in raw_values.items():
+        if gis_id in modified_values:
+            sim_raw[gis_id] = {
+                "name": val_info["name"],
+                "raw_value": modified_values[gis_id],
+            }
+        else:
+            sim_raw[gis_id] = val_info
+
+    # Compute simulated scores
+    sim_normalised = normalise_all(sim_raw, reference_map)
+    sim_dimension = compute_dimension_scores(sim_normalised)
+    sim_full = compute_weighted_scores(sim_dimension, weights)
+
+    simulated_scores = {
+        "hazard": sim_dimension.get("hazard"),
+        "exposure": sim_full["exposure"],
+        "sensitivity": sim_dimension.get("sensitivity"),
+        "adaptive_capacity": sim_dimension.get("adaptive_capacity"),
+        "vulnerability": sim_full["vulnerability"],
+        "cri": sim_full["cri"],
+    }
+
+    # Compute deltas
+    deltas = {}
+    for key in original_scores:
+        orig = original_scores[key]
+        sim = simulated_scores[key]
+        if orig is not None and sim is not None:
+            deltas[key] = round(sim - orig, 6)
+        else:
+            deltas[key] = None
+
+    # Build modified indicators detail
+    modified_indicators = []
+    for code, new_value in modified_values.items():
+        if code in raw_values and code in reference_map:
+            orig_info = orig_normalised.get(code, {})
+            sim_info = sim_normalised.get(code, {})
+            modified_indicators.append({
+                "code": code,
+                "name": raw_values[code]["name"],
+                "original_value": raw_values[code]["raw_value"],
+                "simulated_value": new_value,
+                "original_normalised": orig_info.get("normalised_value"),
+                "simulated_normalised": sim_info.get("normalised_value"),
+            })
+
+    return {
+        "original_scores": original_scores,
+        "simulated_scores": simulated_scores,
+        "deltas": deltas,
+        "modified_indicators": modified_indicators,
+    }
+
+
 def compute_calculation_trace(
     raw_values: dict, reference_map: dict
 ) -> dict:

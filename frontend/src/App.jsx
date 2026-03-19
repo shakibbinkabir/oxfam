@@ -13,6 +13,7 @@ import ValueUploaderPage from "./components/indicators/ValueUploaderPage";
 import UnitsPage from "./components/units/UnitsPage";
 import SourcesPage from "./components/sources/SourcesPage";
 import UsersPage from "./components/users/UsersPage";
+import ScenariosPage from "./components/scenarios/ScenariosPage";
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="scenarios" element={<ScenariosPage />} />
           <Route path="units" element={<UnitsPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route

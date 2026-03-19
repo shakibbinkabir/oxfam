@@ -3,6 +3,7 @@ import useMapContext from "../../contexts/MapContext";
 import LeafletMap from "./LeafletMap";
 import UnionDetailPanel from "./UnionDetailPanel";
 import KPISummaryBar from "./KPISummaryBar";
+import SimulationModal from "./SimulationModal";
 
 function MapContent() {
   const { selectedFeature, clearSelection } = useMapContext();
@@ -19,6 +20,7 @@ function MapContent() {
           />
         )}
       </div>
+      <SimulationModal />
     </div>
   );
 }
