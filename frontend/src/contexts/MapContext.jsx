@@ -11,6 +11,9 @@ const initialState = {
   selectedFeature: null,
   drillHistory: [],
   parentPcode: null,
+  simulationModalOpen: false,
+  simulationPcode: null,
+  simulationResult: null,
 };
 
 function reducer(state, action) {
@@ -46,6 +49,14 @@ function reducer(state, action) {
         selectedFeature: null,
       };
     }
+    case "OPEN_SIMULATION":
+      return { ...state, simulationModalOpen: true, simulationPcode: action.payload };
+    case "CLOSE_SIMULATION":
+      return { ...state, simulationModalOpen: false, simulationPcode: null };
+    case "SET_SIMULATION_RESULT":
+      return { ...state, simulationResult: action.payload };
+    case "CLEAR_SIMULATION":
+      return { ...state, simulationResult: null, simulationModalOpen: false, simulationPcode: null };
     case "RESET_VIEW":
       return { ...initialState, indicator: state.indicator };
     default:
@@ -62,6 +73,10 @@ export function MapProvider({ children }) {
   const drillDown = useCallback((pcode) => dispatch({ type: "DRILL_DOWN", payload: pcode }), []);
   const drillUp = useCallback(() => dispatch({ type: "DRILL_UP" }), []);
   const resetView = useCallback(() => dispatch({ type: "RESET_VIEW" }), []);
+  const openSimulation = useCallback((pcode) => dispatch({ type: "OPEN_SIMULATION", payload: pcode }), []);
+  const closeSimulation = useCallback(() => dispatch({ type: "CLOSE_SIMULATION" }), []);
+  const setSimulationResult = useCallback((result) => dispatch({ type: "SET_SIMULATION_RESULT", payload: result }), []);
+  const clearSimulation = useCallback(() => dispatch({ type: "CLEAR_SIMULATION" }), []);
 
   const value = {
     ...state,
@@ -74,6 +89,10 @@ export function MapProvider({ children }) {
     drillDown,
     drillUp,
     resetView,
+    openSimulation,
+    closeSimulation,
+    setSimulationResult,
+    clearSimulation,
   };
 
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>;

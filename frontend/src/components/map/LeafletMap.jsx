@@ -110,11 +110,70 @@ function FitBoundsOnData({ geoData }) {
   return null;
 }
 
+function SimulationOverlay({ simulationResult, geoData }) {
+  const map = useMap();
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (overlayRef.current) {
+      map.removeLayer(overlayRef.current);
+      overlayRef.current = null;
+    }
+
+    if (!simulationResult || !geoData?.features) return;
+
+    const pcode = simulationResult.boundary_pcode;
+    const feature = geoData.features.find((f) => f.properties.pcode === pcode);
+    if (!feature || !feature.geometry) return;
+
+    const simCri = simulationResult.simulated_scores?.cri;
+    const color = getScoreColor(simCri);
+
+    const layer = L.geoJSON(feature, {
+      style: {
+        fillColor: color,
+        weight: 3,
+        opacity: 1,
+        color: "#1B4F72",
+        fillOpacity: 0.5,
+        dashArray: "8 6",
+      },
+    });
+
+    layer.bindTooltip(
+      `<div style="font-size:13px;line-height:1.5"><b>Simulated</b><br/>CRI: <b>${simCri?.toFixed(3) ?? "N/A"}</b></div>`,
+      { sticky: true, direction: "top", offset: [0, -8] }
+    );
+
+    layer.addTo(map);
+    overlayRef.current = layer;
+
+    try {
+      const bounds = layer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+      }
+    } catch {
+      // ignore
+    }
+
+    return () => {
+      if (overlayRef.current) {
+        map.removeLayer(overlayRef.current);
+        overlayRef.current = null;
+      }
+    };
+  }, [simulationResult, geoData, map]);
+
+  return null;
+}
+
 export default function LeafletMap() {
   const {
     level, indicator, selectedPcode, parentPcode,
     canDrillDown, canDrillUp,
     setIndicator, selectFeature, clearSelection, drillDown, drillUp, resetView,
+    simulationResult,
   } = useMapContext();
 
   const [bounds, setBounds] = useState(null);
@@ -271,6 +330,7 @@ export default function LeafletMap() {
             onEachFeature={onEachFeature}
           />
         )}
+        <SimulationOverlay simulationResult={simulationResult} geoData={geoData} />
       </MapContainer>
 
       {/* Indicator Selector */}
@@ -361,6 +421,12 @@ export default function LeafletMap() {
             <span className="w-4 h-3 rounded-sm inline-block" style={{ backgroundColor: NO_DATA_COLOR }} />
             <span className="text-xs text-gray-400">No data</span>
           </div>
+          {simulationResult && (
+            <div className="flex items-center gap-2 mt-1 pt-1 border-t">
+              <span className="w-4 h-3 rounded-sm inline-block border-2 border-dashed border-[#1B4F72]" />
+              <span className="text-xs text-blue-700 font-medium">Simulated</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

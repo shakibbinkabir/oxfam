@@ -271,17 +271,12 @@ export default function UnionDetailPanel({ feature, onClose }) {
           )}
 
           {/* Simulate Button */}
-          <div className="relative group">
-            <button
-              disabled
-              className="w-full py-2.5 text-sm font-medium rounded-md bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-            >
-              Simulate This Area
-            </button>
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Coming in v1.4
-            </div>
-          </div>
+          <button
+            onClick={() => mapCtx?.openSimulation(feature.pcode)}
+            className="w-full py-2.5 text-sm font-medium rounded-md bg-[#1B4F72] text-white hover:bg-[#154360] transition-colors"
+          >
+            Simulate This Area
+          </button>
 
           {/* Expand & Export */}
           <div className="space-y-2">
