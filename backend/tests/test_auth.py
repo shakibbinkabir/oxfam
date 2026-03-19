@@ -46,8 +46,9 @@ async def test_login_valid(client: AsyncClient):
     assert res.status_code == 200
     data = res.json()["data"]
     assert "access_token" in data
-    assert "refresh_token" in data
     assert data["user"]["email"] == email
+    # Refresh token is now in httpOnly cookie
+    assert "refresh_token" in res.cookies
 
 
 @pytest.mark.asyncio
@@ -81,7 +82,8 @@ async def test_me_without_token(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_token_refresh(client: AsyncClient):
+async def test_token_refresh_via_body(client: AsyncClient):
+    """Refresh using token in request body (backward compatibility)."""
     email = f"refresh_{uuid.uuid4().hex[:6]}@test.com"
     await client.post("/api/v1/auth/register", json={
         "email": email,
@@ -92,15 +94,53 @@ async def test_token_refresh(client: AsyncClient):
         "email": email,
         "password": "password123",
     })
-    refresh_token = login_res.json()["data"]["refresh_token"]
+    # Extract refresh token from cookie
+    refresh_token = login_res.cookies.get("refresh_token")
+    assert refresh_token is not None
 
+    # Send via body (backward compat)
     res = await client.post("/api/v1/auth/refresh", json={
         "refresh_token": refresh_token,
     })
     assert res.status_code == 200
     data = res.json()["data"]
     assert "access_token" in data
-    assert "refresh_token" in data
+
+
+@pytest.mark.asyncio
+async def test_token_refresh_via_cookie(client: AsyncClient):
+    """Refresh using httpOnly cookie (primary method)."""
+    email = f"refresh_cookie_{uuid.uuid4().hex[:6]}@test.com"
+    await client.post("/api/v1/auth/register", json={
+        "email": email,
+        "password": "password123",
+        "full_name": "Refresh Cookie User",
+    })
+    login_res = await client.post("/api/v1/auth/login", json={
+        "email": email,
+        "password": "password123",
+    })
+    refresh_token = login_res.cookies.get("refresh_token")
+    assert refresh_token is not None
+
+    # Send via cookie
+    res = await client.post(
+        "/api/v1/auth/refresh",
+        json={},
+        cookies={"refresh_token": refresh_token},
+    )
+    assert res.status_code == 200
+    data = res.json()["data"]
+    assert "access_token" in data
+    # New refresh token should be set in cookie
+    assert "refresh_token" in res.cookies
+
+
+@pytest.mark.asyncio
+async def test_logout(client: AsyncClient):
+    res = await client.post("/api/v1/auth/logout")
+    assert res.status_code == 200
+    assert res.json()["message"] == "Logged out successfully"
 
 
 @pytest.mark.asyncio

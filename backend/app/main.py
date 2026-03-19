@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -17,6 +18,8 @@ from app.api.exports import router as exports_router
 from app.api.audit import router as audit_router
 from app.scripts.seed_superadmin import seed_superadmin
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,12 +33,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS — parse origins and reject wildcards in production
+origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+if settings.ENVIRONMENT == "production" and "*" in origins:
+    logger.warning("CORS wildcard '*' is not allowed in production — ignoring")
+    origins = [o for o in origins if o != "*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS.split(","),
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(auth_router)

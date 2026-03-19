@@ -1,4 +1,4 @@
-.PHONY: setup dev test seed seed-geo seed-indicators migrate stop clean download-geodata nuke wait-db
+.PHONY: setup dev test seed seed-geo seed-indicators migrate stop clean download-geodata nuke wait-db backup restore prod
 
 # ========== ONE COMMAND TO RULE THEM ALL ==========
 # Destroys everything and rebuilds from scratch
@@ -94,3 +94,28 @@ stop:
 # Stop and remove volumes (full reset)
 clean:
 	docker compose down -v
+
+# ========== Production ==========
+
+# Production deployment
+prod:
+	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+	@echo Production services started.
+
+# Database backup (creates timestamped gzipped dump)
+backup:
+	@mkdir -p backups
+	docker compose exec db bash -c 'pg_dump -U postgres climatedb | gzip > /backups/climatedb_$$(date +%Y%m%d_%H%M%S).sql.gz'
+	@echo Backup created in ./backups/
+
+# Database restore (usage: make restore FILE=backups/climatedb_20260320.sql.gz)
+restore:
+	@test -n "$(FILE)" || (echo "Usage: make restore FILE=backups/<filename>.sql.gz" && exit 1)
+	@echo "Restoring from $(FILE)..."
+	docker compose exec -T db bash -c 'gunzip -c < /dev/stdin | psql -U postgres climatedb' < $(FILE)
+	@echo Restore complete.
+
+# SSL certificate setup (usage: make ssl DOMAIN=example.com EMAIL=admin@example.com)
+ssl:
+	@test -n "$(DOMAIN)" || (echo "Usage: make ssl DOMAIN=example.com EMAIL=admin@example.com" && exit 1)
+	bash scripts/init-ssl.sh $(DOMAIN) $(EMAIL)

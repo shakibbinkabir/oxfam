@@ -1,0 +1,66 @@
+# Production override — usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Prerequisites:
+#   1. Create secret files in ./secrets/ (see secrets/*.example)
+#   2. Run ./scripts/init-ssl.sh <domain> <email> for SSL certificates
+#   3. Set CORS_ORIGINS to your production domain
+
+services:
+  db:
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    ports: []  # No external DB access in production
+    secrets:
+      - db_password
+
+  backend:
+    build: ./backend
+    ports: []  # Accessed only via nginx
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/climatedb
+      CORS_ORIGINS: https://your-domain.com
+      ENVIRONMENT: production
+    secrets:
+      - jwt_secret
+      - superadmin_password
+      - db_password
+    volumes:
+      - ./data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    ports: []  # Served via nginx
+
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  superadmin_password:
+    file: ./secrets/superadmin_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
+
+volumes:
+  frontend_dist:

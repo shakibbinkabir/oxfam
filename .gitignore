@@ -27,6 +27,15 @@ frontend/dist/
 # Database
 pgdata/
 
+# Secrets (only .example files are tracked)
+secrets/*.txt
+
+# Backups
+backups/
+
+# SSL certificates
+certbot/
+
 # OS
 .DS_Store
 Thumbs.db
