@@ -4,3 +4,5 @@ from app.models.indicator import ClimateIndicator
 from app.models.unit import Unit
 from app.models.source import Source
 from app.models.indicator_value import IndicatorValue
+from app.models.indicator_reference import IndicatorReference
+from app.models.computed_score import ComputedScore
