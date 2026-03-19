@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { getIndicatorValuesByBoundary } from "../../api/indicators";
+import { exportPdf } from "../../api/exports";
 import useScores from "../../hooks/useScores";
 import useMapContext from "../../contexts/MapContext";
+import toast from "react-hot-toast";
 
 const COMPONENT_COLORS = {
   Hazard: "bg-red-50 border-red-200 text-red-700",
@@ -62,6 +64,25 @@ export default function UnionDetailPanel({ feature, onClose }) {
     setExpanded(false);
     setShowRawIndicators(false);
     setTimeout(onClose, 300);
+  }
+
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  async function handleExportPdf() {
+    setPdfLoading(true);
+    try {
+      const res = await exportPdf(feature.pcode);
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `CRVAP_Report_${feature.pcode}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to generate PDF report");
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
   function handleExportJson() {
@@ -155,12 +176,21 @@ export default function UnionDetailPanel({ feature, onClose }) {
             <h3 className="text-lg font-semibold text-gray-800">
               Raw Indicator Values ({indicatorsWithValue.length})
             </h3>
-            <button
-              onClick={handleExportJson}
-              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
-            >
-              Export as JSON
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportPdf}
+                disabled={pdfLoading}
+                className="px-3 py-1.5 bg-[#1B4F72] text-white rounded-md text-sm hover:bg-[#154360] disabled:opacity-50"
+              >
+                {pdfLoading ? "Generating..." : "Download PDF"}
+              </button>
+              <button
+                onClick={handleExportJson}
+                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50"
+              >
+                Export as JSON
+              </button>
+            </div>
           </div>
 
           {loadingIndicators ? (
@@ -285,6 +315,13 @@ export default function UnionDetailPanel({ feature, onClose }) {
               className="w-full py-2 text-sm text-[#1B4F72] font-medium hover:bg-gray-50 rounded-md border border-dashed border-gray-300 transition-colors"
             >
               See full details and all indicators
+            </button>
+            <button
+              onClick={handleExportPdf}
+              disabled={pdfLoading}
+              className="w-full py-2 px-4 bg-[#1B4F72] text-white rounded-md text-sm font-medium hover:bg-[#154360] disabled:opacity-50 transition-colors"
+            >
+              {pdfLoading ? "Generating PDF..." : "Download PDF Report"}
             </button>
             <button
               onClick={handleExportJson}

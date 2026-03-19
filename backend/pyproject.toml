@@ -22,6 +22,8 @@ python-multipart = "^0.0.9"
 geopandas = "^1.0.0"
 shapely = "^2.0.0"
 openpyxl = "^3.1.0"
+reportlab = "^4.1.0"
+fiona = "^1.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

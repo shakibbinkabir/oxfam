@@ -5,7 +5,8 @@ import {
   getSortedRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { listIndicatorValues, deleteIndicatorValue } from "../../api/indicators";
+import { listIndicatorValues, deleteIndicatorValue, restoreIndicatorValue } from "../../api/indicators";
+import { exportCsv } from "../../api/exports";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
 
@@ -30,7 +31,32 @@ export default function IndicatorValuesPage() {
   const [componentFilter, setComponentFilter] = useState("");
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState(null);
+  const [includeDeleted, setIncludeDeleted] = useState(false);
   const pageSize = 20;
+
+  async function handleExportCsv() {
+    try {
+      const res = await exportCsv({ level: 4 });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "crvap_export.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to export CSV");
+    }
+  }
+
+  async function handleRestore(id) {
+    try {
+      await restoreIndicatorValue(id);
+      toast.success("Value restored");
+      fetchData();
+    } catch {
+      toast.error("Failed to restore value");
+    }
+  }
 
   async function fetchData() {
     setLoading(true);
@@ -38,6 +64,7 @@ export default function IndicatorValuesPage() {
       const params = { skip: page * pageSize, limit: pageSize };
       if (componentFilter) params.component = componentFilter;
       if (search) params.search = search;
+      if (includeDeleted) params.include_deleted = true;
       const res = await listIndicatorValues(params);
       setData(res.data.data.values);
       setTotal(res.data.data.total);
@@ -50,7 +77,7 @@ export default function IndicatorValuesPage() {
 
   useEffect(() => {
     fetchData();
-  }, [page, componentFilter, search]);
+  }, [page, componentFilter, search, includeDeleted]);
 
   async function handleDelete() {
     if (!deleteId) return;
@@ -116,14 +143,26 @@ export default function IndicatorValuesPage() {
             {
               id: "actions",
               header: "Actions",
-              cell: ({ row }) => (
-                <button
-                  onClick={() => setDeleteId(row.original.id)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                >
-                  Delete
-                </button>
-              ),
+              cell: ({ row }) => {
+                if (row.original.is_deleted) {
+                  return (
+                    <button
+                      onClick={() => handleRestore(row.original.id)}
+                      className="text-purple-600 hover:text-purple-800 text-sm"
+                    >
+                      Restore
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    onClick={() => setDeleteId(row.original.id)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Delete
+                  </button>
+                );
+              },
             },
           ]
         : []),
@@ -146,7 +185,15 @@ export default function IndicatorValuesPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Indicator Values</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Indicator Values</h1>
+        <button
+          onClick={handleExportCsv}
+          className="px-4 py-2 border border-[#1B4F72] text-[#1B4F72] rounded-md text-sm font-medium hover:bg-[#1B4F72] hover:text-white transition-colors"
+        >
+          Export CSV
+        </button>
+      </div>
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-3 mb-4 items-center">
@@ -167,6 +214,17 @@ export default function IndicatorValuesPage() {
           onChange={(e) => { setSearch(e.target.value); setPage(0); }}
           className="px-3 py-1.5 border border-gray-300 rounded-md text-sm flex-1 min-w-[200px]"
         />
+        {isAdmin && (
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeDeleted}
+              onChange={(e) => { setIncludeDeleted(e.target.checked); setPage(0); }}
+              className="rounded border-gray-300"
+            />
+            Show deleted
+          </label>
+        )}
       </div>
 
       {/* Table */}
@@ -206,9 +264,9 @@ export default function IndicatorValuesPage() {
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
+                <tr key={row.id} className={`hover:bg-gray-50 ${row.original.is_deleted ? "opacity-50" : ""}`}>
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 text-gray-700">
+                    <td key={cell.id} className={`px-4 py-3 text-gray-700 ${row.original.is_deleted ? "line-through" : ""}`}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}

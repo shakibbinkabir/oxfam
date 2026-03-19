@@ -152,6 +152,7 @@ async def load_indicator_values(db: AsyncSession, boundary_pcode: str) -> dict:
         )
         .join(ClimateIndicator, IndicatorValue.indicator_id == ClimateIndicator.id)
         .where(IndicatorValue.boundary_pcode == boundary_pcode)
+        .where(IndicatorValue.is_deleted == False)
     )
     rows = result.all()
     return {

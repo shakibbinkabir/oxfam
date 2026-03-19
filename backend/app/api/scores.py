@@ -165,6 +165,8 @@ async def get_scores_map_geojson(
     current_user: User = Depends(get_current_user),
 ):
     """Return GeoJSON FeatureCollection with score properties for choropleth rendering."""
+    from sqlalchemy.orm import aliased
+
     SIMPLIFY_TOLERANCE = {1: 0.01, 2: 0.005, 3: 0.002, 4: 0}
     tolerance = SIMPLIFY_TOLERANCE.get(level, 0)
 
@@ -173,30 +175,117 @@ async def get_scores_map_geojson(
     else:
         geom_col = func.ST_AsGeoJSON(AdminBoundary.geom)
 
-    query = (
-        select(
-            AdminBoundary.name_en,
-            AdminBoundary.pcode,
-            AdminBoundary.adm_level,
-            AdminBoundary.parent_pcode,
-            AdminBoundary.division_name,
-            AdminBoundary.district_name,
-            AdminBoundary.upazila_name,
-            AdminBoundary.area_sq_km,
-            func.ST_X(AdminBoundary.centroid).label("centroid_lon"),
-            func.ST_Y(AdminBoundary.centroid).label("centroid_lat"),
-            geom_col.label("geojson"),
-            ComputedScore.hazard_score,
-            ComputedScore.soc_exposure_score,
-            ComputedScore.sensitivity_score,
-            ComputedScore.adaptive_capacity_score,
-            ComputedScore.exposure_score,
-            ComputedScore.vulnerability_score,
-            ComputedScore.cri_score,
+    if level == 4:
+        # For unions: direct join to ComputedScore
+        query = (
+            select(
+                AdminBoundary.name_en,
+                AdminBoundary.pcode,
+                AdminBoundary.adm_level,
+                AdminBoundary.parent_pcode,
+                AdminBoundary.division_name,
+                AdminBoundary.district_name,
+                AdminBoundary.upazila_name,
+                AdminBoundary.area_sq_km,
+                func.ST_X(AdminBoundary.centroid).label("centroid_lon"),
+                func.ST_Y(AdminBoundary.centroid).label("centroid_lat"),
+                geom_col.label("geojson"),
+                ComputedScore.hazard_score,
+                ComputedScore.soc_exposure_score,
+                ComputedScore.sensitivity_score,
+                ComputedScore.adaptive_capacity_score,
+                ComputedScore.exposure_score,
+                ComputedScore.vulnerability_score,
+                ComputedScore.cri_score,
+            )
+            .outerjoin(ComputedScore, AdminBoundary.pcode == ComputedScore.boundary_pcode)
+            .where(AdminBoundary.adm_level == 4)
         )
-        .outerjoin(ComputedScore, AdminBoundary.pcode == ComputedScore.boundary_pcode)
-        .where(AdminBoundary.adm_level == level)
-    )
+    else:
+        # For levels 1-3: aggregate child union scores via subquery.
+        # Traverse the parent_pcode chain from unions up to the target level:
+        #   Level 3 (upazila): group by union.parent_pcode (= upazila pcode)
+        #   Level 2 (district): join union→upazila, group by upazila.parent_pcode (= district pcode)
+        #   Level 1 (division): join union→upazila→district, group by district.parent_pcode (= division pcode)
+        UnionBnd = aliased(AdminBoundary, name="union_bnd")
+
+        score_avgs = [
+            func.avg(ComputedScore.hazard_score).label("hazard_score"),
+            func.avg(ComputedScore.soc_exposure_score).label("soc_exposure_score"),
+            func.avg(ComputedScore.sensitivity_score).label("sensitivity_score"),
+            func.avg(ComputedScore.adaptive_capacity_score).label("adaptive_capacity_score"),
+            func.avg(ComputedScore.exposure_score).label("exposure_score"),
+            func.avg(ComputedScore.vulnerability_score).label("vulnerability_score"),
+            func.avg(ComputedScore.cri_score).label("cri_score"),
+        ]
+
+        if level == 3:
+            # Union's parent_pcode IS the upazila pcode
+            agg_sub = (
+                select(
+                    UnionBnd.parent_pcode.label("parent_pcode_key"),
+                    *score_avgs,
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(UnionBnd.parent_pcode)
+            ).subquery("agg")
+        elif level == 2:
+            # Union → Upazila (via parent_pcode), group by upazila.parent_pcode = district pcode
+            UpazilaAlias = aliased(AdminBoundary, name="upazila_bnd")
+            agg_sub = (
+                select(
+                    UpazilaAlias.parent_pcode.label("parent_pcode_key"),
+                    *score_avgs,
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .join(UpazilaAlias, UnionBnd.parent_pcode == UpazilaAlias.pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(UpazilaAlias.parent_pcode)
+            ).subquery("agg")
+        else:  # level == 1
+            # Union → Upazila → District (via parent_pcode chain), group by district.parent_pcode = division pcode
+            UpazilaAlias = aliased(AdminBoundary, name="upazila_bnd")
+            DistrictAlias = aliased(AdminBoundary, name="district_bnd")
+            agg_sub = (
+                select(
+                    DistrictAlias.parent_pcode.label("parent_pcode_key"),
+                    *score_avgs,
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .join(UpazilaAlias, UnionBnd.parent_pcode == UpazilaAlias.pcode)
+                .join(DistrictAlias, UpazilaAlias.parent_pcode == DistrictAlias.pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(DistrictAlias.parent_pcode)
+            ).subquery("agg")
+
+        query = (
+            select(
+                AdminBoundary.name_en,
+                AdminBoundary.pcode,
+                AdminBoundary.adm_level,
+                AdminBoundary.parent_pcode,
+                AdminBoundary.division_name,
+                AdminBoundary.district_name,
+                AdminBoundary.upazila_name,
+                AdminBoundary.area_sq_km,
+                func.ST_X(AdminBoundary.centroid).label("centroid_lon"),
+                func.ST_Y(AdminBoundary.centroid).label("centroid_lat"),
+                geom_col.label("geojson"),
+                agg_sub.c.hazard_score,
+                agg_sub.c.soc_exposure_score,
+                agg_sub.c.sensitivity_score,
+                agg_sub.c.adaptive_capacity_score,
+                agg_sub.c.exposure_score,
+                agg_sub.c.vulnerability_score,
+                agg_sub.c.cri_score,
+            )
+            .outerjoin(agg_sub, AdminBoundary.pcode == agg_sub.c.parent_pcode_key)
+            .where(AdminBoundary.adm_level == level)
+        )
 
     if parent_pcode:
         query = query.where(AdminBoundary.parent_pcode == parent_pcode)
