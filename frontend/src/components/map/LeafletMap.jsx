@@ -12,7 +12,7 @@ const SCORE_COLORS = [
   { min: 0.8, max: 1.0, color: "#8B0000", label: "Very High" },
 ];
 
-const NO_DATA_COLOR = "#D5D8DC";
+const NO_DATA_COLOR = "#A6ACAF";
 
 const INDICATOR_OPTIONS = [
   { value: "cri", label: "CRI" },
@@ -57,7 +57,8 @@ function getFeatureStyle(feature) {
     weight,
     opacity: 1,
     color: "#fff",
-    fillOpacity: score != null ? 0.7 : 0.3,
+    fillOpacity: score != null ? 0.7 : 0.5,
+    dashArray: score == null ? "4 4" : "",
   };
 }
 
