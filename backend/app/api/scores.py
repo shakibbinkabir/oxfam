@@ -202,37 +202,65 @@ async def get_scores_map_geojson(
             .where(AdminBoundary.adm_level == 4)
         )
     else:
-        # For levels 1-3: aggregate child union scores via subquery
-        ChildBoundary = aliased(AdminBoundary)
+        # For levels 1-3: aggregate child union scores via subquery.
+        # Traverse the parent_pcode chain from unions up to the target level:
+        #   Level 3 (upazila): group by union.parent_pcode (= upazila pcode)
+        #   Level 2 (district): join union→upazila, group by upazila.parent_pcode (= district pcode)
+        #   Level 1 (division): join union→upazila→district, group by district.parent_pcode (= division pcode)
+        UnionBnd = aliased(AdminBoundary, name="union_bnd")
 
-        # Build the pcode matching condition based on level
-        # Level 3 (upazila): child unions have parent_pcode = upazila pcode
-        # Level 2 (district): child unions' pcode starts with district pcode prefix (4 chars)
-        # Level 1 (division): child unions' pcode starts with division pcode prefix (2 chars)
+        score_avgs = [
+            func.avg(ComputedScore.hazard_score).label("hazard_score"),
+            func.avg(ComputedScore.soc_exposure_score).label("soc_exposure_score"),
+            func.avg(ComputedScore.sensitivity_score).label("sensitivity_score"),
+            func.avg(ComputedScore.adaptive_capacity_score).label("adaptive_capacity_score"),
+            func.avg(ComputedScore.exposure_score).label("exposure_score"),
+            func.avg(ComputedScore.vulnerability_score).label("vulnerability_score"),
+            func.avg(ComputedScore.cri_score).label("cri_score"),
+        ]
+
         if level == 3:
-            child_match = ChildBoundary.parent_pcode == AdminBoundary.pcode
+            # Union's parent_pcode IS the upazila pcode
+            agg_sub = (
+                select(
+                    UnionBnd.parent_pcode.label("parent_pcode_key"),
+                    *score_avgs,
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(UnionBnd.parent_pcode)
+            ).subquery("agg")
         elif level == 2:
-            child_match = ChildBoundary.pcode.like(func.concat(func.substr(AdminBoundary.pcode, 1, 4), "%"))
+            # Union → Upazila (via parent_pcode), group by upazila.parent_pcode = district pcode
+            UpazilaAlias = aliased(AdminBoundary, name="upazila_bnd")
+            agg_sub = (
+                select(
+                    UpazilaAlias.parent_pcode.label("parent_pcode_key"),
+                    *score_avgs,
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .join(UpazilaAlias, UnionBnd.parent_pcode == UpazilaAlias.pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(UpazilaAlias.parent_pcode)
+            ).subquery("agg")
         else:  # level == 1
-            child_match = ChildBoundary.pcode.like(func.concat(func.substr(AdminBoundary.pcode, 1, 2), "%"))
-
-        # Subquery to aggregate child union scores
-        agg_sub = (
-            select(
-                AdminBoundary.pcode.label("parent_pcode_key"),
-                func.avg(ComputedScore.hazard_score).label("hazard_score"),
-                func.avg(ComputedScore.soc_exposure_score).label("soc_exposure_score"),
-                func.avg(ComputedScore.sensitivity_score).label("sensitivity_score"),
-                func.avg(ComputedScore.adaptive_capacity_score).label("adaptive_capacity_score"),
-                func.avg(ComputedScore.exposure_score).label("exposure_score"),
-                func.avg(ComputedScore.vulnerability_score).label("vulnerability_score"),
-                func.avg(ComputedScore.cri_score).label("cri_score"),
-            )
-            .join(ChildBoundary, (ChildBoundary.adm_level == 4) & child_match)
-            .join(ComputedScore, ChildBoundary.pcode == ComputedScore.boundary_pcode)
-            .where(AdminBoundary.adm_level == level)
-            .group_by(AdminBoundary.pcode)
-        ).subquery("agg")
+            # Union → Upazila → District (via parent_pcode chain), group by district.parent_pcode = division pcode
+            UpazilaAlias = aliased(AdminBoundary, name="upazila_bnd")
+            DistrictAlias = aliased(AdminBoundary, name="district_bnd")
+            agg_sub = (
+                select(
+                    DistrictAlias.parent_pcode.label("parent_pcode_key"),
+                    *score_avgs,
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .join(UpazilaAlias, UnionBnd.parent_pcode == UpazilaAlias.pcode)
+                .join(DistrictAlias, UpazilaAlias.parent_pcode == DistrictAlias.pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(DistrictAlias.parent_pcode)
+            ).subquery("agg")
 
         query = (
             select(
