@@ -1,22 +1,32 @@
-import { useState } from "react";
+import { MapProvider } from "../../contexts/MapContext";
+import useMapContext from "../../contexts/MapContext";
 import LeafletMap from "./LeafletMap";
 import UnionDetailPanel from "./UnionDetailPanel";
+import KPISummaryBar from "./KPISummaryBar";
 
-export default function MapPage() {
-  const [selectedFeature, setSelectedFeature] = useState(null);
+function MapContent() {
+  const { selectedFeature, clearSelection } = useMapContext();
 
   return (
-    <div className="relative w-full h-full">
-      <LeafletMap
-        onFeatureClick={setSelectedFeature}
-        selectedPcode={selectedFeature?.pcode || null}
-      />
-      {selectedFeature && (
-        <UnionDetailPanel
-          feature={selectedFeature}
-          onClose={() => setSelectedFeature(null)}
-        />
-      )}
+    <div className="flex flex-col w-full h-full">
+      <KPISummaryBar />
+      <div className="relative flex-1 min-h-0">
+        <LeafletMap />
+        {selectedFeature && (
+          <UnionDetailPanel
+            feature={selectedFeature}
+            onClose={clearSelection}
+          />
+        )}
+      </div>
     </div>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <MapProvider>
+      <MapContent />
+    </MapProvider>
   );
 }

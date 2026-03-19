@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getIndicatorValuesByBoundary } from "../../api/indicators";
 import useScores from "../../hooks/useScores";
+import useMapContext from "../../contexts/MapContext";
 
 const COMPONENT_COLORS = {
   Hazard: "bg-red-50 border-red-200 text-red-700",
@@ -31,6 +32,9 @@ export default function UnionDetailPanel({ feature, onClose }) {
   const [loadingIndicators, setLoadingIndicators] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showRawIndicators, setShowRawIndicators] = useState(false);
+
+  let mapCtx = null;
+  try { mapCtx = useMapContext(); } catch { /* ok if not in provider */ }
 
   const { scores, loading: loadingScores } = useScores(feature?.pcode);
 
@@ -92,23 +96,26 @@ export default function UnionDetailPanel({ feature, onClose }) {
   if (expanded) {
     return (
       <div className="fixed inset-0 z-[1002] bg-white overflow-y-auto">
-        <div className="sticky top-0 z-10 bg-[#1B4F72] text-white px-6 py-4 flex items-center justify-between shadow-md">
-          <button
-            onClick={() => setExpanded(false)}
-            className="px-3 py-1.5 text-sm bg-[#154360] hover:bg-[#0E2F44] rounded-md transition-colors flex items-center gap-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18l6-6-6-6" />
-            </svg>
-            Collapse
-          </button>
-          <h2 className="text-lg font-semibold truncate mx-4">{feature.name_en}</h2>
-          <button
-            onClick={handleClose}
-            className="px-3 py-1.5 text-sm bg-[#154360] hover:bg-[#0E2F44] rounded-md transition-colors"
-          >
-            Close
-          </button>
+        <div className="sticky top-0 z-10 bg-[#1B4F72] text-white shadow-md">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <button
+              onClick={() => setExpanded(false)}
+              className="px-3 py-1.5 text-sm bg-[#154360] hover:bg-[#0E2F44] rounded-md transition-colors flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 18l6-6-6-6" />
+              </svg>
+              Collapse
+            </button>
+            <h2 className="text-lg font-semibold truncate mx-4">{feature.name_en}</h2>
+            <button
+              onClick={handleClose}
+              className="px-3 py-1.5 text-sm bg-[#154360] hover:bg-[#0E2F44] rounded-md transition-colors"
+            >
+              Close
+            </button>
+          </div>
+          <Breadcrumb feature={feature} mapCtx={mapCtx} />
         </div>
 
         <div className="max-w-5xl mx-auto p-6">
@@ -189,25 +196,28 @@ export default function UnionDetailPanel({ feature, onClose }) {
           visible ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-[#1B4F72] text-white">
-          <button
-            onClick={() => setExpanded(true)}
-            className="p-1 hover:bg-[#154360] rounded transition-colors"
-            title="Expand"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
-          <h2 className="text-lg font-semibold truncate mx-2 flex-1 text-center">{feature.name_en}</h2>
-          <button
-            onClick={handleClose}
-            className="p-1 hover:bg-[#154360] rounded transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+        <div className="border-b border-gray-200 bg-[#1B4F72] text-white">
+          <div className="p-4 flex items-center justify-between">
+            <button
+              onClick={() => setExpanded(true)}
+              className="p-1 hover:bg-[#154360] rounded transition-colors"
+              title="Expand"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </button>
+            <h2 className="text-lg font-semibold truncate mx-2 flex-1 text-center">{feature.name_en}</h2>
+            <button
+              onClick={handleClose}
+              className="p-1 hover:bg-[#154360] rounded transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <Breadcrumb feature={feature} mapCtx={mapCtx} />
         </div>
 
         <div className="p-4 space-y-4">
@@ -259,6 +269,19 @@ export default function UnionDetailPanel({ feature, onClose }) {
               )}
             </div>
           )}
+
+          {/* Simulate Button */}
+          <div className="relative group">
+            <button
+              disabled
+              className="w-full py-2.5 text-sm font-medium rounded-md bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+            >
+              Simulate This Area
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Coming in v1.4
+            </div>
+          </div>
 
           {/* Expand & Export */}
           <div className="space-y-2">
@@ -316,6 +339,11 @@ function CRIScoreCard({ scores, loading, compact = false }) {
             {category}
           </div>
         </div>
+        {scores.rank && (
+          <div className="mt-1 text-xs text-gray-500">
+            Ranked {scores.rank} of {scores.rank_total}
+          </div>
+        )}
       </div>
     );
   }
@@ -329,6 +357,11 @@ function CRIScoreCard({ scores, loading, compact = false }) {
             {scores.cri.toFixed(3)}
           </div>
           <div className="text-sm text-gray-500 mt-1">Score range: 0.000 (lowest) to 1.000 (highest risk)</div>
+          {scores.rank && (
+            <div className="text-sm text-gray-600 mt-1 font-medium">
+              Ranked {scores.rank} of {scores.rank_total}
+            </div>
+          )}
         </div>
         <div className={`px-4 py-2 rounded-full text-lg font-bold ${colors.bg} ${colors.text} border ${colors.text.replace("text", "border")}`}>
           {category}
@@ -473,6 +506,48 @@ function getDimensionForCode(gisId) {
   return "Other";
 }
 
+
+function Breadcrumb({ feature, mapCtx }) {
+  const crumbs = [];
+  if (feature.division_name) crumbs.push({ label: feature.division_name, level: 1 });
+  if (feature.district_name) crumbs.push({ label: feature.district_name, level: 2 });
+  if (feature.upazila_name) crumbs.push({ label: feature.upazila_name, level: 3 });
+  crumbs.push({ label: feature.name_en, level: feature.adm_level, current: true });
+
+  // Deduplicate (if name_en equals last hierarchy name)
+  const unique = [];
+  const seen = new Set();
+  for (const c of crumbs) {
+    const key = `${c.label}-${c.level}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(c);
+    }
+  }
+
+  return (
+    <div className="px-4 pb-2 flex items-center gap-1 text-xs text-white/60 overflow-x-auto">
+      {unique.map((c, i) => (
+        <span key={i} className="flex items-center gap-1 shrink-0">
+          {i > 0 && <span className="text-white/30">&rsaquo;</span>}
+          {c.current ? (
+            <span className="text-white/90 font-medium">{c.label}</span>
+          ) : (
+            <button
+              onClick={() => mapCtx?.resetView()}
+              className="hover:text-white/80 transition-colors"
+            >
+              {c.label}
+            </button>
+          )}
+        </span>
+      ))}
+      {feature.area_sq_km && (
+        <span className="ml-auto text-white/40 shrink-0">{feature.area_sq_km.toFixed(1)} km²</span>
+      )}
+    </div>
+  );
+}
 
 function InfoRow({ label, value }) {
   return (
