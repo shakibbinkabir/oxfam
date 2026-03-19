@@ -279,7 +279,7 @@ export default function SimulationModal() {
       <div className="absolute inset-0 bg-black/40" onClick={closeSimulation} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-[95vw] max-w-[900px] max-h-[90vh] flex flex-col">
+      <div className="relative bg-white rounded-xl shadow-2xl w-[95vw] max-w-[900px] md:w-[90vw] max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" aria-label={`${t('sim.title')} - ${boundaryName}`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-[#1B4F72] text-white rounded-t-xl">
           <div>

@@ -77,6 +77,9 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -105,7 +108,7 @@ export default function DashboardLayout() {
             </svg>
           </button>
         </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto" role="navigation" aria-label="Main navigation">
           {/* Dashboard (Map) */}
           <NavLink
             to="/dashboard"
@@ -233,7 +236,7 @@ export default function DashboardLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile header */}
-        <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+        <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3" role="banner">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-1 hover:bg-gray-100 rounded"
@@ -245,7 +248,7 @@ export default function DashboardLayout() {
           <span className="text-sm font-semibold text-[#1B4F72]">{t('app.mobileTitle')}</span>
         </header>
 
-        <main className="flex-1 overflow-auto">
+        <main id="main-content" role="main" className="flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>

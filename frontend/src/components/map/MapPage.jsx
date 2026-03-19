@@ -11,6 +11,9 @@ function MapContent() {
   return (
     <div className="flex flex-col w-full h-full">
       <KPISummaryBar />
+      <div aria-live="polite" aria-atomic="true" className="sr-only" id="map-status">
+        {selectedFeature ? `Selected: ${selectedFeature.name_en}` : ""}
+      </div>
       <div className="relative flex-1 min-h-0">
         <LeafletMap />
         {selectedFeature && (

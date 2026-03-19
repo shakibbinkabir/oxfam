@@ -227,6 +227,8 @@ export default function UnionDetailPanel({ feature, onClose }) {
         className={`fixed top-0 right-0 h-full w-96 bg-white shadow-lg z-[1001] overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           visible ? "translate-x-0" : "translate-x-full"
         }`}
+        role="complementary"
+        aria-label="Area detail panel"
       >
         <div className="border-b border-gray-200 bg-[#1B4F72] text-white">
           <div className="p-4 flex items-center justify-between">
@@ -419,7 +421,7 @@ function DimensionBarCharts({ scores, loading, compact = false, t }) {
         if (value == null) return null;
         const pct = Math.max(0, Math.min(100, value * 100));
         return (
-          <div key={key}>
+          <div key={key} aria-label={`${t('dimensions.' + key)}: ${value.toFixed(3)}`}>
             <div className="flex justify-between items-center mb-1">
               <span className={`${compact ? "text-xs" : "text-sm"} font-medium text-gray-700`}>{t('dimensions.' + key)}</span>
               <span className={`${compact ? "text-xs" : "text-sm"} font-bold text-gray-800`}>{value.toFixed(3)}</span>
