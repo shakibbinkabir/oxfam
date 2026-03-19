@@ -1,8 +1,6 @@
 """Tests for v1.5 features: wizard, exports, soft-delete, audit trail."""
 
-import uuid
 import pytest
-import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -117,7 +115,7 @@ class TestSoftDelete:
         assert response.status_code == 200
 
         await db_session.refresh(iv)
-        assert iv.is_deleted == True
+        assert iv.is_deleted
         assert iv.deleted_at is not None
 
     async def test_restore_clears_is_deleted(self, db_session: AsyncSession, admin_token, client):
