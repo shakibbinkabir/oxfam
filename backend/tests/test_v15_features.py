@@ -27,7 +27,7 @@ class TestSoftDeleteModel:
             boundary_pcode="TEST01",
             value=1.0,
         )
-        assert iv.is_deleted == False
+        assert not iv.is_deleted
         assert iv.deleted_at is None
 
 
@@ -136,7 +136,7 @@ class TestSoftDelete:
         assert response.status_code == 200
 
         await db_session.refresh(iv)
-        assert iv.is_deleted == False
+        assert not iv.is_deleted
         assert iv.deleted_at is None
 
 
