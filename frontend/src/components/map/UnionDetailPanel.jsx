@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { getIndicatorValuesByBoundary } from "../../api/indicators";
 import { exportPdf } from "../../api/exports";
 import useScores from "../../hooks/useScores";
-import useMapContext from "../../contexts/MapContext";
+import { MapContext } from "../../contexts/MapContext";
 import toast from "react-hot-toast";
 
 const COMPONENT_COLORS = {
@@ -37,8 +37,7 @@ export default function UnionDetailPanel({ feature, onClose }) {
   const [expanded, setExpanded] = useState(false);
   const [showRawIndicators, setShowRawIndicators] = useState(false);
 
-  let mapCtx = null;
-  try { mapCtx = useMapContext(); } catch { /* ok if not in provider */ }
+  const mapCtx = useContext(MapContext);
 
   const { scores, loading: loadingScores } = useScores(feature?.pcode);
 
@@ -416,7 +415,7 @@ function DimensionBarCharts({ scores, loading, compact = false, t }) {
       <h3 className={`${compact ? "text-xs" : "text-sm"} font-semibold text-gray-500 uppercase tracking-wider`}>
         {t('detail.dimensionScores')}
       </h3>
-      {DIMENSION_LABELS.map(({ key, label, color }) => {
+      {DIMENSION_LABELS.map(({ key, color }) => {
         const value = scores[key];
         if (value == null) return null;
         const pct = Math.max(0, Math.min(100, value * 100));

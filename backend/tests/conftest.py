@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 from typing import AsyncGenerator
 
@@ -17,15 +16,14 @@ from app.api.auth import hash_password, create_tokens
 # Use a test database URL (same DB with test_ prefix or override via env)
 TEST_DATABASE_URL = settings.DATABASE_URL
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine = create_async_engine(
+    TEST_DATABASE_URL,
+    echo=False,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+)
 TestSession = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -36,6 +34,7 @@ async def setup_db():
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
 
 
 @pytest_asyncio.fixture

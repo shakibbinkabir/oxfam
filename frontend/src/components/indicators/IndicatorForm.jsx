@@ -72,7 +72,7 @@ export default function IndicatorForm({ indicator, onClose, onSaved }) {
       };
 
       if (isEdit) {
-        const { code, ...updateData } = payload;
+        const { code: _code, ...updateData } = payload;
         await updateIndicator(indicator.id, updateData);
         toast.success("Indicator updated");
       } else {

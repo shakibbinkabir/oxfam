@@ -175,13 +175,13 @@ export default function LeafletMap() {
   const {
     level, indicator, selectedPcode, parentPcode,
     canDrillDown, canDrillUp,
-    setIndicator, selectFeature, clearSelection, drillDown, drillUp, resetView,
+    setIndicator, selectFeature, clearSelection: _clearSelection, drillDown, drillUp, resetView,
     simulationResult,
   } = useMapContext();
 
   const LEGEND_KEYS = { "Very Low": "legend.veryLow", "Low": "legend.low", "Medium": "legend.medium", "High": "legend.high", "Very High": "legend.veryHigh" };
 
-  const [bounds, setBounds] = useState(null);
+  const [_bounds, setBounds] = useState(null);
   const [tileLayer, setTileLayer] = useState("osm");
   const [showLayerMenu, setShowLayerMenu] = useState(false);
   const selectedLayerRef = useRef(null);
@@ -191,6 +191,7 @@ export default function LeafletMap() {
 
   const [geoKey, setGeoKey] = useState(0);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (geoData) setGeoKey((prev) => prev + 1);
   }, [geoData]);
 
