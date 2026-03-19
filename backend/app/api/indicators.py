@@ -27,6 +27,7 @@ from app.schemas.indicator import (
     IndicatorValueUpdate,
 )
 from app.services.audit import create_audit_log
+from app.api.websocket import broadcast_event
 
 router = APIRouter(prefix="/api/v1/indicators", tags=["indicators"])
 
@@ -319,6 +320,11 @@ async def submit_indicator_value(
         request=request,
     )
 
+    await broadcast_event("indicator_value_changed", {
+        "boundary_pcode": req.boundary_pcode,
+        "indicator_id": req.indicator_id,
+    })
+
     return envelope(
         data={
             "id": iv.id,
@@ -500,6 +506,12 @@ async def bulk_upload_indicator_values(
         request=request,
     )
 
+    if created > 0 or updated > 0:
+        await broadcast_event("bulk_upload_complete", {
+            "created": created,
+            "updated": updated,
+        })
+
     return envelope(
         data={"created": created, "updated": updated, "errors": errors, "warnings": warnings},
         message=f"Bulk upload complete: {created} created, {updated} updated, {len(errors)} errors, {len(warnings)} warnings",
@@ -533,6 +545,11 @@ async def delete_indicator_value(
         old_values={"indicator_id": iv.indicator_id, "boundary_pcode": iv.boundary_pcode, "value": iv.value},
         request=request,
     )
+
+    await broadcast_event("indicator_value_changed", {
+        "boundary_pcode": iv.boundary_pcode,
+        "action": "delete",
+    })
 
     return envelope(message="Indicator value deleted successfully")
 
@@ -568,6 +585,11 @@ async def restore_indicator_value(
         new_values={"indicator_id": iv.indicator_id, "boundary_pcode": iv.boundary_pcode, "value": iv.value},
         request=request,
     )
+
+    await broadcast_event("indicator_value_changed", {
+        "boundary_pcode": iv.boundary_pcode,
+        "action": "restore",
+    })
 
     return envelope(message="Indicator value restored successfully")
 

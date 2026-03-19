@@ -2,6 +2,26 @@
 
 All notable changes to CRVAP are documented in this file.
 
+## [2.1.0] - 2026-03-20 — PRD Completion
+
+### Added
+- WebSocket broadcast on all data mutations (indicator create/update/delete/restore, risk index save, bulk upload)
+- File preview table for CSV uploads before processing (column detection, first 10 rows)
+- Per-area CSV export from detail side panel (replaces JSON export)
+- Noto Sans Bengali web font import for consistent Bangla rendering
+- New i18n keys for file preview, CSV export, and upload subtitles (EN + BN)
+
+### Changed
+- Detail side panel now renders full-width on mobile as a full-screen drawer
+- Map view hides on mobile when detail panel is open (collapses per PRD spec)
+- Bulk uploader shows data preview step with detected columns before upload
+- Side panel export changed from JSON to CSV format per PRD requirement
+- Frontend build adds Tailwind `lg:` breakpoints for responsive map/panel behavior
+
+### Fixed
+- WebSocket `broadcast_event()` was defined but never called from data mutation endpoints
+- Mobile viewport had overlapping map and side panel instead of collapsing
+
 ## [2.0.0] - 2026-03-20 — Production Launch
 
 ### Added

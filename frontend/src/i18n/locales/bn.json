@@ -120,6 +120,7 @@
     "fullDetails": "সম্পূর্ণ বিবরণ এবং সকল সূচক দেখুন",
     "downloadPdf": "PDF প্রতিবেদন ডাউনলোড",
     "generatingPdf": "PDF তৈরি হচ্ছে...",
+    "exportCsv": "CSV রপ্তানি",
     "exportJson": "JSON হিসেবে রপ্তানি",
     "rawIndicatorValues": "কাঁচা সূচক মান",
     "downloadPdfShort": "PDF ডাউনলোড",
@@ -369,7 +370,13 @@
     "uploadFile": "ফাইল আপলোড",
     "uploadSuccess": "সফলভাবে আপলোড: {{inserted}} সন্নিবেশিত, {{updated}} আপডেটকৃত",
     "uploadWarnings": "{{errors}} ত্রুটি সহ আপলোড",
-    "downloadErrorReport": "ত্রুটি প্রতিবেদন ডাউনলোড"
+    "downloadErrorReport": "ত্রুটি প্রতিবেদন ডাউনলোড",
+    "previewTitle": "ফাইল প্রিভিউ",
+    "previewShowing": "{{total}} সারির মধ্যে {{shown}} দেখানো হচ্ছে",
+    "previewColumns": "সনাক্তকৃত কলাম",
+    "xlsxPreviewNote": "Excel ফাইল সনাক্ত হয়েছে। প্রিভিউ শুধুমাত্র CSV ফাইলের জন্য উপলব্ধ। আপলোডের সময় ফাইলটি যাচাই করা হবে।",
+    "created": "তৈরি",
+    "subtitle": "CSV বা Excel ফাইল থেকে বাল্কে সূচক মান আপলোড করুন।"
   },
   "submitIndicator": {
     "title": "সূচক মান জমা দিন",

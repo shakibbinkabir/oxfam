@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Bangladesh Climate Risk Assessment Platform",
-    version="2.0.0",
+    version="2.1.0",
     lifespan=lifespan,
 )
 
