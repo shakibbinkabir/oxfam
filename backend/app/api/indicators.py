@@ -1,8 +1,9 @@
 import csv
 import io
+from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,7 @@ from app.api.deps import get_current_user, require_role
 from app.database import get_db
 from app.models.boundary import AdminBoundary
 from app.models.indicator import ClimateIndicator
+from app.models.indicator_reference import IndicatorReference
 from app.models.indicator_value import IndicatorValue
 from app.models.source import Source
 from app.models.unit import Unit
@@ -24,6 +26,7 @@ from app.schemas.indicator import (
     IndicatorValueResponse,
     IndicatorValueUpdate,
 )
+from app.services.audit import create_audit_log
 
 router = APIRouter(prefix="/api/v1/indicators", tags=["indicators"])
 
@@ -55,7 +58,7 @@ def indicator_to_response(ind: ClimateIndicator) -> dict:
 
 @router.get("/export")
 async def export_indicators(
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -96,6 +99,7 @@ async def list_indicator_values(
     component: Optional[str] = Query(None),
     boundary_pcode: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    include_deleted: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
@@ -110,6 +114,8 @@ async def list_indicator_values(
             IndicatorValue.value,
             IndicatorValue.source_id,
             IndicatorValue.submitted_by,
+            IndicatorValue.is_deleted,
+            IndicatorValue.deleted_at,
             IndicatorValue.created_at,
             IndicatorValue.updated_at,
             ClimateIndicator.indicator_name,
@@ -130,6 +136,10 @@ async def list_indicator_values(
         select(func.count(IndicatorValue.id))
         .join(ClimateIndicator, IndicatorValue.indicator_id == ClimateIndicator.id)
     )
+
+    if not include_deleted:
+        query = query.where(IndicatorValue.is_deleted == False)
+        count_query = count_query.where(IndicatorValue.is_deleted == False)
 
     if indicator_id:
         query = query.where(IndicatorValue.indicator_id == indicator_id)
@@ -170,6 +180,8 @@ async def list_indicator_values(
             "indicator_code": row.code,
             "component": row.component,
             "subcategory": row.subcategory,
+            "is_deleted": row.is_deleted,
+            "deleted_at": row.deleted_at.isoformat() if row.deleted_at else None,
             "submitted_by": str(row.submitted_by) if row.submitted_by else None,
             "created_at": row.created_at.isoformat(),
             "updated_at": row.updated_at.isoformat(),
@@ -223,6 +235,7 @@ async def get_indicator_values_for_boundary(
         .join(ClimateIndicator, IndicatorValue.indicator_id == ClimateIndicator.id)
         .outerjoin(Source, IndicatorValue.source_id == Source.id)
         .where(IndicatorValue.boundary_pcode == pcode)
+        .where(IndicatorValue.is_deleted == False)
         .order_by(ClimateIndicator.component, ClimateIndicator.subcategory, ClimateIndicator.id)
     )
     rows = result.all()
@@ -251,6 +264,7 @@ async def get_indicator_values_for_boundary(
 @router.post("/values")
 async def submit_indicator_value(
     req: IndicatorValueCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
@@ -290,6 +304,16 @@ async def submit_indicator_value(
     await db.flush()
     await db.refresh(iv)
 
+    await create_audit_log(
+        db,
+        user_id=current_user.id,
+        action="create" if msg.startswith("Indicator value submitted") else "update",
+        entity_type="indicator_value",
+        entity_id=str(iv.id),
+        new_values={"indicator_id": req.indicator_id, "boundary_pcode": req.boundary_pcode, "value": req.value},
+        request=request,
+    )
+
     return envelope(
         data={
             "id": iv.id,
@@ -308,34 +332,61 @@ async def submit_indicator_value(
 @router.post("/values/bulk")
 async def bulk_upload_indicator_values(
     file: UploadFile = File(...),
+    request: Request = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
-    """Bulk upload indicator values from a CSV file.
+    """Bulk upload indicator values from a CSV or Excel file.
 
-    CSV columns: indicator_code, boundary_pcode, value, source_name (optional)
+    CSV/XLSX columns: indicator_code, boundary_pcode, value, source_name (optional)
     """
-    if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are accepted")
+    is_csv = file.filename.endswith(".csv")
+    is_xlsx = file.filename.endswith(".xlsx")
+
+    if not is_csv and not is_xlsx:
+        raise HTTPException(status_code=400, detail="Only CSV (.csv) and Excel (.xlsx) files are accepted")
 
     content = await file.read()
-    try:
-        text = content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded")
 
-    reader = csv.DictReader(io.StringIO(text))
+    if is_xlsx:
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(io.BytesIO(content), read_only=True)
+            ws = wb.active
+            rows_iter = ws.iter_rows(values_only=True)
+            header = [str(c).strip() if c else "" for c in next(rows_iter)]
+            data_rows = []
+            for row_vals in rows_iter:
+                row_dict = {}
+                for idx, col in enumerate(header):
+                    row_dict[col] = str(row_vals[idx]).strip() if idx < len(row_vals) and row_vals[idx] is not None else ""
+                data_rows.append(row_dict)
+            wb.close()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to parse Excel file: {str(e)}")
+    else:
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="File must be UTF-8 encoded")
+        reader = csv.DictReader(io.StringIO(text))
+        header = reader.fieldnames or []
+        data_rows = list(reader)
 
     required_cols = {"indicator_code", "boundary_pcode", "value"}
-    if not required_cols.issubset(set(reader.fieldnames or [])):
+    if not required_cols.issubset(set(header)):
         raise HTTPException(
             status_code=400,
-            detail=f"CSV must have columns: indicator_code, boundary_pcode, value, source_name (optional). Found: {reader.fieldnames}",
+            detail=f"File must have columns: indicator_code, boundary_pcode, value, source_name (optional). Found: {header}",
         )
 
-    # Pre-fetch indicator codes
-    ind_result = await db.execute(select(ClimateIndicator.id, ClimateIndicator.code))
-    code_to_id = {row.code: row.id for row in ind_result.all()}
+    # Pre-fetch indicator codes (both code and gis_attribute_id)
+    ind_result = await db.execute(select(ClimateIndicator.id, ClimateIndicator.code, ClimateIndicator.gis_attribute_id))
+    code_to_id = {}
+    for row in ind_result.all():
+        code_to_id[row.code] = row.id
+        if row.gis_attribute_id:
+            code_to_id[row.gis_attribute_id] = row.id
 
     # Pre-fetch boundary pcodes
     bnd_result = await db.execute(select(AdminBoundary.pcode))
@@ -345,11 +396,22 @@ async def bulk_upload_indicator_values(
     src_result = await db.execute(select(Source.id, Source.name))
     name_to_source_id = {row.name.lower(): row.id for row in src_result.all()}
 
+    # Pre-fetch indicator reference for range validation
+    ref_result = await db.execute(
+        select(
+            IndicatorReference.indicator_id,
+            IndicatorReference.global_min,
+            IndicatorReference.global_max,
+        )
+    )
+    ref_by_ind_id = {row.indicator_id: (row.global_min, row.global_max) for row in ref_result.all()}
+
     errors = []
+    warnings = []
     created = 0
     updated = 0
 
-    for i, row in enumerate(reader, start=2):
+    for i, row in enumerate(data_rows, start=2):
         indicator_code = (row.get("indicator_code") or "").strip()
         boundary_pcode = (row.get("boundary_pcode") or "").strip()
         value_str = (row.get("value") or "").strip()
@@ -357,35 +419,42 @@ async def bulk_upload_indicator_values(
 
         # Validate
         if not indicator_code:
-            errors.append(f"Row {i}: missing indicator_code")
+            errors.append({"row": i, "indicator_code": "", "boundary_pcode": boundary_pcode, "value": value_str, "error": "missing indicator_code"})
             continue
         if not boundary_pcode:
-            errors.append(f"Row {i}: missing boundary_pcode")
+            errors.append({"row": i, "indicator_code": indicator_code, "boundary_pcode": "", "value": value_str, "error": "missing boundary_pcode"})
             continue
         if not value_str:
-            errors.append(f"Row {i}: missing value")
+            errors.append({"row": i, "indicator_code": indicator_code, "boundary_pcode": boundary_pcode, "value": "", "error": "missing value"})
             continue
 
         try:
             num_value = float(value_str)
         except ValueError:
-            errors.append(f"Row {i}: invalid value '{value_str}'")
+            errors.append({"row": i, "indicator_code": indicator_code, "boundary_pcode": boundary_pcode, "value": value_str, "error": f"invalid value '{value_str}'"})
             continue
 
         if indicator_code not in code_to_id:
-            errors.append(f"Row {i}: unknown indicator_code '{indicator_code}'")
+            errors.append({"row": i, "indicator_code": indicator_code, "boundary_pcode": boundary_pcode, "value": value_str, "error": f"unknown indicator_code '{indicator_code}'"})
             continue
         if boundary_pcode not in valid_pcodes:
-            errors.append(f"Row {i}: unknown boundary_pcode '{boundary_pcode}'")
+            errors.append({"row": i, "indicator_code": indicator_code, "boundary_pcode": boundary_pcode, "value": value_str, "error": f"unknown boundary_pcode '{boundary_pcode}'"})
             continue
 
         source_id = None
         if source_name:
             source_id = name_to_source_id.get(source_name.lower())
             if source_id is None:
-                errors.append(f"Row {i}: unknown source_name '{source_name}' (skipping source, value still saved)")
+                warnings.append(f"Row {i}: unknown source_name '{source_name}' (skipping source, value still saved)")
 
         ind_id = code_to_id[indicator_code]
+
+        # Range validation (warn, don't reject)
+        ref = ref_by_ind_id.get(ind_id)
+        if ref:
+            g_min, g_max = ref
+            if num_value < g_min or num_value > g_max:
+                warnings.append(f"Row {i}: {indicator_code} value {num_value} outside expected range [{g_min}, {g_max}]")
 
         # Upsert
         existing = await db.execute(
@@ -400,6 +469,8 @@ async def bulk_upload_indicator_values(
             iv.value = num_value
             iv.source_id = source_id
             iv.submitted_by = current_user.id
+            iv.is_deleted = False
+            iv.deleted_at = None
             updated += 1
         else:
             iv = IndicatorValue(
@@ -414,15 +485,26 @@ async def bulk_upload_indicator_values(
 
     await db.flush()
 
+    await create_audit_log(
+        db,
+        user_id=current_user.id,
+        action="create",
+        entity_type="bulk_upload",
+        entity_id=file.filename or "upload",
+        new_values={"created": created, "updated": updated, "errors": len(errors)},
+        request=request,
+    )
+
     return envelope(
-        data={"created": created, "updated": updated, "errors": errors},
-        message=f"Bulk upload complete: {created} created, {updated} updated, {len(errors)} errors",
+        data={"created": created, "updated": updated, "errors": errors, "warnings": warnings},
+        message=f"Bulk upload complete: {created} created, {updated} updated, {len(errors)} errors, {len(warnings)} warnings",
     )
 
 
 @router.delete("/values/{value_id}")
 async def delete_indicator_value(
     value_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
@@ -433,9 +515,56 @@ async def delete_indicator_value(
     if not iv:
         raise HTTPException(status_code=404, detail="Indicator value not found")
 
-    await db.delete(iv)
+    iv.is_deleted = True
+    iv.deleted_at = datetime.now(timezone.utc)
     await db.flush()
+
+    await create_audit_log(
+        db,
+        user_id=current_user.id,
+        action="delete",
+        entity_type="indicator_value",
+        entity_id=str(value_id),
+        old_values={"indicator_id": iv.indicator_id, "boundary_pcode": iv.boundary_pcode, "value": iv.value},
+        request=request,
+    )
+
     return envelope(message="Indicator value deleted successfully")
+
+
+@router.post("/values/{value_id}/restore")
+async def restore_indicator_value(
+    value_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    """Restore a soft-deleted indicator value (admin only)."""
+    result = await db.execute(
+        select(IndicatorValue).where(
+            IndicatorValue.id == value_id,
+            IndicatorValue.is_deleted == True,
+        )
+    )
+    iv = result.scalar_one_or_none()
+    if not iv:
+        raise HTTPException(status_code=404, detail="Deleted indicator value not found")
+
+    iv.is_deleted = False
+    iv.deleted_at = None
+    await db.flush()
+
+    await create_audit_log(
+        db,
+        user_id=current_user.id,
+        action="restore",
+        entity_type="indicator_value",
+        entity_id=str(value_id),
+        new_values={"indicator_id": iv.indicator_id, "boundary_pcode": iv.boundary_pcode, "value": iv.value},
+        request=request,
+    )
+
+    return envelope(message="Indicator value restored successfully")
 
 
 # ── Indicator CRUD (parameterized /{indicator_id} routes last) ──

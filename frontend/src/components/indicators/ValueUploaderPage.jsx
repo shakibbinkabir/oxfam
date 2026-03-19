@@ -24,8 +24,8 @@ export default function ValueUploaderPage() {
 
   function handleFileChange(e) {
     const selected = e.target.files[0];
-    if (selected && !selected.name.endsWith(".csv")) {
-      toast.error("Only CSV files are accepted");
+    if (selected && !selected.name.endsWith(".csv") && !selected.name.endsWith(".xlsx")) {
+      toast.error("Only CSV and Excel (.xlsx) files are accepted");
       e.target.value = "";
       return;
     }
@@ -36,7 +36,7 @@ export default function ValueUploaderPage() {
   async function handleUpload(e) {
     e.preventDefault();
     if (!file) {
-      toast.error("Please select a CSV file");
+      toast.error("Please select a CSV or Excel file");
       return;
     }
 
@@ -65,7 +65,7 @@ export default function ValueUploaderPage() {
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-800 mb-2">Value Uploader</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Bulk upload indicator values using a CSV file. Download the sample file for the expected format.
+        Bulk upload indicator values using a CSV or Excel (.xlsx) file. Download the sample file for the expected format.
       </p>
 
       {/* Instructions */}
@@ -111,7 +111,7 @@ export default function ValueUploaderPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx"
             onChange={handleFileChange}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#1B4F72] file:text-white hover:file:bg-[#154360] file:cursor-pointer"
           />
@@ -127,7 +127,7 @@ export default function ValueUploaderPage() {
           disabled={uploading || !file}
           className="mt-4 w-full py-3 px-4 bg-[#1B4F72] text-white rounded-md font-medium hover:bg-[#154360] disabled:opacity-50 transition-colors"
         >
-          {uploading ? "Uploading..." : "Upload CSV"}
+          {uploading ? "Uploading..." : "Upload"}
         </button>
       </form>
 
@@ -145,16 +145,48 @@ export default function ValueUploaderPage() {
               <div className="text-xs text-blue-700">Updated</div>
             </div>
             <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">{result.errors.length}</div>
+              <div className="text-2xl font-bold text-red-600">{result.errors?.length || 0}</div>
               <div className="text-xs text-red-700">Errors</div>
             </div>
           </div>
-          {result.errors.length > 0 && (
+          {result.warnings?.length > 0 && (
+            <div className="bg-yellow-50 rounded-lg p-3 max-h-32 overflow-y-auto mb-3">
+              <h3 className="text-sm font-medium text-yellow-800 mb-2">Warnings ({result.warnings.length}):</h3>
+              <ul className="text-xs text-yellow-700 space-y-1">
+                {result.warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {result.errors?.length > 0 && (
             <div className="bg-red-50 rounded-lg p-3 max-h-48 overflow-y-auto">
-              <h3 className="text-sm font-medium text-red-800 mb-2">Errors:</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-red-800">Errors:</h3>
+                <button
+                  onClick={() => {
+                    const header = "row_number,indicator_code,boundary_pcode,value,error_message\n";
+                    const rows = result.errors.map((e) =>
+                      typeof e === "object"
+                        ? `${e.row},${e.indicator_code},${e.boundary_pcode},${e.value},"${e.error}"`
+                        : `,,,"${e}"`
+                    ).join("\n");
+                    const blob = new Blob([header + rows], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "upload_errors.csv";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="text-xs text-red-700 underline hover:text-red-900"
+                >
+                  Download Error Report
+                </button>
+              </div>
               <ul className="text-xs text-red-700 space-y-1">
                 {result.errors.map((err, i) => (
-                  <li key={i}>{err}</li>
+                  <li key={i}>{typeof err === "object" ? `Row ${err.row}: ${err.error}` : err}</li>
                 ))}
               </ul>
             </div>

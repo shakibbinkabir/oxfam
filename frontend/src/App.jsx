@@ -10,10 +10,12 @@ import IndicatorsPage from "./components/indicators/IndicatorsPage";
 import SubmitIndicatorPage from "./components/indicators/SubmitIndicatorPage";
 import IndicatorValuesPage from "./components/indicators/IndicatorValuesPage";
 import ValueUploaderPage from "./components/indicators/ValueUploaderPage";
+import RiskIndexWizard from "./components/indicators/RiskIndexWizard";
 import UnitsPage from "./components/units/UnitsPage";
 import SourcesPage from "./components/sources/SourcesPage";
 import UsersPage from "./components/users/UsersPage";
 import ScenariosPage from "./components/scenarios/ScenariosPage";
+import AuditLogPage from "./components/audit/AuditLogPage";
 
 export default function App() {
   return (
@@ -49,7 +51,23 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="submit-risk-index"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <RiskIndexWizard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="scenarios" element={<ScenariosPage />} />
+          <Route
+            path="audit-log"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="units" element={<UnitsPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route

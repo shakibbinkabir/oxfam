@@ -27,6 +27,9 @@ export const submitIndicatorValue = (data) =>
 export const deleteIndicatorValue = (id) =>
   client.delete(`/indicators/values/${id}`);
 
+export const restoreIndicatorValue = (id) =>
+  client.post(`/indicators/values/${id}/restore`);
+
 export const listIndicatorValues = (params = {}) =>
   client.get("/indicators/values", { params });
 

@@ -1,13 +1,46 @@
 import { useState, useEffect } from "react";
 import { getScoresSummary } from "../../api/scores";
+import { exportCsv, exportShapefile } from "../../api/exports";
 import useMapContext from "../../contexts/MapContext";
+import { useAuth } from "../../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const LEVEL_LABELS = { 1: "Divisions", 2: "Districts", 3: "Upazilas", 4: "Unions" };
 
 export default function KPISummaryBar() {
   const { level, parentPcode } = useMapContext();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  async function handleExportCsv() {
+    try {
+      const res = await exportCsv({ level });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `crvap_export_adm${level}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to export CSV");
+    }
+  }
+
+  async function handleExportShapefile() {
+    try {
+      const res = await exportShapefile({ level });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `crvap_shapefile_adm${level}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to export Shapefile");
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +116,25 @@ export default function KPISummaryBar() {
         value={`${summary.data_coverage_pct?.toFixed(1) ?? 0}%`}
         sub={`${summary.boundaries_with_data ?? 0} of ${summary.total_boundaries ?? 0} ${levelLabel.toLowerCase()}`}
       />
+
+      <div className="ml-auto flex items-center gap-2 shrink-0">
+        <button
+          onClick={handleExportCsv}
+          className="px-2.5 py-1 text-xs font-medium text-white/80 border border-white/30 rounded hover:bg-white/10 transition-colors"
+          title="Export CSV"
+        >
+          CSV
+        </button>
+        {isAdmin && (
+          <button
+            onClick={handleExportShapefile}
+            className="px-2.5 py-1 text-xs font-medium text-white/80 border border-white/30 rounded hover:bg-white/10 transition-colors"
+            title="Export Shapefile (Admin)"
+          >
+            SHP
+          </button>
+        )}
+      </div>
     </div>
   );
 }
