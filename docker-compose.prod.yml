@@ -28,6 +28,29 @@ services:
     volumes:
       - ./data:/data
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    ports: []
+
+  celery_worker:
+    build: ./backend
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/climatedb
+      CORS_ORIGINS: https://your-domain.com
+      ENVIRONMENT: production
+      REDIS_URL: redis://redis:6379/0
+    secrets:
+      - jwt_secret
+      - db_password
+    depends_on:
+      - db
+      - redis
+    restart: always
+
   frontend:
     build:
       context: ./frontend
@@ -64,3 +87,4 @@ secrets:
 
 volumes:
   frontend_dist:
+  redis_data:
