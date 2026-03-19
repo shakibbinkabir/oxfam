@@ -1,5 +1,3 @@
-
-
 **PRODUCT REQUIREMENT DOCUMENT**
 
 # **Climate Risk & Vulnerability Assessment Platform**
