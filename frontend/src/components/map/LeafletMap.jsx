@@ -175,13 +175,13 @@ export default function LeafletMap() {
   const {
     level, indicator, selectedPcode, parentPcode,
     canDrillDown, canDrillUp,
-    setIndicator, selectFeature, clearSelection, drillDown, drillUp, resetView,
+    setIndicator, selectFeature, clearSelection: _clearSelection, drillDown, drillUp, resetView,
     simulationResult,
   } = useMapContext();
 
   const LEGEND_KEYS = { "Very Low": "legend.veryLow", "Low": "legend.low", "Medium": "legend.medium", "High": "legend.high", "Very High": "legend.veryHigh" };
 
-  const [bounds, setBounds] = useState(null);
+  const [_bounds, setBounds] = useState(null);
   const [tileLayer, setTileLayer] = useState("osm");
   const [showLayerMenu, setShowLayerMenu] = useState(false);
   const selectedLayerRef = useRef(null);
@@ -191,6 +191,7 @@ export default function LeafletMap() {
 
   const [geoKey, setGeoKey] = useState(0);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (geoData) setGeoKey((prev) => prev + 1);
   }, [geoData]);
 
@@ -313,7 +314,7 @@ export default function LeafletMap() {
   const tile = TILE_LAYERS[tileLayer];
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" aria-label="Climate risk choropleth map of Bangladesh">
       {loading && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white px-4 py-2 rounded-md shadow-md text-sm text-gray-600">
           {t('map.loadingScores')}
@@ -338,7 +339,7 @@ export default function LeafletMap() {
       </MapContainer>
 
       {/* Indicator Selector */}
-      <div className="absolute top-4 left-4 z-[1000] flex gap-1 bg-white rounded-lg shadow-md p-1">
+      <div className="absolute top-4 left-4 z-[1000] flex gap-1 bg-white rounded-lg shadow-md p-1" role="toolbar" aria-label="Map indicator selector">
         {INDICATOR_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -410,7 +411,7 @@ export default function LeafletMap() {
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-4 z-[1000] bg-white rounded-md shadow-md p-3 min-w-[140px]">
+      <div className="absolute bottom-6 left-4 z-[1000] bg-white rounded-md shadow-md p-3 min-w-[140px]" role="complementary" aria-label="Map legend">
         <h4 className="text-xs font-semibold text-gray-600 mb-2">{t('indicator_selector.' + indicator)} {t('legend.score')}</h4>
         <div className="space-y-1">
           {SCORE_COLORS.map((band) => (

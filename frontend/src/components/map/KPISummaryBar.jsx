@@ -44,6 +44,7 @@ export default function KPISummaryBar() {
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     const params = { level };
@@ -82,7 +83,7 @@ export default function KPISummaryBar() {
   }
 
   return (
-    <div className="h-[60px] bg-[#1B4F72] flex items-center px-4 gap-6 overflow-x-auto">
+    <div className="h-[60px] bg-[#1B4F72] flex items-center px-4 gap-6 overflow-x-auto" role="region" aria-label="Key performance indicators">
       {/* Highest Risk */}
       <KPIItem
         label={t('kpi.highestRisk')}
@@ -141,7 +142,7 @@ export default function KPISummaryBar() {
 
 function KPIItem({ label, value, sub, highlight }) {
   return (
-    <div className="flex flex-col min-w-0 shrink-0">
+    <div className="flex flex-col min-w-0 shrink-0" aria-label={`${label}: ${value}`}>
       <span className="text-white/60 text-[10px] uppercase tracking-wider font-medium">{label}</span>
       <span className={`text-sm font-bold truncate ${highlight ? "text-yellow-300" : "text-white"}`}>
         {value}

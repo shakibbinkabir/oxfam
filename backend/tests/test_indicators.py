@@ -8,7 +8,7 @@ from tests.conftest import auth_header
 
 @pytest.mark.asyncio
 async def test_authenticated_can_list(client: AsyncClient, user_token):
-    res = await client.get("/api/v1/indicators", headers=auth_header(user_token))
+    res = await client.get("/api/v1/indicators/", headers=auth_header(user_token))
     assert res.status_code == 200
     data = res.json()["data"]
     assert "indicators" in data
@@ -17,14 +17,14 @@ async def test_authenticated_can_list(client: AsyncClient, user_token):
 
 @pytest.mark.asyncio
 async def test_unauthenticated_cannot_list(client: AsyncClient):
-    res = await client.get("/api/v1/indicators")
-    assert res.status_code == 403 or res.status_code == 401
+    res = await client.get("/api/v1/indicators/")
+    assert res.status_code in (401, 403)
 
 
 @pytest.mark.asyncio
 async def test_admin_can_create(client: AsyncClient, admin_token):
     code = f"test_{uuid.uuid4().hex[:8]}"
-    res = await client.post("/api/v1/indicators",
+    res = await client.post("/api/v1/indicators/",
         headers=auth_header(admin_token),
         json={
             "component": "Hazard",
@@ -41,7 +41,7 @@ async def test_admin_can_create(client: AsyncClient, admin_token):
 
 @pytest.mark.asyncio
 async def test_user_cannot_create(client: AsyncClient, user_token):
-    res = await client.post("/api/v1/indicators",
+    res = await client.post("/api/v1/indicators/",
         headers=auth_header(user_token),
         json={
             "component": "Hazard",
@@ -55,7 +55,7 @@ async def test_user_cannot_create(client: AsyncClient, user_token):
 @pytest.mark.asyncio
 async def test_admin_can_update(client: AsyncClient, admin_token):
     code = f"upd_{uuid.uuid4().hex[:8]}"
-    create_res = await client.post("/api/v1/indicators",
+    create_res = await client.post("/api/v1/indicators/",
         headers=auth_header(admin_token),
         json={
             "component": "Hazard",
@@ -76,7 +76,7 @@ async def test_admin_can_update(client: AsyncClient, admin_token):
 @pytest.mark.asyncio
 async def test_admin_can_delete(client: AsyncClient, admin_token):
     code = f"del_{uuid.uuid4().hex[:8]}"
-    create_res = await client.post("/api/v1/indicators",
+    create_res = await client.post("/api/v1/indicators/",
         headers=auth_header(admin_token),
         json={
             "component": "Environmental",
@@ -95,7 +95,7 @@ async def test_admin_can_delete(client: AsyncClient, admin_token):
 @pytest.mark.asyncio
 async def test_duplicate_code(client: AsyncClient, admin_token):
     code = f"dup_{uuid.uuid4().hex[:8]}"
-    await client.post("/api/v1/indicators",
+    await client.post("/api/v1/indicators/",
         headers=auth_header(admin_token),
         json={
             "component": "Hazard",
@@ -103,7 +103,7 @@ async def test_duplicate_code(client: AsyncClient, admin_token):
             "code": code,
         },
     )
-    res = await client.post("/api/v1/indicators",
+    res = await client.post("/api/v1/indicators/",
         headers=auth_header(admin_token),
         json={
             "component": "Hazard",

@@ -98,8 +98,11 @@ export function MapProvider({ children }) {
   return <MapContext.Provider value={value}>{children}</MapContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export default function useMapContext() {
   const ctx = useContext(MapContext);
   if (!ctx) throw new Error("useMapContext must be used within MapProvider");
   return ctx;
 }
+
+export { MapContext };

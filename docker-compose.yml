@@ -30,11 +30,41 @@ services:
       CORS_ORIGINS: http://localhost:5173,http://localhost
       SHAPEFILE_DIR: /data/shapefiles
       ENVIRONMENT: development
+      REDIS_URL: redis://redis:6379/0
     volumes:
       - ./backend:/app
       - ./data:/data
     depends_on:
       db:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  celery_worker:
+    build: ./backend
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/climatedb
+      JWT_SECRET_KEY: dev-secret-key-change-in-production
+      ENVIRONMENT: development
+    volumes:
+      - ./backend:/app
+      - ./data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   frontend:
@@ -62,3 +92,6 @@ services:
       - backend
       - frontend
     restart: unless-stopped
+
+volumes:
+  redis_data:

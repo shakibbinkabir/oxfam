@@ -16,6 +16,8 @@ from app.api.simulation import router as simulation_router
 from app.api.risk_index import router as risk_index_router
 from app.api.exports import router as exports_router
 from app.api.audit import router as audit_router
+from app.api.batch_upload import router as batch_upload_router
+from app.api.websocket import router as ws_router
 from app.scripts.seed_superadmin import seed_superadmin
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Bangladesh Climate Risk Assessment Platform",
-    version="0.1.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -58,6 +60,8 @@ app.include_router(simulation_router)
 app.include_router(risk_index_router)
 app.include_router(exports_router)
 app.include_router(audit_router)
+app.include_router(batch_upload_router)
+app.include_router(ws_router)
 
 
 @app.get("/")
