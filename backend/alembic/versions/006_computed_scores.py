@@ -16,29 +16,35 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "computed_scores",
-        sa.Column("id", sa.Integer(), autoincrement=True, primary_key=True),
-        sa.Column("boundary_pcode", sa.String(20), unique=True, nullable=False),
-        sa.Column("hazard_score", sa.Float(), nullable=True),
-        sa.Column("soc_exposure_score", sa.Float(), nullable=True),
-        sa.Column("sensitivity_score", sa.Float(), nullable=True),
-        sa.Column("adaptive_capacity_score", sa.Float(), nullable=True),
-        sa.Column("env_exposure_score", sa.Float(), nullable=True),
-        sa.Column("env_sensitivity_score", sa.Float(), nullable=True),
-        sa.Column("exposure_score", sa.Float(), nullable=True),
-        sa.Column("vulnerability_score", sa.Float(), nullable=True),
-        sa.Column("cri_score", sa.Float(), nullable=True),
-        sa.Column(
-            "computed_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.func.now(),
-        ),
-        sa.Column("is_stale", sa.Boolean(), server_default="false"),
-    )
-    op.create_index(
-        "idx_computed_scores_pcode", "computed_scores", ["boundary_pcode"]
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if "computed_scores" not in inspector.get_table_names():
+        op.create_table(
+            "computed_scores",
+            sa.Column("id", sa.Integer(), autoincrement=True, primary_key=True),
+            sa.Column("boundary_pcode", sa.String(20), unique=True, nullable=False),
+            sa.Column("hazard_score", sa.Float(), nullable=True),
+            sa.Column("soc_exposure_score", sa.Float(), nullable=True),
+            sa.Column("sensitivity_score", sa.Float(), nullable=True),
+            sa.Column("adaptive_capacity_score", sa.Float(), nullable=True),
+            sa.Column("env_exposure_score", sa.Float(), nullable=True),
+            sa.Column("env_sensitivity_score", sa.Float(), nullable=True),
+            sa.Column("exposure_score", sa.Float(), nullable=True),
+            sa.Column("vulnerability_score", sa.Float(), nullable=True),
+            sa.Column("cri_score", sa.Float(), nullable=True),
+            sa.Column(
+                "computed_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.func.now(),
+            ),
+            sa.Column("is_stale", sa.Boolean(), server_default="false"),
+        )
+    if "idx_computed_scores_pcode" not in [
+        idx["name"] for idx in inspector.get_indexes("computed_scores")
+    ]:
+        op.create_index(
+            "idx_computed_scores_pcode", "computed_scores", ["boundary_pcode"]
+        )
 
 
 def downgrade() -> None:

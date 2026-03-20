@@ -16,14 +16,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "admin_boundaries",
-        sa.Column("name_bn", sa.String(200), nullable=True),
-    )
-    op.add_column(
-        "climate_indicators",
-        sa.Column("indicator_name_bn", sa.String(300), nullable=True),
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+
+    ab_cols = [c["name"] for c in inspector.get_columns("admin_boundaries")]
+    if "name_bn" not in ab_cols:
+        op.add_column(
+            "admin_boundaries",
+            sa.Column("name_bn", sa.String(200), nullable=True),
+        )
+
+    ci_cols = [c["name"] for c in inspector.get_columns("climate_indicators")]
+    if "indicator_name_bn" not in ci_cols:
+        op.add_column(
+            "climate_indicators",
+            sa.Column("indicator_name_bn", sa.String(300), nullable=True),
+        )
 
 
 def downgrade() -> None:
