@@ -27,6 +27,7 @@ from app.schemas.indicator import (
     IndicatorValueUpdate,
 )
 from app.services.audit import create_audit_log
+from app.services.cvi_engine import compute_and_cache
 from app.api.websocket import broadcast_event
 
 router = APIRouter(prefix="/api/v1/indicators", tags=["indicators"])
@@ -320,6 +321,9 @@ async def submit_indicator_value(
         request=request,
     )
 
+    # Auto-compute CRI scores for this boundary
+    await compute_and_cache(db, req.boundary_pcode)
+
     await broadcast_event("indicator_value_changed", {
         "boundary_pcode": req.boundary_pcode,
         "indicator_id": req.indicator_id,
@@ -496,6 +500,17 @@ async def bulk_upload_indicator_values(
 
     await db.flush()
 
+    # Auto-compute CRI scores for all affected boundaries
+    affected_pcodes = set()
+    for row in data_rows:
+        pcode = (row.get("boundary_pcode") or "").strip()
+        if pcode and pcode in valid_pcodes:
+            code = (row.get("indicator_code") or "").strip()
+            if code in code_to_id:
+                affected_pcodes.add(pcode)
+    for pcode in affected_pcodes:
+        await compute_and_cache(db, pcode)
+
     await create_audit_log(
         db,
         user_id=current_user.id,
@@ -536,6 +551,9 @@ async def delete_indicator_value(
     iv.deleted_at = datetime.now(timezone.utc)
     await db.flush()
 
+    # Recompute scores after deletion
+    await compute_and_cache(db, iv.boundary_pcode)
+
     await create_audit_log(
         db,
         user_id=current_user.id,
@@ -575,6 +593,9 @@ async def restore_indicator_value(
     iv.is_deleted = False
     iv.deleted_at = None
     await db.flush()
+
+    # Recompute scores after restoration
+    await compute_and_cache(db, iv.boundary_pcode)
 
     await create_audit_log(
         db,

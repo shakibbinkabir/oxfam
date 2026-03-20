@@ -357,18 +357,76 @@ async def get_scores_summary(
     current_user: User = Depends(get_current_user),
 ):
     """Return aggregate KPI statistics for the KPI summary bar."""
-    query = (
-        select(
-            AdminBoundary.name_en,
-            AdminBoundary.pcode,
-            ComputedScore.cri_score,
-        )
-        .join(ComputedScore, AdminBoundary.pcode == ComputedScore.boundary_pcode)
-        .where(AdminBoundary.adm_level == level)
-    )
+    from sqlalchemy.orm import aliased
 
-    if parent_pcode:
-        query = query.where(AdminBoundary.parent_pcode == parent_pcode)
+    if level == 4:
+        # Direct join for unions
+        query = (
+            select(
+                AdminBoundary.name_en,
+                AdminBoundary.pcode,
+                ComputedScore.cri_score,
+            )
+            .outerjoin(ComputedScore, AdminBoundary.pcode == ComputedScore.boundary_pcode)
+            .where(AdminBoundary.adm_level == 4)
+        )
+        if parent_pcode:
+            query = query.where(AdminBoundary.parent_pcode == parent_pcode)
+    else:
+        # For levels 1-3: aggregate child union scores
+        UnionBnd = aliased(AdminBoundary, name="union_bnd")
+
+        if level == 3:
+            agg_sub = (
+                select(
+                    UnionBnd.parent_pcode.label("parent_pcode_key"),
+                    func.avg(ComputedScore.cri_score).label("cri_score"),
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(UnionBnd.parent_pcode)
+            ).subquery("agg")
+        elif level == 2:
+            UpazilaAlias = aliased(AdminBoundary, name="upazila_bnd")
+            agg_sub = (
+                select(
+                    UpazilaAlias.parent_pcode.label("parent_pcode_key"),
+                    func.avg(ComputedScore.cri_score).label("cri_score"),
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .join(UpazilaAlias, UnionBnd.parent_pcode == UpazilaAlias.pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(UpazilaAlias.parent_pcode)
+            ).subquery("agg")
+        else:  # level == 1
+            UpazilaAlias = aliased(AdminBoundary, name="upazila_bnd")
+            DistrictAlias = aliased(AdminBoundary, name="district_bnd")
+            agg_sub = (
+                select(
+                    DistrictAlias.parent_pcode.label("parent_pcode_key"),
+                    func.avg(ComputedScore.cri_score).label("cri_score"),
+                )
+                .select_from(UnionBnd)
+                .join(ComputedScore, UnionBnd.pcode == ComputedScore.boundary_pcode)
+                .join(UpazilaAlias, UnionBnd.parent_pcode == UpazilaAlias.pcode)
+                .join(DistrictAlias, UpazilaAlias.parent_pcode == DistrictAlias.pcode)
+                .where(UnionBnd.adm_level == 4)
+                .group_by(DistrictAlias.parent_pcode)
+            ).subquery("agg")
+
+        query = (
+            select(
+                AdminBoundary.name_en,
+                AdminBoundary.pcode,
+                agg_sub.c.cri_score,
+            )
+            .outerjoin(agg_sub, AdminBoundary.pcode == agg_sub.c.parent_pcode_key)
+            .where(AdminBoundary.adm_level == level)
+        )
+        if parent_pcode:
+            query = query.where(AdminBoundary.parent_pcode == parent_pcode)
 
     result = await db.execute(query)
     rows = result.all()
