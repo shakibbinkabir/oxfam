@@ -25,4 +25,6 @@ export const getUnions = (upazilaPcode) => {
 
 export const getUnionDetail = (pcode) => client.get(`/geo/unions/${pcode}`);
 
+export const searchBoundaries = (q) => client.get("/geo/search", { params: { q } });
+
 export const getGeoStats = () => client.get("/geo/stats");

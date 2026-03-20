@@ -4,6 +4,7 @@ import { getScoresSummary } from "../../api/scores";
 import { exportCsv, exportShapefile } from "../../api/exports";
 import useMapContext from "../../contexts/MapContext";
 import { useAuth } from "../../contexts/AuthContext";
+import BoundarySearch from "./BoundarySearch";
 import toast from "react-hot-toast";
 
 export default function KPISummaryBar() {
@@ -119,6 +120,8 @@ export default function KPISummaryBar() {
       />
 
       <div className="ml-auto flex items-center gap-2 shrink-0">
+        <BoundarySearch />
+        <div className="w-px h-6 bg-white/20" />
         <button
           onClick={handleExportCsv}
           className="px-2.5 py-1 text-xs font-medium text-white/80 border border-white/30 rounded hover:bg-white/10 transition-colors"

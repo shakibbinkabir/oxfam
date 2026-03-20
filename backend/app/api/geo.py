@@ -4,8 +4,9 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from geoalchemy2.functions import ST_AsGeoJSON, ST_Intersects, ST_MakeEnvelope, ST_Simplify
-from sqlalchemy import func, select, text
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 
 def safe_float(val):
@@ -297,6 +298,81 @@ async def get_union_detail(
         "area_sq_km": safe_float(row.area_sq_km),
         "geometry": json.loads(row.geojson) if row.geojson else None,
     }
+    return envelope(data=data)
+
+
+@router.get("/search")
+async def search_boundaries(
+    q: str = Query(..., min_length=1),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    P1 = aliased(AdminBoundary)
+    P2 = aliased(AdminBoundary)
+    P3 = aliased(AdminBoundary)
+
+    search_term = f"%{q}%"
+    query = (
+        select(
+            AdminBoundary.pcode,
+            AdminBoundary.name_en,
+            AdminBoundary.name_bn,
+            AdminBoundary.adm_level,
+            AdminBoundary.parent_pcode,
+            AdminBoundary.division_name,
+            AdminBoundary.district_name,
+            AdminBoundary.upazila_name,
+            P1.pcode.label("p1_pcode"),
+            P2.pcode.label("p2_pcode"),
+            P3.pcode.label("p3_pcode"),
+        )
+        .outerjoin(P1, AdminBoundary.parent_pcode == P1.pcode)
+        .outerjoin(P2, P1.parent_pcode == P2.pcode)
+        .outerjoin(P3, P2.parent_pcode == P3.pcode)
+        .where(
+            or_(
+                AdminBoundary.name_en.ilike(search_term),
+                AdminBoundary.name_bn.ilike(search_term),
+                AdminBoundary.pcode.ilike(search_term),
+            )
+        )
+        .order_by(AdminBoundary.adm_level, AdminBoundary.name_en)
+        .limit(20)
+    )
+
+    result = await db.execute(query)
+    rows = result.all()
+
+    data = []
+    for row in rows:
+        # Build ancestry (drill history) for frontend navigation
+        ancestry = []
+        if row.adm_level == 2:
+            ancestry = [{"level": 1, "parentPcode": None}]
+        elif row.adm_level == 3:
+            ancestry = [
+                {"level": 1, "parentPcode": None},
+                {"level": 2, "parentPcode": row.p2_pcode},
+            ]
+        elif row.adm_level == 4:
+            ancestry = [
+                {"level": 1, "parentPcode": None},
+                {"level": 2, "parentPcode": row.p3_pcode},
+                {"level": 3, "parentPcode": row.p2_pcode},
+            ]
+
+        data.append({
+            "pcode": row.pcode,
+            "name_en": row.name_en,
+            "name_bn": row.name_bn,
+            "adm_level": row.adm_level,
+            "parent_pcode": row.parent_pcode,
+            "division_name": row.division_name,
+            "district_name": row.district_name,
+            "upazila_name": row.upazila_name,
+            "ancestry": ancestry,
+        })
+
     return envelope(data=data)
 
 

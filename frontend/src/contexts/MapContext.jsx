@@ -57,6 +57,17 @@ function reducer(state, action) {
       return { ...state, simulationResult: action.payload };
     case "CLEAR_SIMULATION":
       return { ...state, simulationResult: null, simulationModalOpen: false, simulationPcode: null };
+    case "NAVIGATE_TO": {
+      const { level, parentPcode, drillHistory } = action.payload;
+      return {
+        ...state,
+        level,
+        parentPcode: parentPcode || null,
+        drillHistory: drillHistory || [],
+        selectedPcode: null,
+        selectedFeature: null,
+      };
+    }
     case "RESET_VIEW":
       return { ...initialState, indicator: state.indicator };
     default:
@@ -72,6 +83,7 @@ export function MapProvider({ children }) {
   const clearSelection = useCallback(() => dispatch({ type: "CLEAR_SELECTION" }), []);
   const drillDown = useCallback((pcode) => dispatch({ type: "DRILL_DOWN", payload: pcode }), []);
   const drillUp = useCallback(() => dispatch({ type: "DRILL_UP" }), []);
+  const navigateTo = useCallback((payload) => dispatch({ type: "NAVIGATE_TO", payload }), []);
   const resetView = useCallback(() => dispatch({ type: "RESET_VIEW" }), []);
   const openSimulation = useCallback((pcode) => dispatch({ type: "OPEN_SIMULATION", payload: pcode }), []);
   const closeSimulation = useCallback(() => dispatch({ type: "CLOSE_SIMULATION" }), []);
@@ -88,6 +100,7 @@ export function MapProvider({ children }) {
     clearSelection,
     drillDown,
     drillUp,
+    navigateTo,
     resetView,
     openSimulation,
     closeSimulation,

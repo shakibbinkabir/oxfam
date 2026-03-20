@@ -414,6 +414,10 @@
     "next": "Next",
     "unknown": "Unknown"
   },
+  "search": {
+    "placeholder": "Search area...",
+    "noResults": "No matching areas found"
+  },
   "roles": {
     "superadmin": "Superadmin",
     "admin": "Admin",
