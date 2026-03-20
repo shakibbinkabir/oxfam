@@ -84,42 +84,36 @@ export default function KPISummaryBar() {
   }
 
   return (
-    <div className="h-[60px] bg-[#1B4F72] flex items-center px-4 gap-6 overflow-x-auto" role="region" aria-label="Key performance indicators">
-      {/* Highest Risk */}
-      <KPIItem
-        label={t('kpi.highestRisk')}
-        value={summary.highest_risk ? `${summary.highest_risk.name}` : "—"}
-        sub={summary.highest_risk ? `CRI ${summary.highest_risk.cri?.toFixed(3)}` : null}
-        highlight
-      />
+    <div className="h-[60px] bg-[#1B4F72] flex items-center px-4 gap-0" role="region" aria-label="Key performance indicators">
+      {/* Scrollable KPI stats */}
+      <div className="flex items-center gap-6 overflow-x-auto min-w-0 flex-1">
+        <KPIItem
+          label={t('kpi.highestRisk')}
+          value={summary.highest_risk ? `${summary.highest_risk.name}` : "—"}
+          sub={summary.highest_risk ? `CRI ${summary.highest_risk.cri?.toFixed(3)}` : null}
+          highlight
+        />
+        <Divider />
+        <KPIItem
+          label={t('kpi.averageCri')}
+          value={summary.average_cri != null ? summary.average_cri.toFixed(3) : "—"}
+        />
+        <Divider />
+        <KPIItem
+          label={t('kpi.highRisk') + ' ' + levelLabel}
+          value={summary.high_risk_boundaries ?? 0}
+          sub="CRI > 0.6"
+        />
+        <Divider />
+        <KPIItem
+          label={t('kpi.dataCoverage')}
+          value={`${summary.data_coverage_pct?.toFixed(1) ?? 0}%`}
+          sub={`${summary.boundaries_with_data ?? 0} ${t('kpi.of')} ${summary.total_boundaries ?? 0} ${levelLabel.toLowerCase()}`}
+        />
+      </div>
 
-      <Divider />
-
-      {/* Average CRI */}
-      <KPIItem
-        label={t('kpi.averageCri')}
-        value={summary.average_cri != null ? summary.average_cri.toFixed(3) : "—"}
-      />
-
-      <Divider />
-
-      {/* High Risk Count */}
-      <KPIItem
-        label={t('kpi.highRisk') + ' ' + levelLabel}
-        value={summary.high_risk_boundaries ?? 0}
-        sub="CRI > 0.6"
-      />
-
-      <Divider />
-
-      {/* Data Coverage */}
-      <KPIItem
-        label={t('kpi.dataCoverage')}
-        value={`${summary.data_coverage_pct?.toFixed(1) ?? 0}%`}
-        sub={`${summary.boundaries_with_data ?? 0} ${t('kpi.of')} ${summary.total_boundaries ?? 0} ${levelLabel.toLowerCase()}`}
-      />
-
-      <div className="ml-auto flex items-center gap-2 shrink-0">
+      {/* Search + export — outside the scrollable area so dropdown can overflow */}
+      <div className="flex items-center gap-2 shrink-0 ml-4">
         <BoundarySearch />
         <div className="w-px h-6 bg-white/20" />
         <button
