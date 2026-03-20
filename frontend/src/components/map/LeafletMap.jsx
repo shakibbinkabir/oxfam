@@ -15,15 +15,6 @@ const SCORE_COLORS = [
 
 const NO_DATA_COLOR = "#A6ACAF";
 
-const INDICATOR_OPTIONS = [
-  { value: "cri", label: "CRI" },
-  { value: "hazard", label: "Hazard" },
-  { value: "exposure", label: "Exposure" },
-  { value: "sensitivity", label: "Sensitivity" },
-  { value: "adaptive_capacity", label: "Adaptive Capacity" },
-  { value: "vulnerability", label: "Vulnerability" },
-];
-
 const TILE_LAYERS = {
   osm: { url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", name: "Street", attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
   light: { url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", name: "Light", attribution: '&copy; <a href="https://carto.com/">CARTO</a>' },
@@ -175,7 +166,7 @@ export default function LeafletMap() {
   const {
     level, indicator, selectedPcode, parentPcode,
     canDrillDown, canDrillUp,
-    setIndicator, selectFeature, clearSelection: _clearSelection, drillDown, drillUp, resetView,
+    selectFeature, clearSelection: _clearSelection, drillDown, drillUp, resetView,
     simulationResult,
   } = useMapContext();
 
@@ -338,22 +329,6 @@ export default function LeafletMap() {
         <SimulationOverlay simulationResult={simulationResult} geoData={geoData} />
       </MapContainer>
 
-      {/* Indicator Selector */}
-      <div className="absolute top-4 left-4 z-[1000] flex gap-1 bg-white rounded-lg shadow-md p-1" role="toolbar" aria-label="Map indicator selector">
-        {INDICATOR_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setIndicator(opt.value)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              indicator === opt.value
-                ? "bg-[#1B4F72] text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            {t('indicator_selector.' + opt.value)}
-          </button>
-        ))}
-      </div>
 
       {/* Navigation Controls */}
       <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
