@@ -229,10 +229,70 @@ DIVISION_PROFILES = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Division baseline risk: overall risk tendency per division (0 = low, 1 = high)
+# Creates meaningful regional variation in final CRI scores
+# ---------------------------------------------------------------------------
+DIVISION_BASE_RISK = {
+    "Rangpur":     0.68,   # Highest risk — monga belt, extreme poverty
+    "Barisal":     0.64,   # Coastal surge, salinity, low infrastructure
+    "Khulna":      0.58,   # Coastal + Sundarbans challenges
+    "Sylhet":      0.54,   # Haor flooding, remote areas
+    "Mymensingh":  0.50,   # Moderate — newly separated division
+    "Rajshahi":    0.46,   # Drought risk offset by agriculture
+    "Chittagong":  0.42,   # Mixed — hills + port economy
+    "Dhaka":       0.30,   # Best infrastructure, lowest overall risk
+}
+
+# ---------------------------------------------------------------------------
+# Dimension groupings — which CVI dimension each indicator belongs to.
+# Used to create within-dimension correlation so that averaging N indicators
+# does NOT collapse variance to ~0.5 (the "regression to mean" problem).
+# ---------------------------------------------------------------------------
+DIMENSION_FOR_CODE = {}
+_DIM_GROUPS = {
+    "hazard": [
+        "rainfall", "heat", "colddays", "drought", "water",
+        "erosion", "surge", "salinity", "lightning",
+    ],
+    "soc_exposure": ["population", "household", "female", "child_old"],
+    "sensitivity": [
+        "pop_density", "dependency", "disable", "unemployed", "fm_ratio",
+        "vulnerable_hh", "hh_size", "slum_float", "poverty", "crop_damage",
+        "occupation", "edu_hamper", "migration",
+    ],
+    "adaptive_capacity": [
+        "literacy", "electricity", "solar", "drink_water", "sanitation",
+        "handwash", "edu_institute", "shelter_cov", "market_cov", "mfs",
+        "internet", "production", "mangrove", "cc_awareness", "disaster_prep",
+        "safety_net", "pavedroad",
+    ],
+    "env_exposure": ["forest", "waterbody", "agri_land"],
+    "env_sensitivity": ["ndvi", "wetland_loss", "groundwater"],
+}
+for _dim, _codes in _DIM_GROUPS.items():
+    for _c in _codes:
+        DIMENSION_FOR_CODE[_c] = _dim
+
+
 def _pcode_seed(pcode: str, indicator_code: str) -> int:
     """Deterministic seed from pcode + indicator code for reproducibility."""
     h = hashlib.md5(f"{pcode}:{indicator_code}".encode()).hexdigest()
     return int(h[:8], 16)
+
+
+def _union_base_risk(pcode: str) -> float:
+    """Deterministic per-union risk factor (shared across ALL indicators)."""
+    h = hashlib.md5(pcode.encode()).hexdigest()
+    rng = random.Random(int(h[:8], 16))
+    return rng.betavariate(2, 2)
+
+
+def _dimension_risk(pcode: str, dimension: str) -> float:
+    """Deterministic per-union per-dimension risk factor."""
+    h = hashlib.md5(f"{pcode}:{dimension}".encode()).hexdigest()
+    rng = random.Random(int(h[:8], 16))
+    return rng.betavariate(2, 2)
 
 
 def generate_value(
@@ -240,24 +300,40 @@ def generate_value(
     division: str,
     pcode: str,
 ) -> float:
-    """Generate a realistic value for one indicator in one union."""
+    """Generate a realistic, correlated value for one indicator in one union.
+
+    Uses three levels of correlation to prevent regression-to-the-mean:
+      1. Division baseline — regional risk tendency
+      2. Union risk factor — per-union risk shared across all indicators
+      3. Dimension risk factor — per-union per-dimension, shared within dimension
+    Plus per-indicator noise for natural variation.
+    """
     lo, hi = INDICATOR_RANGES.get(indicator_code, (0, 1))
     span = hi - lo
 
-    # Deterministic random per (pcode, indicator)
+    # Per-indicator deterministic random
     rng = random.Random(_pcode_seed(pcode, indicator_code))
 
-    # Base position within range (0 to 1)
-    base_pos = rng.random()
+    # Three correlated layers:
+    div_risk = DIVISION_BASE_RISK.get(division, 0.50)
+    union_risk = _union_base_risk(pcode)
+    dimension = DIMENSION_FOR_CODE.get(indicator_code, "other")
+    dim_risk = _dimension_risk(pcode, dimension)
 
-    # Apply regional modifier: scales the position within the range
-    # modifier < 1 → pushes values lower, modifier > 1 → pushes higher
+    # Blend: 25% division + 30% union + 25% dimension + 20% indicator noise
+    # This ensures ~80% of the signal is correlated, preserving variance after averaging
+    base_pos = (0.25 * div_risk
+                + 0.30 * union_risk
+                + 0.25 * dim_risk
+                + 0.20 * rng.random())
+
+    # Apply regional modifier (per-indicator specialization)
     profile = DIVISION_PROFILES.get(division, {})
     modifier = profile.get(indicator_code, 1.0)
     adjusted_pos = base_pos * modifier
 
-    # Add noise (±8% of range) for within-division variation
-    noise = rng.gauss(0, 0.08)
+    # Small jitter for natural variation
+    noise = rng.gauss(0, 0.04)
     adjusted_pos += noise
 
     # Clamp position to [0, 1]
