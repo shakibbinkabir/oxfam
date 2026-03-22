@@ -78,9 +78,10 @@ function MapEventHandler({ onViewChange }) {
   return null;
 }
 
-function FitBoundsOnData({ geoData }) {
+function FitBoundsOnData({ geoData, level }) {
   const map = useMap();
   const prevDataRef = useRef(null);
+  const prevLevelRef = useRef(level);
 
   useEffect(() => {
     if (!geoData?.features?.length) return;
@@ -88,16 +89,30 @@ function FitBoundsOnData({ geoData }) {
     if (key === prevDataRef.current) return;
     prevDataRef.current = key;
 
+    const isDrillingDown = level > prevLevelRef.current;
+    prevLevelRef.current = level;
+
     try {
       const layer = L.geoJSON(geoData);
       const bounds = layer.getBounds();
       if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+        if (isDrillingDown) {
+          // When drilling down, never zoom out past the current zoom
+          const currentZoom = map.getZoom();
+          const targetZoom = map.getBoundsZoom(bounds, false, L.point(30, 30));
+          if (targetZoom < currentZoom) {
+            map.setView(bounds.getCenter(), currentZoom);
+          } else {
+            map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+          }
+        } else {
+          map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+        }
       }
     } catch {
       // ignore invalid geojson
     }
-  }, [geoData, map]);
+  }, [geoData, map, level]);
 
   return null;
 }
@@ -315,7 +330,7 @@ export default function LeafletMap() {
       <MapContainer center={[23.685, 90.3563]} zoom={7} className="w-full h-full" zoomControl={true} doubleClickZoom={false}>
         <TileLayer attribution={tile.attribution} url={tile.url} key={tileLayer} />
         <MapEventHandler onViewChange={handleViewChange} />
-        {hasFeatures && <FitBoundsOnData geoData={geoData} />}
+        {hasFeatures && <FitBoundsOnData geoData={geoData} level={level} />}
         {hasFeatures && (
           <GeoJSON
             key={geoKey}
