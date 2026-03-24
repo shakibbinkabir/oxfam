@@ -3,11 +3,7 @@
 
 services:
   db:
-    environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     ports: []
-    secrets:
-      - db_password
 
   backend:
     build: ./backend
@@ -20,7 +16,6 @@ services:
     secrets:
       - jwt_secret
       - superadmin_password
-      - db_password
     volumes:
       - ./data:/data
 
@@ -41,7 +36,6 @@ services:
       REDIS_URL: redis://redis:6379/0
     secrets:
       - jwt_secret
-      - db_password
     depends_on:
       - db
       - redis
@@ -68,8 +62,6 @@ secrets:
     file: ./secrets/jwt_secret.txt
   superadmin_password:
     file: ./secrets/superadmin_password.txt
-  db_password:
-    file: ./secrets/db_password.txt
 
 volumes:
   frontend_dist:
