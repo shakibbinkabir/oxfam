@@ -100,7 +100,7 @@ clean:
 # Staging deployment (production build, HTTP only — no SSL)
 staging:
 	docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d --build
-	@echo Staging services started (HTTP only).
+	@echo "Staging services started."
 
 # Production deployment
 prod:

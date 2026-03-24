@@ -10,7 +10,7 @@ services:
     ports: []
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/climatedb
-      CORS_ORIGINS: http://72.60.43.44
+      CORS_ORIGINS: https://oxfam.capec.consulting
       ENVIRONMENT: production
       REDIS_URL: redis://redis:6379/0
     secrets:
@@ -31,7 +31,7 @@ services:
     command: celery -A app.celery_app worker --loglevel=info --concurrency=4
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/climatedb
-      CORS_ORIGINS: http://72.60.43.44
+      CORS_ORIGINS: https://oxfam.capec.consulting
       ENVIRONMENT: production
       REDIS_URL: redis://redis:6379/0
     secrets:
