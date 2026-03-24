@@ -104,4 +104,8 @@ echo "  Backend:  http://localhost:8000/docs"
 echo "  Login:    admin@example.com / admin123456"
 echo "============================================"
 echo ""
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*' --reload
+if [ "$ENVIRONMENT" = "production" ]; then
+  exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*' --workers 2
+else
+  exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+fi

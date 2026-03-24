@@ -28,7 +28,7 @@ services:
 
   celery_worker:
     build: ./backend
-    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/climatedb
       CORS_ORIGINS: https://oxfam.capec.consulting
