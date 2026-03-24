@@ -1,4 +1,4 @@
-.PHONY: setup dev test seed seed-geo seed-indicators migrate stop clean download-geodata nuke wait-db backup restore prod
+.PHONY: setup dev test seed seed-geo seed-indicators migrate stop clean download-geodata nuke wait-db backup restore prod staging
 
 # ========== ONE COMMAND TO RULE THEM ALL ==========
 # Destroys everything and rebuilds from scratch
@@ -96,6 +96,11 @@ clean:
 	docker compose down -v
 
 # ========== Production ==========
+
+# Staging deployment (production build, HTTP only — no SSL)
+staging:
+	docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d --build
+	@echo Staging services started (HTTP only).
 
 # Production deployment
 prod:
