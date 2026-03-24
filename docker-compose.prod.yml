@@ -55,6 +55,9 @@ services:
     build:
       context: ./frontend
       target: production
+    entrypoint: ["sh", "-c", "cp -a /usr/share/nginx/html/. /frontend_dist/ && echo 'Frontend dist copied.'"]
+    volumes:
+      - frontend_dist:/frontend_dist
     ports: []  # Served via nginx
 
   nginx:
@@ -68,7 +71,10 @@ services:
       - ./certbot/www:/var/www/certbot:ro
       - frontend_dist:/usr/share/nginx/html:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_started
+      frontend:
+        condition: service_completed_successfully
 
   certbot:
     image: certbot/certbot
