@@ -50,7 +50,7 @@ async def create_user(
 
     user = User(
         email=req.email,
-        hashed_password=hash_password(req.password),
+        hashed_password=await hash_password(req.password),
         full_name=req.full_name,
         role=req.role,
     )

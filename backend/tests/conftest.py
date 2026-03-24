@@ -11,7 +11,7 @@ from app.config import settings
 from app.database import Base, get_db
 from app.main import app
 from app.models.user import User, UserRole
-from app.api.auth import hash_password, create_tokens
+from app.api.auth import hash_password_sync as hash_password, create_tokens
 
 # Use a test database URL (same DB with test_ prefix or override via env)
 TEST_DATABASE_URL = settings.DATABASE_URL

@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
@@ -25,12 +26,20 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 _IS_PROD = settings.ENVIRONMENT == "production"
 
 
-def hash_password(password: str) -> str:
+def hash_password_sync(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def verify_password(plain: str, hashed: str) -> bool:
+async def hash_password(password: str) -> str:
+    return await asyncio.to_thread(hash_password_sync, password)
+
+
+def verify_password_sync(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
+
+
+async def verify_password(plain: str, hashed: str) -> bool:
+    return await asyncio.to_thread(verify_password_sync, plain, hashed)
 
 
 def create_token(data: dict, expires_delta: timedelta) -> str:
@@ -87,7 +96,7 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
     user = User(
         email=req.email,
-        hashed_password=hash_password(req.password),
+        hashed_password=await hash_password(req.password),
         full_name=req.full_name,
         role="user",
     )
@@ -104,7 +113,7 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 async def login(req: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(req.password, user.hashed_password):
+    if not user or not await verify_password(req.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     if not user.is_active:
         raise HTTPException(status_code=401, detail="Account is inactive")
@@ -185,12 +194,12 @@ async def change_password(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if not verify_password(req.current_password, current_user.hashed_password):
+    if not await verify_password(req.current_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     if len(req.new_password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
 
-    current_user.hashed_password = hash_password(req.new_password)
+    current_user.hashed_password = await hash_password(req.new_password)
     db.add(current_user)
     await db.flush()
     return envelope(message="Password changed successfully")
